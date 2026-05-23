@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: workorder
 id: T0009
 title: Fork release flow for Windows artifacts
-status: BLOCKED
+status: DONE
 type: execution
 intervention_type: decision-requiring
 created_at: "2026-05-24 01:24:49 +08:00"
-started_at: "2026-05-24T02:08:21+08:00"
-completed_at: "2026-05-24T02:21:33+08:00"
-updated_at: "2026-05-24T02:21:33+08:00"
-renewed_at: "2026-05-24 02:04:12 +08:00"
-commit: "52377158d554da4fead19197b42441b19289aa4f"
+started_at: "2026-05-24T02:32:08+08:00"
+completed_at: "2026-05-24T03:02:03+08:00"
+updated_at: "2026-05-24T03:02:03+08:00"
+renewed_at: "2026-05-24 02:27:55 +08:00"
+commit: "4c7429afcb696e59c8df2cf31124ddcb94e4ba94"
 plan_id: PLAN-001
 sizing: medium
 affects_files:
@@ -27,16 +27,16 @@ depends_on:
 ## 元資料
 - **工單編號**：T0009
 - **任務名稱**：Fork release flow for Windows artifacts
-- **狀態**：BLOCKED
+- **狀態**：DONE
 - **建立時間**：2026-05-24 01:24:49 (UTC+8)
-- **開始時間**：2026-05-24T02:08:21+08:00
-- **完成時間**：2026-05-24T02:21:33+08:00
-- **Commit**：52377158d554da4fead19197b42441b19289aa4f
+- **開始時間**：2026-05-24T02:32:08+08:00
+- **完成時間**：2026-05-24T03:02:03+08:00
+- **Commit**：4c7429afcb696e59c8df2cf31124ddcb94e4ba94
 - **目標子專案**：release / GitHub Actions
 - **關聯 PLAN**：PLAN-001
 - **基於工單**：T0008
 - **intervention_type**：decision-requiring
-- **Renew 次數**：2
+- **Renew 次數**：3
 - **affects_files**：
   - `.github/workflows/*`
   - `src-tauri/tauri.conf.json`
@@ -160,6 +160,16 @@ To mark DONE, all must be true:
 **新指示**：
 > 重新讀取工單與目前 repo state。先確認 remote tag `v0.6.24` 仍指向失敗 commit `3a94c9e`，且 branch `feat/windows-port-mvp` 的 release workflow fix commit 是 `5237715`（或其完整 SHA）。本 Renew 明確授權只針對 `v0.6.24` 做 force-update / delete-recreate tag 到 `5237715`，然後推送 tag、等待 GitHub Actions publish workflow，並驗證 Windows NSIS setup、`.sig`、`latest.json` Windows platform entry、artifact URLs 是否指向 `gowerlin/openusage`。若 tag 狀態不符合上述已知情境，或 Actions/release artifact 驗證失敗，停止並回報 PARTIAL/BLOCKED；不要改版本號，不要印出 secret value。
 
+## 塔台補充（Renew #3）
+
+**時間**：2026-05-24 02:27:55 (UTC+8)
+
+**補充內容**：
+> 使用者要求產生新的 Tauri updater key pair，並同步更新 `src-tauri/tauri.conf.json` 的 updater `pubkey`。Renew #2 已確認 `v0.6.24` tag 在 `5237715`，但 GitHub Actions run `26339904804` 因 updater signing secret/password 或 key 格式失敗，且尚未建立 release。
+
+**新指示**：
+> 產生新的 Tauri updater key pair，不得印出 private key 或 password。private key 備份需放在 repo 外，例如 `%USERPROFILE%\\.tauri\\openusage-updater-v0.6.24.key`；若使用 password，也只能用安全管道寫入 GitHub secret，不得寫進 repo 或 log。將新的 public key 寫入 `src-tauri/tauri.conf.json` 的 updater `pubkey`，並用新的 private key/password 更新 `gowerlin/openusage` 的 `TAURI_SIGNING_PRIVATE_KEY` 與 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。先用本機 build/signing 驗證新 key 可用，再 commit/push branch。因 `tauri.conf.json` 會產生新 commit，本 Renew 授權在確認沒有 release 存在、且 remote tag 仍指向 `5237715` 或前次失敗 release commit 時，將 `v0.6.24` force-update 到新的 pubkey commit 後重跑 publish workflow。若已存在 GitHub Release、tag 指到未知 commit、secret 設定失敗、或 signing 仍失敗，停止並回報 BLOCKED/PARTIAL。
+
 ### Forbidden
 
 - Do not print secret values.
@@ -191,85 +201,98 @@ To mark DONE, all must be true:
 > 以下由 sub-session 填寫，請勿在塔台 session 中編輯
 
 ### 完成狀態
-BLOCKED
+DONE
 
 ### Preflight
 - Branch：`feat/windows-port-mvp`
-- Start HEAD：`52377158d554da4fead19197b42441b19289aa4f`
-- Branch HEAD：`52377158d554da4fead19197b42441b19289aa4f` (`fix(release): pin tauri action version`)
+- Renew #3 start local HEAD：`15b274c` (`chore(ct): close T0009 release rerun`)
+- Remote branch before push：`refs/heads/feat/windows-port-mvp` = `52377158d554da4fead19197b42441b19289aa4f`
 - Remote：`origin=https://github.com/gowerlin/openusage.git`
 - Intended release repo：`gowerlin/openusage`
 - Version/tag：`package.json=0.6.24`, `src-tauri/tauri.conf.json=0.6.24`, `src-tauri/Cargo.toml=0.6.24`, target tag `v0.6.24`
-- Renew #2 preflight remote tag before update：
-  - tag object：`3eacd8a9d8d5640f55838ef9c72a36b4000d2279`
-  - dereferenced commit：`3a94c9ebcf3df917a4631d54819cd45216a95796`
-- Branch fix commit preflight：`git ls-remote origin refs/heads/feat/windows-port-mvp` returned `52377158d554da4fead19197b42441b19289aa4f`.
-- Existing release before rerun：`gh release view v0.6.24 --repo gowerlin/openusage` returned `release not found`.
-- Secrets metadata：`gh api repos/gowerlin/openusage/actions/secrets --jq "{total_count, names: [.secrets[].name]}"` returned `total_count=2` with required names present: `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Secret values were not read or printed.
-- Workflow scope：Windows-only matrix, `windows-latest`, `x86_64-pc-windows-msvc --bundles nsis`; action ref is `tauri-apps/tauri-action@v0.6.2`.
+- Existing release before Renew #3 rerun：`gh release view v0.6.24 --repo gowerlin/openusage` returned `release not found`.
+- Remote tag before Renew #3 update：`refs/tags/v0.6.24^{}` = `52377158d554da4fead19197b42441b19289aa4f`.
+- Secrets metadata：`total_count=2`, names present: `TAURI_SIGNING_PRIVATE_KEY`, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Secret values were not printed.
+- Workflow scope：Windows-only matrix, `windows-latest`, `x86_64-pc-windows-msvc --bundles nsis`; action ref `tauri-apps/tauri-action@v0.6.2`.
 - Updater endpoint：`https://github.com/gowerlin/openusage/releases/latest/download/latest.json`.
-- Working tree before remote operation：`_ct-workorders/` and `t0006-settings-shortcut-windows.png` were untracked. They were not included in tag `v0.6.24`.
+- Working tree boundary：existing untracked `_ct-workorders/*` and `t0006-settings-shortcut-windows.png` were left untouched and not included in release tag.
+
+### Key rotation
+- Final private key path：`C:\Users\Gower\.tauri\openusage-updater-v0.6.24.key`
+- Final public key path：`C:\Users\Gower\.tauri\openusage-updater-v0.6.24.key.pub`
+- Superseded key backups from final rotation：
+  - `C:\Users\Gower\.tauri\openusage-updater-v0.6.24.key.bak-20260524-024718`
+  - `C:\Users\Gower\.tauri\openusage-updater-v0.6.24.key.pub.bak-20260524-024718`
+- Final active key uses a generated password. The final active private key/password were not printed and were written to GitHub Actions secrets through `gh secret set`.
+- `src-tauri/tauri.conf.json` updater `pubkey` was updated to the final public key.
+- Source commit：`4c7429afcb696e59c8df2cf31124ddcb94e4ba94` (`fix(release): rotate updater key`).
+
+### Local validation
+- PASS：`ruby -e "require 'yaml'; YAML.load_file('.github/workflows/publish.yml'); puts 'publish.yml ok'"`
+- PASS：`node -e "JSON.parse(... tauri.conf.json ...); JSON.parse(... package.json ...); console.log('json ok')"`
+- PASS：`bun run build`
+- PASS：`bun run test --run`
+  - 61 test files passed.
+  - 1113 tests passed.
+  - Existing Tauri store mock stderr appeared; exit code remained 0.
+- PASS：`bun run bundle:plugins`
+  - Bundled 18 plugins.
+- PASS：VS dev env cargo check with `LIBCLANG_PATH`
+  - `cargo check --manifest-path src-tauri/Cargo.toml`
+- PASS：local Tauri signing build with final key/password
+  - `bun tauri build --target x86_64-pc-windows-msvc --bundles nsis`
+  - Produced `OpenUsage_0.6.24_x64-setup.exe` (5,255,502 bytes locally).
+  - Produced `OpenUsage_0.6.24_x64-setup.exe.sig` (420 bytes locally).
 
 ### Release actions
-- Renew #2 authorization used：force-update only `v0.6.24` from failed commit `3a94c9e` to branch fix commit `5237715`.
-- Local tag update：`git tag -f -a v0.6.24 52377158d554da4fead19197b42441b19289aa4f -m "v0.6.24"`.
+- Branch push：`git push origin feat/windows-port-mvp` succeeded (`5237715..4c7429a`).
+- Local tag update：`git tag -f -a v0.6.24 4c7429afcb696e59c8df2cf31124ddcb94e4ba94 -m "v0.6.24"`.
 - Push tag：`git push --force origin refs/tags/v0.6.24` succeeded.
 - Tag refs after push：
-  - tag object：`a56b1c95329f1d149ba0169c6e8d94afde34e55a`
-  - dereferenced commit：`52377158d554da4fead19197b42441b19289aa4f`
-- GitHub Actions run：`26339904804` / `https://github.com/gowerlin/openusage/actions/runs/26339904804`
-- Actions result：FAILED in `Run tauri-apps/tauri-action@v0.6.2`.
-- Successful run steps before failure：
-  - `actions/checkout@v4`
-  - `dtolnay/rust-toolchain@stable`
-  - `swatinem/rust-cache@v2`
-  - `ilammy/msvc-dev-cmd@v1`
-  - `oven-sh/setup-bun@v2`
-  - `bun install`
-  - `bun run bundle:plugins`
-  - bundled plugin verification
-  - Windows build environment setup
-  - release tag validation
-  - app version/tag match validation
-- Build evidence before failure：Tauri release build finished and NSIS produced `OpenUsage_0.6.24_x64-setup.exe` inside the runner.
-- Failure root cause：updater signing failed with `failed to decode secret key: incorrect updater private key password: Missing comment in secret key`.
-- No secret values were read or printed.
-- No source change, version bump, second tag move, or rerun was performed after this failure.
+  - tag object：`7449ac270404399f6fe1067d72d722778f175c9e`
+  - dereferenced commit：`4c7429afcb696e59c8df2cf31124ddcb94e4ba94`
+- GitHub Actions run：`26340728709`
+  - URL：`https://github.com/gowerlin/openusage/actions/runs/26340728709`
+  - Status：`completed`
+  - Conclusion：`success`
+  - headBranch：`v0.6.24`
+  - headSha：`4c7429afcb696e59c8df2cf31124ddcb94e4ba94`
+- Successful run steps included checkout, Rust toolchain, cache, MSVC dev cmd, Bun install, plugin bundle, bundled plugin verification, Windows build env, release tag/version validation, `tauri-apps/tauri-action@v0.6.2`, and updater asset verification.
 
-### Verification
+### Release verification
 | Check | Status | Evidence |
 |-------|--------|----------|
-| Remote tag points to intended commit | PASS | `refs/tags/v0.6.24^{}` now resolves to `52377158d554da4fead19197b42441b19289aa4f`. |
-| Workflow started from corrected tag | PASS | Run `26339904804` has `headBranch=v0.6.24`, `headSha=52377158d554da4fead19197b42441b19289aa4f`. |
-| Workflow success | FAILED | Run `26339904804` failed in `tauri-apps/tauri-action@v0.6.2`. |
-| Windows setup asset | NOT VERIFIED | Runner produced `OpenUsage_0.6.24_x64-setup.exe`, but action failed before release upload. `gh release view v0.6.24 --repo gowerlin/openusage` returned `release not found`. |
-| Windows .sig | FAILED | Updater signing failed before `.sig` upload: `failed to decode secret key: incorrect updater private key password: Missing comment in secret key`. |
-| latest.json Windows entry | FAILED | No release exists; `https://github.com/gowerlin/openusage/releases/latest/download/latest.json` returned `404`. |
-| Artifact URLs target repo | FAILED | No `latest.json` exists for this fork release. |
+| GitHub release exists | PASS | `https://github.com/gowerlin/openusage/releases/tag/v0.6.24`, draft=false, prerelease=false. |
+| Workflow success | PASS | Run `26340728709` conclusion `success`. |
+| Remote tag points to intended commit | PASS | `refs/tags/v0.6.24^{}` = `4c7429afcb696e59c8df2cf31124ddcb94e4ba94`. |
+| Windows setup asset | PASS | `OpenUsage_0.6.24_x64-setup.exe`, size 5,240,010, sha256 `e4752ac8c3a89f35ce62ddf084715bef9e9e138290c395002f660e92f7bb4949`. |
+| Windows .sig | PASS | `OpenUsage_0.6.24_x64-setup.exe.sig`, size 420, sha256 `076212101885013b0f9a223ee5e831dad6cee77a93e6048b5402f34eee30ab9e`. |
+| latest.json | PASS | `latest.json`, size 1,276, sha256 `00b77c103a28f75cadd4283637f8a4bfe7af4f84b909a49460d602c959e6b03e`. |
+| latest.json Windows entries | PASS | Platforms: `windows-x86_64`, `windows-x86_64-nsis`; both have signature length 420. |
+| Artifact URLs target repo | PASS | latest.json URLs point to `https://github.com/gowerlin/openusage/releases/download/v0.6.24/OpenUsage_0.6.24_x64-setup.exe`. |
 
 ### 遭遇問題
-- Release is blocked by Actions secret content, not by workflow source or tag position.
-- Metadata confirms both required secret names exist, but actual signing failed with `incorrect updater private key password: Missing comment in secret key`.
-- This likely means `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` do not match, or the private key value format is invalid for Tauri/minisign.
-- Worker cannot inspect or repair secret values without violating the no-secret rule.
-- No GitHub Release was created; no Windows `.sig` or `latest.json` exists for `gowerlin/openusage`.
-- `_ct-workorders/` and `t0006-settings-shortcut-windows.png` remain untracked local files outside the release tag.
+- The standalone `tauri signer sign` CLI hung in non-interactive mode when used as a smoke test; it was not used as release proof.
+- A no-password key path still failed local `tauri build` signing with `incorrect updater private key password: Wrong password for that key`; final fix used a password-protected key generated and consumed in one secure flow.
+- An intermediate diagnostic key was superseded before the successful local build, GitHub secret update, tag update, and release run. The active release key is the final key generated after that diagnostic step.
+- GitHub Actions emitted non-blocking warnings:
+  - Node.js 20 action deprecation for `actions/checkout@v4` and `ilammy/msvc-dev-cmd@v1`.
+  - `tauri-action@v0.6.2` warns `uploadUpdaterJson` is unexpected and `includeUpdaterJson` is the supported input name; the run still succeeded and verified updater assets.
 
 ### 互動紀錄
 無
 
 ### Renew 歷程
-- Renew #1（01:51）：secrets metadata now exists and workflow is Windows-only. Worker executed release flow, pushed branch/tag, Actions failed on invalid `tauri-action@v1`; source fixed to `@v0.6.2`, but tag rerun needs explicit retag/version decision.
+- Renew #1（01:51）：secrets metadata existed and workflow was Windows-only. Worker executed release flow, pushed branch/tag, Actions failed on invalid `tauri-action@v1`; source fixed to `@v0.6.2`, but tag rerun needed explicit retag/version decision.
 - Renew #2（02:08）：user authorized force-update of `v0.6.24` from `3a94c9e` to `5237715`. Worker confirmed tag/branch state, force-updated tag, pushed it, waited for Actions run `26339904804`, and stopped after updater signing failed.
+- Renew #3（02:32）：generated final Tauri updater key pair, updated GitHub secrets and `tauri.conf.json` pubkey, verified local signing build, committed `4c7429a`, pushed branch/tag, waited for Actions run `26340728709`, and verified Windows release artifacts plus `latest.json`.
 
-### 建議下一步
-- Keep PLAN-001 open; do not claim Windows public release ready.
-- Required manual fix：recreate or correct `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in `gowerlin/openusage` Actions secrets so the private key format/password match.
-- After secrets are fixed, rerun GitHub Actions run `26339904804` or dispatch a new run from tag `v0.6.24`; the remote tag already points to corrected commit `5237715`, so no version bump or tag move is needed unless maintainer chooses a clean new version.
-- After rerun succeeds, verify release assets: Windows NSIS setup, Windows `.sig`, `latest.json` Windows platform entry, and artifact URLs pointing to `gowerlin/openusage`.
+### PLAN-001 closeout recommendation
+- PLAN-001 can close as DONE / Windows public release ready for `gowerlin/openusage` `v0.6.24`.
+- Optional follow-up：replace `tauri-action` input `uploadUpdaterJson` with `includeUpdaterJson` to remove the non-blocking workflow warning.
 
 ### sprint-status.yaml 已更新
 不適用（repo root、`_bmad-output/`、`docs/` 未找到 `sprint-status.yaml`）
 
 ### 回報時間
-2026-05-24T02:21:33+08:00
+2026-05-24T03:02:03+08:00
