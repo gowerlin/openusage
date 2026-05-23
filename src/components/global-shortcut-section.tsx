@@ -3,16 +3,29 @@ import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { GlobalShortcut } from "@/lib/settings"
 
-// Convert internal shortcut format to display format
-// e.g., "CommandOrControl+Shift+U" -> "Cmd + Shift + U"
+function isMacPlatform(): boolean {
+  if (typeof navigator === "undefined") return false
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform)
+}
+
+function commandOrControlLabel(): string {
+  return isMacPlatform() ? "Cmd" : "Ctrl"
+}
+
+function altLabel(): string {
+  return isMacPlatform() ? "Opt" : "Alt"
+}
+
+// Convert internal shortcut format to platform display format.
 function formatShortcutForDisplay(shortcut: string): string {
-  return shortcut
-    .replace(/CommandOrControl/g, "Cmd")
-    .replace(/Command/g, "Cmd")
-    .replace(/Control/g, "Ctrl")
-    .replace(/Option/g, "Opt")
-    .replace(/Alt/g, "Opt")
-    .replace(/\+/g, " + ")
+  return shortcut.split("+").map((part) => {
+    if (part === "CommandOrControl") return commandOrControlLabel()
+    if (part === "Command") return "Cmd"
+    if (part === "Control") return "Ctrl"
+    if (part === "Option") return "Opt"
+    if (part === "Alt") return altLabel()
+    return part
+  }).join(" + ")
 }
 
 // Modifier codes (using event.code for reliable detection)
@@ -107,12 +120,12 @@ function buildShortcutFromCodes(codes: Set<string>): { display: string; tauri: s
       if (normalized === "Meta" || normalized === "Control") {
         if (!modifiers.includes("CommandOrControl")) {
           modifiers.push("CommandOrControl")
-          displayMods.push("Cmd")
+          displayMods.push(commandOrControlLabel())
         }
       } else if (normalized === "Alt") {
         if (!modifiers.includes("Alt")) {
           modifiers.push("Alt")
-          displayMods.push("Opt")
+          displayMods.push(altLabel())
         }
       } else if (normalized === "Shift") {
         if (!modifiers.includes("Shift")) {

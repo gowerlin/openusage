@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { GlobalShortcutSection } from "@/components/global-shortcut-section"
+
+let platform = "MacIntel"
 
 function renderSection(globalShortcut: string | null = null) {
   const onGlobalShortcutChange = vi.fn()
@@ -20,6 +22,11 @@ async function startRecording() {
 }
 
 describe("GlobalShortcutSection", () => {
+  beforeEach(() => {
+    platform = "MacIntel"
+    vi.spyOn(window.navigator, "platform", "get").mockImplementation(() => platform)
+  })
+
   afterEach(() => {
     vi.useRealTimers()
   })
@@ -27,6 +34,15 @@ describe("GlobalShortcutSection", () => {
   it("formats persisted shortcuts for display", () => {
     renderSection("CommandOrControl+Alt+Delete")
     expect(screen.getByText("Cmd + Opt + Delete")).toBeInTheDocument()
+  })
+
+  it("formats persisted shortcuts with Windows labels", () => {
+    platform = "Win32"
+
+    renderSection("CommandOrControl+Alt+Delete")
+
+    expect(screen.getByText("Ctrl + Alt + Delete")).toBeInTheDocument()
+    expect(screen.queryByText("Cmd + Opt + Delete")).not.toBeInTheDocument()
   })
 
   it("records and saves CommandOrControl + Shift + key", async () => {
@@ -94,6 +110,23 @@ describe("GlobalShortcutSection", () => {
     fireEvent.keyUp(textbox, { key: "Alt", code: "AltLeft" })
 
     expect(onGlobalShortcutChange).toHaveBeenCalledWith("Alt+Slash")
+  })
+
+  it("records shortcuts with Windows modifier labels", async () => {
+    platform = "Win32"
+    const { onGlobalShortcutChange } = renderSection()
+    const textbox = await startRecording()
+
+    fireEvent.keyDown(textbox, { key: "Control", code: "ControlLeft" })
+    fireEvent.keyDown(textbox, { key: "Alt", code: "AltLeft" })
+    fireEvent.keyDown(textbox, { key: "/", code: "Slash" })
+    expect(screen.getByText("Ctrl + Alt + /")).toBeInTheDocument()
+
+    fireEvent.keyUp(textbox, { key: "/", code: "Slash" })
+    fireEvent.keyUp(textbox, { key: "Alt", code: "AltLeft" })
+    fireEvent.keyUp(textbox, { key: "Control", code: "ControlLeft" })
+
+    expect(onGlobalShortcutChange).toHaveBeenCalledWith("CommandOrControl+Alt+Slash")
   })
 
   it("does not save when only modifiers are pressed", async () => {

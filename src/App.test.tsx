@@ -244,6 +244,7 @@ import { useAppUiStore } from "@/stores/app-ui-store"
 
 describe("App", () => {
   beforeEach(() => {
+    vi.spyOn(window.navigator, "platform", "get").mockReturnValue("MacIntel")
     useAppUiStore.getState().resetState()
     useAppPluginStore.getState().resetState()
     useAppPreferencesStore.getState().resetState()

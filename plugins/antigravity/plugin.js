@@ -389,6 +389,10 @@
   function probeLs(ctx) {
     var discovery = discoverLs(ctx)
     if (!discovery) return null
+    if (discovery.status === "unsupported") {
+      ctx.host.log.info("LS discovery unsupported: " + (discovery.reason || discovery.platform || "unknown"))
+      return null
+    }
 
     var found = findWorkingPort(ctx, discovery)
     if (!found) return null

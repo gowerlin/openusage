@@ -4,6 +4,8 @@
   var CLOUD_COMPAT_VERSION = "1.108.2"
   var LOGIN_HINT = "Start Windsurf or sign in and try again."
   var QUOTA_HINT = "Windsurf quota data unavailable. Try again later."
+  var WINDOWS_UNSUPPORTED =
+    "Windsurf is not supported on Windows yet. Windsurf needs bundled sqlite support for its state DB."
   var DAY_MS = 24 * 60 * 60 * 1000
   var WEEK_MS = 7 * DAY_MS
 
@@ -157,6 +159,10 @@
   }
 
   function probe(ctx) {
+    if (ctx.app && ctx.app.platform === "windows") {
+      throw WINDOWS_UNSUPPORTED
+    }
+
     var sawApiKey = false
     var sawAuthFailure = false
 

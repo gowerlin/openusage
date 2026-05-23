@@ -813,4 +813,15 @@ describe("windsurf plugin", () => {
     const plugin = await loadPlugin()
     expect(() => plugin.probe(ctx)).toThrow("Windsurf quota data unavailable. Try again later.")
   })
+
+  it("fails explicitly on windows before reading sqlite", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+
+    const plugin = await loadPlugin()
+
+    expect(() => plugin.probe(ctx)).toThrow("Windsurf is not supported on Windows yet.")
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled()
+    expect(ctx.host.http.request).not.toHaveBeenCalled()
+  })
 })

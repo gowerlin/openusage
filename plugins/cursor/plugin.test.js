@@ -1769,4 +1769,15 @@ describe("cursor plugin", () => {
     const plugin = await loadPlugin()
     expect(() => plugin.probe(ctx)).toThrow("Usage request failed. Check your connection.")
   })
+
+  it("fails explicitly on windows before touching sqlite or keychain", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+
+    const plugin = await loadPlugin()
+
+    expect(() => plugin.probe(ctx)).toThrow("Cursor is not supported on Windows yet.")
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled()
+    expect(ctx.host.keychain.readGenericPassword).not.toHaveBeenCalled()
+  })
 })

@@ -1186,6 +1186,41 @@ struct HttpRespParams {
     body_text: String,
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UnsupportedHostApiResult<'a> {
+    status: &'a str,
+    api: &'a str,
+    platform: &'a str,
+    reason: &'a str,
+}
+
+fn unsupported_host_api_message(api: &str, supported: &str) -> String {
+    format!(
+        "{} is unsupported on {}; supported: {}",
+        api,
+        std::env::consts::OS,
+        supported
+    )
+}
+
+fn unsupported_host_api_result_json(api: &str, reason: &str) -> String {
+    serde_json::to_string(&UnsupportedHostApiResult {
+        status: "unsupported",
+        api,
+        platform: std::env::consts::OS,
+        reason,
+    })
+    .unwrap_or_else(|_| {
+        format!(
+            r#"{{"status":"unsupported","api":"{}","platform":"{}","reason":"{}"}}"#,
+            api,
+            std::env::consts::OS,
+            reason
+        )
+    })
+}
+
 // --- Language Server Discovery ---
 
 #[derive(serde::Deserialize)]
@@ -1220,6 +1255,19 @@ fn inject_ls<'js>(ctx: &Ctx<'js>, host: &Object<'js>, plugin_id: &str) -> rquick
                 let opts: LsDiscoverOpts = serde_json::from_str(&opts_json).map_err(|e| {
                     Exception::throw_message(&ctx_inner, &format!("invalid discover opts: {}", e))
                 })?;
+
+                if cfg!(target_os = "windows") {
+                    let reason = "process discovery is unsupported on Windows";
+                    log::warn!(
+                        "[plugin:{}] LS discover unsupported: platform={}",
+                        pid,
+                        std::env::consts::OS
+                    );
+                    return Ok(unsupported_host_api_result_json(
+                        "ctx.host.ls.discover",
+                        reason,
+                    ));
+                }
 
                 log::info!(
                     "[plugin:{}] LS discover: processName={}, markers={:?}",
@@ -2267,10 +2315,8 @@ fn inject_keychain<'js>(
             ctx.clone(),
             move |ctx_inner: Ctx<'_>, service: String| -> rquickjs::Result<String> {
                 if !cfg!(target_os = "macos") {
-                    return Err(Exception::throw_message(
-                        &ctx_inner,
-                        "keychain API is only supported on macOS",
-                    ));
+                    let message = unsupported_host_api_message("ctx.host.keychain", "macOS");
+                    return Err(Exception::throw_message(&ctx_inner, &message));
                 }
                 log::info!("[plugin:{}] keychain read: service={}", pid_read, service);
                 let output = std::process::Command::new("security")
@@ -2315,10 +2361,8 @@ fn inject_keychain<'js>(
             ctx.clone(),
             move |ctx_inner: Ctx<'_>, service: String| -> rquickjs::Result<String> {
                 if !cfg!(target_os = "macos") {
-                    return Err(Exception::throw_message(
-                        &ctx_inner,
-                        "keychain API is only supported on macOS",
-                    ));
+                    let message = unsupported_host_api_message("ctx.host.keychain", "macOS");
+                    return Err(Exception::throw_message(&ctx_inner, &message));
                 }
                 let account = current_macos_keychain_account();
                 let args = keychain_find_generic_password_args_for_account(&service, &account);
@@ -2373,10 +2417,8 @@ fn inject_keychain<'js>(
             ctx.clone(),
             move |ctx_inner: Ctx<'_>, service: String, value: String| -> rquickjs::Result<()> {
                 if !cfg!(target_os = "macos") {
-                    return Err(Exception::throw_message(
-                        &ctx_inner,
-                        "keychain API is only supported on macOS",
-                    ));
+                    let message = unsupported_host_api_message("ctx.host.keychain", "macOS");
+                    return Err(Exception::throw_message(&ctx_inner, &message));
                 }
                 log::info!("[plugin:{}] keychain write: service={}", pid_write, service);
 
@@ -2447,10 +2489,8 @@ fn inject_keychain<'js>(
             ctx.clone(),
             move |ctx_inner: Ctx<'_>, service: String, value: String| -> rquickjs::Result<()> {
                 if !cfg!(target_os = "macos") {
-                    return Err(Exception::throw_message(
-                        &ctx_inner,
-                        "keychain API is only supported on macOS",
-                    ));
+                    let message = unsupported_host_api_message("ctx.host.keychain", "macOS");
+                    return Err(Exception::throw_message(&ctx_inner, &message));
                 }
                 let account = current_macos_keychain_account();
                 let args =
@@ -2511,6 +2551,13 @@ fn inject_sqlite<'js>(ctx: &Ctx<'js>, host: &Object<'js>) -> rquickjs::Result<()
         Function::new(
             ctx.clone(),
             move |ctx_inner: Ctx<'_>, db_path: String, sql: String| -> rquickjs::Result<String> {
+                if cfg!(target_os = "windows") {
+                    let message = unsupported_host_api_message(
+                        "ctx.host.sqlite",
+                        "non-Windows hosts with sqlite3 command; Windows needs bundled sqlite3 or Rust sqlite",
+                    );
+                    return Err(Exception::throw_message(&ctx_inner, &message));
+                }
                 if sql.lines().any(|line| line.trim_start().starts_with('.')) {
                     return Err(Exception::throw_message(
                         &ctx_inner,
@@ -2569,6 +2616,13 @@ fn inject_sqlite<'js>(ctx: &Ctx<'js>, host: &Object<'js>) -> rquickjs::Result<()
         Function::new(
             ctx.clone(),
             move |ctx_inner: Ctx<'_>, db_path: String, sql: String| -> rquickjs::Result<()> {
+                if cfg!(target_os = "windows") {
+                    let message = unsupported_host_api_message(
+                        "ctx.host.sqlite",
+                        "non-Windows hosts with sqlite3 command; Windows needs bundled sqlite3 or Rust sqlite",
+                    );
+                    return Err(Exception::throw_message(&ctx_inner, &message));
+                }
                 if sql.lines().any(|line| line.trim_start().starts_with('.')) {
                     return Err(Exception::throw_message(
                         &ctx_inner,
@@ -2875,6 +2929,112 @@ mod tests {
             let _write_current_user: Function = keychain
                 .get("writeGenericPasswordForCurrentUser")
                 .expect("writeGenericPasswordForCurrentUser");
+        });
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    #[test]
+    fn keychain_api_reports_unsupported_platform() {
+        let rt = Runtime::new().expect("runtime");
+        let ctx = Context::full(&rt).expect("context");
+        ctx.with(|ctx| {
+            let app_data = std::env::temp_dir();
+            inject_host_api(&ctx, "test", &app_data, "0.0.0").expect("inject host api");
+            let err: String = ctx
+                .eval(
+                    r#"try {
+                        __openusage_ctx.host.keychain.readGenericPassword("OpenUsage Test");
+                        "ok";
+                    } catch (e) {
+                        String(e);
+                    }"#,
+                )
+                .expect("js keychain call");
+            assert!(
+                err.contains(&format!(
+                    "ctx.host.keychain is unsupported on {}",
+                    std::env::consts::OS
+                )),
+                "expected unsupported platform error, got: {err}"
+            );
+        });
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn ls_discover_returns_explicit_unsupported_result_on_windows() {
+        let rt = Runtime::new().expect("runtime");
+        let ctx = Context::full(&rt).expect("context");
+        ctx.with(|ctx| {
+            let app_data = std::env::temp_dir();
+            inject_host_api(&ctx, "test", &app_data, "0.0.0").expect("inject host api");
+            patch_ls_wrapper(&ctx).expect("patch ls wrapper");
+            let json: String = ctx
+                .eval(
+                    r#"JSON.stringify(__openusage_ctx.host.ls.discover({
+                        processName: "language_server_macos",
+                        markers: ["antigravity"],
+                        csrfFlag: "--csrf_token"
+                    }))"#,
+                )
+                .expect("js ls discover");
+            let value: serde_json::Value = serde_json::from_str(&json).expect("json result");
+            assert_eq!(value["status"], "unsupported");
+            assert_eq!(value["api"], "ctx.host.ls.discover");
+            assert_eq!(value["platform"], "windows");
+            assert!(
+                value["reason"]
+                    .as_str()
+                    .is_some_and(|reason| reason.contains("unsupported")),
+                "expected unsupported reason, got: {value}"
+            );
+        });
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn sqlite_api_reports_unsupported_on_windows() {
+        fn js_escape(text: &str) -> String {
+            text.replace('\\', "\\\\").replace('"', "\\\"")
+        }
+
+        let rt = Runtime::new().expect("runtime");
+        let ctx = Context::full(&rt).expect("context");
+        ctx.with(|ctx| {
+            let app_data = std::env::temp_dir();
+            inject_host_api(&ctx, "test", &app_data, "0.0.0").expect("inject host api");
+            let missing_db = std::env::temp_dir()
+                .join("openusage-sqlite-missing-parent")
+                .join("state.db");
+            let db_path = js_escape(&missing_db.to_string_lossy());
+
+            let query_js = format!(
+                r#"try {{
+                    __openusage_ctx.host.sqlite.query("{db_path}", "SELECT 1");
+                    "ok";
+                }} catch (e) {{
+                    String(e);
+                }}"#
+            );
+            let query_err: String = ctx.eval(query_js).expect("js sqlite query");
+            assert!(
+                query_err.contains("ctx.host.sqlite is unsupported on windows"),
+                "expected query unsupported platform error, got: {query_err}"
+            );
+
+            let exec_js = format!(
+                r#"try {{
+                    __openusage_ctx.host.sqlite.exec("{db_path}", "CREATE TABLE test(value TEXT)");
+                    "ok";
+                }} catch (e) {{
+                    String(e);
+                }}"#
+            );
+            let exec_err: String = ctx.eval(exec_js).expect("js sqlite exec");
+            assert!(
+                exec_err.contains("ctx.host.sqlite is unsupported on windows"),
+                "expected exec unsupported platform error, got: {exec_err}"
+            );
         });
     }
 

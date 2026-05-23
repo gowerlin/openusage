@@ -3,6 +3,8 @@
   const REST_API_BASE = "https://www.perplexity.ai/rest/pplx-api/v2"
   const REST_GROUPS_ENDPOINT = REST_API_BASE + "/groups"
   const RATE_LIMIT_ENDPOINT = "https://www.perplexity.ai/rest/rate-limit/all"
+  const WINDOWS_UNSUPPORTED =
+    "Perplexity is not supported on Windows yet. Perplexity needs bundled sqlite support for its app cache."
 
   const LOCAL_CACHE_DB_PATHS = [
     "~/Library/Containers/ai.perplexity.mac/Data/Library/Caches/ai.perplexity.mac/Cache.db",
@@ -390,6 +392,10 @@
   }
 
   function probe(ctx) {
+    if (ctx.app && ctx.app.platform === "windows") {
+      throw WINDOWS_UNSUPPORTED
+    }
+
     const session = loadLocalSession(ctx)
     if (!session) throw "Not logged in. Sign in via Perplexity app."
     if (session.sourcePath) ctx.host.log.info("using cache db: " + session.sourcePath)

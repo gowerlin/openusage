@@ -3,6 +3,7 @@ import { makeCtx } from "../test-helpers.js"
 
 const TOKEN_PATH = "~/.aws/sso/cache/kiro-auth-token.json"
 const PROFILE_PATH = "~/Library/Application Support/Kiro/User/globalStorage/kiro.kiroagent/profile.json"
+const WINDOWS_PROFILE_PATH = "~/AppData/Roaming/Kiro/User/globalStorage/kiro.kiroagent/profile.json"
 const LOG_PATH =
   "~/Library/Application Support/Kiro/logs/20260406T235910/window1/exthost/kiro.kiroAgent/q-client.log"
 
@@ -280,5 +281,31 @@ describe("kiro plugin", () => {
       limit: 50,
     })
     expect(result.plan).toBeUndefined()
+  })
+
+  it("reads the Kiro profile from AppData on windows for live usage", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+    writeToken(ctx, makeToken({ profileArn: "" }))
+    ctx.host.fs.writeText(
+      WINDOWS_PROFILE_PATH,
+      JSON.stringify({ arn: makeToken().profileArn, name: "Google" }, null, 2)
+    )
+
+    ctx.host.http.request.mockImplementation((opts) => {
+      expect(String(opts.url)).toContain("https://q.us-east-1.amazonaws.com/getUsageLimits?")
+      expect(String(opts.url)).toContain("profileArn=")
+      return {
+        status: 200,
+        headers: {},
+        bodyText: JSON.stringify(makeUsageOutput()),
+      }
+    })
+
+    const plugin = await loadPlugin()
+    const result = plugin.probe(ctx)
+
+    expect(result.plan).toBe("Kiro Free")
+    expect(result.lines.find((line) => line.label === "Credits")).toBeTruthy()
   })
 })
