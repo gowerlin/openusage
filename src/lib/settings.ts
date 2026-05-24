@@ -1,4 +1,5 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
 import type { PluginMeta } from "@/lib/plugin-types";
 
 // Refresh cooldown duration in milliseconds (5 minutes)
@@ -31,6 +32,7 @@ const THEME_MODE_KEY = "themeMode";
 const DISPLAY_MODE_KEY = "displayMode";
 const RESET_TIMER_DISPLAY_MODE_KEY = "resetTimerDisplayMode";
 const TIME_FORMAT_MODE_KEY = "timeFormatMode";
+const LANGUAGE_KEY = "language";
 const MENUBAR_ICON_STYLE_KEY = "menubarIconStyle";
 const LEGACY_TRAY_ICON_STYLE_KEY = "trayIconStyle";
 const LEGACY_TRAY_SHOW_PERCENTAGE_KEY = "trayShowPercentage";
@@ -42,6 +44,7 @@ export const DEFAULT_THEME_MODE: ThemeMode = "system";
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "left";
 export const DEFAULT_RESET_TIMER_DISPLAY_MODE: ResetTimerDisplayMode = "relative";
 export const DEFAULT_TIME_FORMAT_MODE: TimeFormatMode = "auto";
+export const DEFAULT_LANGUAGE: Locale = DEFAULT_LOCALE;
 export const DEFAULT_MENUBAR_ICON_STYLE: MenubarIconStyle = "provider";
 export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
 export const DEFAULT_START_ON_LOGIN = false;
@@ -240,6 +243,17 @@ export async function loadTimeFormatMode(): Promise<TimeFormatMode> {
 
 export async function saveTimeFormatMode(mode: TimeFormatMode): Promise<void> {
   await store.set(TIME_FORMAT_MODE_KEY, mode);
+  await store.save();
+}
+
+export async function loadLanguage(): Promise<Locale> {
+  const stored = await store.get<unknown>(LANGUAGE_KEY);
+  if (isLocale(stored)) return stored;
+  return DEFAULT_LANGUAGE;
+}
+
+export async function saveLanguage(language: Locale): Promise<void> {
+  await store.set(LANGUAGE_KEY, language);
   await store.save();
 }
 

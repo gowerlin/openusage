@@ -6,11 +6,13 @@ const {
   invokeMock,
   saveAutoUpdateIntervalMock,
   saveGlobalShortcutMock,
+  saveLanguageMock,
   saveStartOnLoginMock,
 } = vi.hoisted(() => ({
   getEnabledPluginIdsMock: vi.fn(),
   saveAutoUpdateIntervalMock: vi.fn(),
   saveGlobalShortcutMock: vi.fn(),
+  saveLanguageMock: vi.fn(),
   saveStartOnLoginMock: vi.fn(),
   invokeMock: vi.fn(),
 }))
@@ -23,6 +25,7 @@ vi.mock("@/lib/settings", () => ({
   getEnabledPluginIds: getEnabledPluginIdsMock,
   saveAutoUpdateInterval: saveAutoUpdateIntervalMock,
   saveGlobalShortcut: saveGlobalShortcutMock,
+  saveLanguage: saveLanguageMock,
   saveStartOnLogin: saveStartOnLoginMock,
 }))
 
@@ -33,6 +36,7 @@ describe("useSettingsSystemActions", () => {
     getEnabledPluginIdsMock.mockReset()
     saveAutoUpdateIntervalMock.mockReset()
     saveGlobalShortcutMock.mockReset()
+    saveLanguageMock.mockReset()
     saveStartOnLoginMock.mockReset()
     invokeMock.mockReset()
 
@@ -41,6 +45,7 @@ describe("useSettingsSystemActions", () => {
     )
     saveAutoUpdateIntervalMock.mockResolvedValue(undefined)
     saveGlobalShortcutMock.mockResolvedValue(undefined)
+    saveLanguageMock.mockResolvedValue(undefined)
     saveStartOnLoginMock.mockResolvedValue(undefined)
     invokeMock.mockResolvedValue(undefined)
   })
@@ -56,6 +61,7 @@ describe("useSettingsSystemActions", () => {
         setAutoUpdateInterval,
         setAutoUpdateNextAt,
         setGlobalShortcut: vi.fn(),
+        setLanguage: vi.fn(),
         setStartOnLogin: vi.fn(),
         applyStartOnLogin: vi.fn().mockResolvedValue(undefined),
       })
@@ -80,6 +86,7 @@ describe("useSettingsSystemActions", () => {
         setAutoUpdateInterval: vi.fn(),
         setAutoUpdateNextAt,
         setGlobalShortcut: vi.fn(),
+        setLanguage: vi.fn(),
         setStartOnLogin: vi.fn(),
         applyStartOnLogin: vi.fn().mockResolvedValue(undefined),
       })
@@ -94,6 +101,7 @@ describe("useSettingsSystemActions", () => {
 
   it("updates shortcut and start-on-login settings", () => {
     const setGlobalShortcut = vi.fn()
+    const setLanguage = vi.fn()
     const setStartOnLogin = vi.fn()
     const applyStartOnLogin = vi.fn().mockResolvedValue(undefined)
 
@@ -103,6 +111,7 @@ describe("useSettingsSystemActions", () => {
         setAutoUpdateInterval: vi.fn(),
         setAutoUpdateNextAt: vi.fn(),
         setGlobalShortcut,
+        setLanguage,
         setStartOnLogin,
         applyStartOnLogin,
       })
@@ -110,6 +119,7 @@ describe("useSettingsSystemActions", () => {
 
     act(() => {
       result.current.handleGlobalShortcutChange("CommandOrControl+Shift+O")
+      result.current.handleLanguageChange("zh-TW")
       result.current.handleStartOnLoginChange(true)
     })
 
@@ -118,6 +128,8 @@ describe("useSettingsSystemActions", () => {
     expect(invokeMock).toHaveBeenCalledWith("update_global_shortcut", {
       shortcut: "CommandOrControl+Shift+O",
     })
+    expect(setLanguage).toHaveBeenCalledWith("zh-TW")
+    expect(saveLanguageMock).toHaveBeenCalledWith("zh-TW")
 
     expect(setStartOnLogin).toHaveBeenCalledWith(true)
     expect(saveStartOnLoginMock).toHaveBeenCalledWith(true)
@@ -130,10 +142,12 @@ describe("useSettingsSystemActions", () => {
     const shortcutInvokeError = new Error("shortcut invoke failed")
     const startOnLoginSaveError = new Error("start on login save failed")
     const startOnLoginApplyError = new Error("start on login apply failed")
+    const languageSaveError = new Error("language save failed")
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
     saveAutoUpdateIntervalMock.mockRejectedValueOnce(autoError)
     saveGlobalShortcutMock.mockRejectedValueOnce(shortcutSaveError)
+    saveLanguageMock.mockRejectedValueOnce(languageSaveError)
     invokeMock.mockRejectedValueOnce(shortcutInvokeError)
     saveStartOnLoginMock.mockRejectedValueOnce(startOnLoginSaveError)
     const applyStartOnLogin = vi.fn().mockRejectedValueOnce(startOnLoginApplyError)
@@ -144,6 +158,7 @@ describe("useSettingsSystemActions", () => {
         setAutoUpdateInterval: vi.fn(),
         setAutoUpdateNextAt: vi.fn(),
         setGlobalShortcut: vi.fn(),
+        setLanguage: vi.fn(),
         setStartOnLogin: vi.fn(),
         applyStartOnLogin,
       })
@@ -152,6 +167,7 @@ describe("useSettingsSystemActions", () => {
     act(() => {
       result.current.handleAutoUpdateIntervalChange(5)
       result.current.handleGlobalShortcutChange(null)
+      result.current.handleLanguageChange("en")
       result.current.handleStartOnLoginChange(false)
     })
 
@@ -159,6 +175,7 @@ describe("useSettingsSystemActions", () => {
       expect(errorSpy).toHaveBeenCalledWith("Failed to save auto-update interval:", autoError)
       expect(errorSpy).toHaveBeenCalledWith("Failed to save global shortcut:", shortcutSaveError)
       expect(errorSpy).toHaveBeenCalledWith("Failed to update global shortcut:", shortcutInvokeError)
+      expect(errorSpy).toHaveBeenCalledWith("Failed to save language:", languageSaveError)
       expect(errorSpy).toHaveBeenCalledWith("Failed to save start on login:", startOnLoginSaveError)
       expect(errorSpy).toHaveBeenCalledWith("Failed to update start on login:", startOnLoginApplyError)
     })

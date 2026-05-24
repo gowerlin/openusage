@@ -67,6 +67,8 @@ const defaultProps = {
   },
   globalShortcut: null,
   onGlobalShortcutChange: vi.fn(),
+  language: "en" as const,
+  onLanguageChange: vi.fn(),
   startOnLogin: false,
   onStartOnLoginChange: vi.fn(),
 }
@@ -269,5 +271,20 @@ describe("SettingsPage", () => {
     )
     await userEvent.click(screen.getByText("Start on login"))
     expect(onStartOnLoginChange).toHaveBeenCalledWith(true)
+  })
+
+  it("renders language selector and updates language", async () => {
+    const onLanguageChange = vi.fn()
+    render(
+      <SettingsPage
+        {...defaultProps}
+        language="en"
+        onLanguageChange={onLanguageChange}
+      />
+    )
+
+    expect(screen.getByText("Language")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("radio", { name: "Traditional Chinese" }))
+    expect(onLanguageChange).toHaveBeenCalledWith("zh-TW")
   })
 })

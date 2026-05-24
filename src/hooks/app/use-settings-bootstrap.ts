@@ -11,6 +11,7 @@ import {
   DEFAULT_AUTO_UPDATE_INTERVAL,
   DEFAULT_DISPLAY_MODE,
   DEFAULT_GLOBAL_SHORTCUT,
+  DEFAULT_LANGUAGE,
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
   DEFAULT_START_ON_LOGIN,
@@ -20,6 +21,7 @@ import {
   loadAutoUpdateInterval,
   loadDisplayMode,
   loadGlobalShortcut,
+  loadLanguage,
   loadMenubarIconStyle,
   migrateLegacyTraySettings,
   loadPluginSettings,
@@ -38,6 +40,7 @@ import {
   type ThemeMode,
   type TimeFormatMode,
 } from "@/lib/settings"
+import type { Locale } from "@/lib/i18n"
 
 type UseSettingsBootstrapArgs = {
   setPluginSettings: (value: PluginSettings | null) => void
@@ -48,6 +51,7 @@ type UseSettingsBootstrapArgs = {
   setResetTimerDisplayMode: (value: ResetTimerDisplayMode) => void
   setTimeFormatMode: (value: TimeFormatMode) => void
   setGlobalShortcut: (value: GlobalShortcut) => void
+  setLanguage: (value: Locale) => void
   setStartOnLogin: (value: boolean) => void
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   setLoadingForPlugins: (ids: string[]) => void
@@ -64,6 +68,7 @@ export function useSettingsBootstrap({
   setResetTimerDisplayMode,
   setTimeFormatMode,
   setGlobalShortcut,
+  setLanguage,
   setStartOnLogin,
   setMenubarIconStyle,
   setLoadingForPlugins,
@@ -140,6 +145,13 @@ export function useSettingsBootstrap({
           console.error("Failed to load global shortcut:", error)
         }
 
+        let storedLanguage = DEFAULT_LANGUAGE
+        try {
+          storedLanguage = await loadLanguage()
+        } catch (error) {
+          console.error("Failed to load language:", error)
+        }
+
         let storedStartOnLogin = DEFAULT_START_ON_LOGIN
         try {
           storedStartOnLogin = await loadStartOnLogin()
@@ -173,6 +185,7 @@ export function useSettingsBootstrap({
           setResetTimerDisplayMode(storedResetTimerDisplayMode)
           setTimeFormatMode(storedTimeFormatMode)
           setGlobalShortcut(storedGlobalShortcut)
+          setLanguage(storedLanguage)
           setStartOnLogin(storedStartOnLogin)
           setMenubarIconStyle(storedMenubarIconStyle)
 
@@ -203,6 +216,7 @@ export function useSettingsBootstrap({
     setDisplayMode,
     setErrorForPlugins,
     setGlobalShortcut,
+    setLanguage,
     setLoadingForPlugins,
     setMenubarIconStyle,
     migrateLegacyTraySettings,

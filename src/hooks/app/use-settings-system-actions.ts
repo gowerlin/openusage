@@ -4,17 +4,20 @@ import {
   getEnabledPluginIds,
   saveAutoUpdateInterval,
   saveGlobalShortcut,
+  saveLanguage,
   saveStartOnLogin,
   type AutoUpdateIntervalMinutes,
   type GlobalShortcut,
   type PluginSettings,
 } from "@/lib/settings"
+import type { Locale } from "@/lib/i18n"
 
 type UseSettingsSystemActionsArgs = {
   pluginSettings: PluginSettings | null
   setAutoUpdateInterval: (value: AutoUpdateIntervalMinutes) => void
   setAutoUpdateNextAt: (value: number | null) => void
   setGlobalShortcut: (value: GlobalShortcut) => void
+  setLanguage: (value: Locale) => void
   setStartOnLogin: (value: boolean) => void
   applyStartOnLogin: (value: boolean) => Promise<void>
 }
@@ -24,6 +27,7 @@ export function useSettingsSystemActions({
   setAutoUpdateInterval,
   setAutoUpdateNextAt,
   setGlobalShortcut,
+  setLanguage,
   setStartOnLogin,
   applyStartOnLogin,
 }: UseSettingsSystemActionsArgs) {
@@ -54,6 +58,13 @@ export function useSettingsSystemActions({
     })
   }, [setGlobalShortcut])
 
+  const handleLanguageChange = useCallback((value: Locale) => {
+    setLanguage(value)
+    void saveLanguage(value).catch((error) => {
+      console.error("Failed to save language:", error)
+    })
+  }, [setLanguage])
+
   const handleStartOnLoginChange = useCallback((value: boolean) => {
     setStartOnLogin(value)
     void saveStartOnLogin(value).catch((error) => {
@@ -67,6 +78,7 @@ export function useSettingsSystemActions({
   return {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
+    handleLanguageChange,
     handleStartOnLoginChange,
   }
 }

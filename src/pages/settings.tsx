@@ -19,6 +19,7 @@ import { GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { GlobalShortcutSection } from "@/components/global-shortcut-section";
+import { LOCALE_OPTIONS, type Locale } from "@/lib/i18n";
 import { getBarFillLayout, getTrayIconSizePx } from "@/lib/tray-bars-icon";
 import {
   AUTO_UPDATE_OPTIONS,
@@ -37,6 +38,7 @@ import {
 } from "@/lib/settings";
 import { getTimeFormatter } from "@/lib/reset-tooltip";
 import type { TraySettingsPreview } from "@/hooks/app/use-tray-icon";
+import { useI18n } from "@/hooks/use-i18n";
 import { cn } from "@/lib/utils";
 
 interface PluginConfig {
@@ -278,6 +280,8 @@ interface SettingsPageProps {
   traySettingsPreview: TraySettingsPreview;
   globalShortcut: GlobalShortcut;
   onGlobalShortcutChange: (value: GlobalShortcut) => void;
+  language: Locale;
+  onLanguageChange: (value: Locale) => void;
   startOnLogin: boolean;
   onStartOnLoginChange: (value: boolean) => void;
 }
@@ -301,9 +305,12 @@ export function SettingsPage({
   traySettingsPreview,
   globalShortcut,
   onGlobalShortcutChange,
+  language,
+  onLanguageChange,
   startOnLogin,
   onStartOnLoginChange,
 }: SettingsPageProps) {
+  const { t } = useI18n(language);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -516,6 +523,33 @@ export function SettingsPage({
         globalShortcut={globalShortcut}
         onGlobalShortcutChange={onGlobalShortcutChange}
       />
+      <section>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.language.title")}</h3>
+        <p className="text-sm text-muted-foreground mb-2">
+          {t("settings.language.description")}
+        </p>
+        <div className="bg-muted/50 rounded-lg p-1">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.language.ariaLabel")}>
+            {LOCALE_OPTIONS.map((option) => {
+              const isActive = option.value === language;
+              return (
+                <Button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={isActive}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => onLanguageChange(option.value)}
+                >
+                  {t(option.labelKey)}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
       <section>
         <h3 className="text-lg font-semibold mb-0">Start on Login</h3>
         <p className="text-sm text-muted-foreground mb-2">
