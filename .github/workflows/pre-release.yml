@@ -1,16 +1,77 @@
-name: Publish
+name: Pre-Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Pre-release version (for example 0.6.25-pre.1). Leave empty to auto-increment."
+        required: false
+        type: string
 
 permissions:
   contents: write
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      tag: ${{ steps.resolve.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+          fetch-depth: 1
+
+      - name: Fetch tags
+        run: git fetch --tags --no-recurse-submodules
+
+      - name: Resolve pre-release version
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          INPUT_VERSION="${{ inputs.version }}"
+          if [[ -n "$INPUT_VERSION" ]]; then
+            VERSION="${INPUT_VERSION#v}"
+          else
+            LATEST_TAG=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+            if [[ -z "$LATEST_TAG" ]]; then
+              LATEST_TAG="v0.0.0"
+            fi
+
+            LATEST_VERSION="${LATEST_TAG#v}"
+            BASE_VERSION="${LATEST_VERSION%%-*}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+            PATCH=$((PATCH + 1))
+            BASE="${MAJOR}.${MINOR}.${PATCH}"
+
+            PRE_NUM=1
+            while git tag -l "v${BASE}-pre.${PRE_NUM}" | grep -q .; do
+              PRE_NUM=$((PRE_NUM + 1))
+            done
+
+            VERSION="${BASE}-pre.${PRE_NUM}"
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-pre\.[0-9]+$ ]]; then
+            echo "Invalid pre-release version: $VERSION (expected MAJOR.MINOR.PATCH-pre.N)"
+            exit 1
+          fi
+
+          TAG="v${VERSION}"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag already exists: $TAG"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved pre-release: $TAG"
+
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -20,11 +81,10 @@ jobs:
             rust_targets: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.platform }}
     env:
-      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.RELEASE_TAG }}
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -41,6 +101,36 @@ jobs:
         with:
           bun-version: "latest"
       - run: bun install
+
+      - name: Sync pre-release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require("fs");
+          const version = process.env.RELEASE_VERSION;
+
+          function updateJson(path, updater) {
+            const data = JSON.parse(fs.readFileSync(path, "utf8"));
+            updater(data);
+            fs.writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
+          }
+
+          updateJson("package.json", (data) => {
+            data.version = version;
+          });
+          updateJson("src-tauri/tauri.conf.json", (data) => {
+            data.version = version;
+          });
+
+          const cargoPath = "src-tauri/Cargo.toml";
+          const cargo = fs.readFileSync(cargoPath, "utf8");
+          fs.writeFileSync(
+            cargoPath,
+            cargo.replace(/^version = ".*"$/m, `version = "${version}"`),
+          );
+          NODE
+
       - name: Bundle plugins
         run: bun run bundle:plugins
       - name: Verify bundled plugins
@@ -76,18 +166,20 @@ jobs:
       - name: Validate release tag
         shell: bash
         run: |
+          set -euo pipefail
           if [[ -z "$RELEASE_TAG" ]]; then
-            echo "Missing RELEASE_TAG (push a v* tag)."
+            echo "Missing RELEASE_TAG."
             exit 1
           fi
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid RELEASE_TAG: $RELEASE_TAG (expected vMAJOR.MINOR.PATCH)"
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-pre\.[0-9]+$ ]]; then
+            echo "Invalid RELEASE_TAG: $RELEASE_TAG (expected vMAJOR.MINOR.PATCH-pre.N)"
             exit 1
           fi
 
       - name: Validate app version matches tag
         shell: bash
         run: |
+          set -euo pipefail
           TAG_VERSION="${RELEASE_TAG#v}"
 
           TAURI_CONF_VERSION=$(node -p 'require("./src-tauri/tauri.conf.json").version')
@@ -117,7 +209,7 @@ jobs:
           tagName: ${{ env.RELEASE_TAG }}
           releaseName: ${{ env.RELEASE_TAG }}
           releaseDraft: false
-          prerelease: false
+          prerelease: true
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
@@ -127,6 +219,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
+          set -euo pipefail
           ASSETS=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | tr -d '\r')
 
           printf '%s\n' "$ASSETS" | grep -Fxq 'latest.json' || { echo "Missing updater manifest: latest.json"; exit 1; }
