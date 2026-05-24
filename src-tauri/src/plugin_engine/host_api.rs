@@ -78,8 +78,25 @@ fn read_env_from_process(name: &str) -> Option<String> {
     sanitize_env_value(&value)
 }
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+fn hide_background_command_window(command: &mut std::process::Command) {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+}
+
+fn background_command<S: AsRef<OsStr>>(program: S) -> std::process::Command {
+    let mut command = Command::new(program);
+    hide_background_command_window(&mut command);
+    command
+}
+
 fn read_command_stdout(program: &str, args: &[&str]) -> Option<String> {
-    let output = Command::new(program).args(args).output().ok()?;
+    let output = background_command(program).args(args).output().ok()?;
     if !output.status.success() {
         return None;
     }
@@ -1795,7 +1812,7 @@ fn ccusage_enriched_path() -> Option<OsString> {
 }
 
 fn ccusage_runner_available(candidate: &str, enriched_path: Option<&OsStr>) -> bool {
-    let mut command = std::process::Command::new(candidate);
+    let mut command = background_command(candidate);
     command.arg("--version");
     if let Some(path) = enriched_path {
         command.env("PATH", path);
@@ -1812,6 +1829,7 @@ fn configure_ccusage_command(
     args: &[String],
     enriched_path: Option<&OsStr>,
 ) {
+    hide_background_command_window(command);
     command.args(args);
     if let Some(path) = enriched_path {
         command.env("PATH", path);
@@ -4001,6 +4019,18 @@ mod tests {
             !has_path_override,
             "PATH should only be set when an override exists"
         );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_background_commands_use_create_no_window_flag() {
+        let source = include_str!("host_api.rs");
+        let flag_name = ["CREATE", "NO", "WINDOW"].join("_");
+        let helper_name = ["hide", "background", "command", "window"].join("_");
+
+        assert!(source.contains(&format!("const {flag_name}: u32 = 0x08000000")));
+        assert!(source.contains(&format!("fn {helper_name}(")));
+        assert!(source.contains(&format!("creation_flags({flag_name})")));
     }
 
     #[test]
