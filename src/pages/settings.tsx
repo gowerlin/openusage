@@ -538,7 +538,7 @@ export function SettingsPage({
           {t("settings.appTheme.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label={t("settings.appTheme.ariaLabel")}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1" role="radiogroup" aria-label={t("settings.appTheme.ariaLabel")}>
             {THEME_OPTIONS.map((option) => {
               const isActive = option.value === themeMode;
               return (

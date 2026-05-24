@@ -152,6 +152,13 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Macaron Blue")).toBeInTheDocument()
   })
 
+  it("uses two compact columns for theme options", () => {
+    render(<SettingsPage {...defaultProps} />)
+    const themeGroup = screen.getByRole("radiogroup", { name: "Theme mode" })
+    expect(themeGroup).toHaveClass("grid-cols-2")
+    expect(themeGroup).toHaveClass("sm:grid-cols-3")
+  })
+
   it("updates theme mode", async () => {
     const onThemeModeChange = vi.fn()
     render(
