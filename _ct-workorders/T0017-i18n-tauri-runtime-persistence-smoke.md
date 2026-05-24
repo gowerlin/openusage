@@ -9,8 +9,8 @@ intervention_type: fire-and-forget
 created_at: "2026-05-24 11:22:29 +08:00"
 started_at: "2026-05-24T11:24:42+08:00"
 completed_at: "2026-05-24T11:38:43+08:00"
-updated_at: "2026-05-24T11:38:43+08:00"
-commit: null
+updated_at: "2026-05-24T11:41:57+08:00"
+commit: 5652730d1c062ede94a659917274324ef14dbfbb
 bug_id: null
 plan_id: PLAN-002
 sizing: small
@@ -32,7 +32,7 @@ depends_on:
 - **建立時間**：2026-05-24 11:22:29 (UTC+8)
 - **開始時間**：2026-05-24T11:24:42+08:00
 - **完成時間**：2026-05-24T11:38:43+08:00
-- **Commit**：待 closeout commit 產生後補填
+- **Commit**：5652730d1c062ede94a659917274324ef14dbfbb
 - **目標子專案**：Tauri runtime / frontend i18n persistence
 - **關聯 PLAN**：PLAN-002
 - **intervention_type**：fire-and-forget
@@ -156,7 +156,7 @@ DONE
 - 使用 Tauri config override `identifier: com.sunstory.openusage.t0017`，隔離測試 app data：`C:\Users\Gower\AppData\Roaming\com.sunstory.openusage.t0017`。
 - 未修改 source/test files。
 - PLAN-002 已收斂為 DONE。
-- Commit：待 closeout commit 產生後補填。
+- Commit：`5652730d1c062ede94a659917274324ef14dbfbb` (`docs(i18n): record T0017 runtime smoke`)。
 
 ### 驗證
 - Tauri runtime 啟動 PASS：`target\debug\openusage.exe` started；stdout 顯示 `OpenUsage v0.6.24 starting` 與 `app_data_dir: tail=com.sunstory.openusage.t0017`。
