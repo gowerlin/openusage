@@ -27,6 +27,15 @@ describe("i18n", () => {
     expect(t("zh-TW", "footer.paused")).toBe("已暫停")
   })
 
+  it("translates macaron theme labels", () => {
+    expect(t("en", "settings.appTheme.option.macaronPink")).toBe("Macaron Pink")
+    expect(t("en", "settings.appTheme.option.macaronGreen")).toBe("Macaron Green")
+    expect(t("en", "settings.appTheme.option.macaronBlue")).toBe("Macaron Blue")
+    expect(t("zh-TW", "settings.appTheme.option.macaronPink")).toBe("馬卡龍粉")
+    expect(t("zh-TW", "settings.appTheme.option.macaronGreen")).toBe("馬卡龍綠")
+    expect(t("zh-TW", "settings.appTheme.option.macaronBlue")).toBe("馬卡龍藍")
+  })
+
   it("translates app-owned plugin labels and preserves unknown runtime labels", () => {
     expect(translateDisplayLabel("en", "Session")).toBe("Session")
     expect(translateDisplayLabel("zh-TW", "Session")).toBe("工作階段")

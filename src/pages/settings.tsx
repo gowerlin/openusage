@@ -84,6 +84,9 @@ const THEME_LABEL_KEYS = {
   system: "settings.appTheme.option.system",
   light: "settings.appTheme.option.light",
   dark: "settings.appTheme.option.dark",
+  "macaron-pink": "settings.appTheme.option.macaronPink",
+  "macaron-green": "settings.appTheme.option.macaronGreen",
+  "macaron-blue": "settings.appTheme.option.macaronBlue",
 } as const satisfies Record<ThemeMode, I18nKey>;
 
 function getPreviewBarLayout(fraction: number): { fillPercent: number; remainderPercent: number } {
@@ -535,7 +538,7 @@ export function SettingsPage({
           {t("settings.appTheme.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.appTheme.ariaLabel")}>
+          <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label={t("settings.appTheme.ariaLabel")}>
             {THEME_OPTIONS.map((option) => {
               const isActive = option.value === themeMode;
               return (
@@ -546,7 +549,7 @@ export function SettingsPage({
                   aria-checked={isActive}
                   variant={isActive ? "default" : "outline"}
                   size="sm"
-                  className="flex-1"
+                  className="min-w-0"
                   onClick={() => onThemeModeChange(option.value)}
                 >
                   {t(THEME_LABEL_KEYS[option.value])}

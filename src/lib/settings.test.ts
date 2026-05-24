@@ -10,6 +10,7 @@ import {
   DEFAULT_START_ON_LOGIN,
   DEFAULT_THEME_MODE,
   DEFAULT_TIME_FORMAT_MODE,
+  THEME_OPTIONS,
   arePluginSettingsEqual,
   getEnabledPluginIds,
   loadAutoUpdateInterval,
@@ -143,9 +144,36 @@ describe("settings", () => {
     await expect(loadThemeMode()).resolves.toBe("dark")
   })
 
+  it("loads stored macaron theme modes", async () => {
+    storeState.set("themeMode", "macaron-pink")
+    await expect(loadThemeMode()).resolves.toBe("macaron-pink")
+
+    storeState.set("themeMode", "macaron-green")
+    await expect(loadThemeMode()).resolves.toBe("macaron-green")
+
+    storeState.set("themeMode", "macaron-blue")
+    await expect(loadThemeMode()).resolves.toBe("macaron-blue")
+  })
+
   it("saves theme mode", async () => {
     await saveThemeMode("light")
     await expect(loadThemeMode()).resolves.toBe("light")
+  })
+
+  it("saves macaron theme mode", async () => {
+    await saveThemeMode("macaron-green")
+    await expect(loadThemeMode()).resolves.toBe("macaron-green")
+  })
+
+  it("exposes macaron theme options", () => {
+    expect(THEME_OPTIONS.map((option) => option.value)).toEqual([
+      "system",
+      "light",
+      "dark",
+      "macaron-pink",
+      "macaron-green",
+      "macaron-blue",
+    ])
   })
 
   it("falls back to default for invalid theme mode", async () => {

@@ -13,7 +13,13 @@ export type PluginSettings = {
 
 export type AutoUpdateIntervalMinutes = 5 | 15 | 30 | 60;
 
-export type ThemeMode = "system" | "light" | "dark";
+export type ThemeMode =
+  | "system"
+  | "light"
+  | "dark"
+  | "macaron-pink"
+  | "macaron-green"
+  | "macaron-blue";
 
 export type DisplayMode = "used" | "left";
 
@@ -50,7 +56,14 @@ export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
 export const DEFAULT_START_ON_LOGIN = false;
 
 const AUTO_UPDATE_INTERVALS: AutoUpdateIntervalMinutes[] = [5, 15, 30, 60];
-const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
+const THEME_MODES: ThemeMode[] = [
+  "system",
+  "light",
+  "dark",
+  "macaron-pink",
+  "macaron-green",
+  "macaron-blue",
+];
 const DISPLAY_MODES: DisplayMode[] = ["used", "left"];
 const RESET_TIMER_DISPLAY_MODES: ResetTimerDisplayMode[] = ["relative", "absolute"];
 const TIME_FORMAT_MODES: TimeFormatMode[] = ["auto", "12h", "24h"];
@@ -68,10 +81,19 @@ export const AUTO_UPDATE_OPTIONS: { value: AutoUpdateIntervalMinutes; label: str
     label: value === 60 ? "1 hour" : `${value} min`,
   }));
 
+const THEME_LABELS: Record<ThemeMode, string> = {
+  system: "System",
+  light: "Light",
+  dark: "Dark",
+  "macaron-pink": "Macaron Pink",
+  "macaron-green": "Macaron Green",
+  "macaron-blue": "Macaron Blue",
+};
+
 export const THEME_OPTIONS: { value: ThemeMode; label: string }[] =
   THEME_MODES.map((value) => ({
     value,
-    label: value.charAt(0).toUpperCase() + value.slice(1),
+    label: THEME_LABELS[value],
   }));
 
 export const DISPLAY_MODE_OPTIONS: { value: DisplayMode; label: string }[] = [

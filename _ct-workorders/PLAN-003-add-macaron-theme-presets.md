@@ -7,7 +7,7 @@ status: IN_PROGRESS
 priority: Medium
 plan_type: feature
 created_at: "2026-05-24 11:26:33 +08:00"
-updated_at: "2026-05-24T11:50:51+08:00"
+updated_at: "2026-05-24T15:04:44+08:00"
 affects_files: []
 depends_on:
   - PLAN-002
@@ -147,7 +147,7 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
   - 盤點現有 theme store、Settings UI、CSS variables、persistence、tests。
   - 定義三個 theme id 與最小 token set。
   - 產出實作方案與風險。
-- [ ] T0019 Implement macaron theme presets。
+- [x] T0019 Implement macaron theme presets。
   - 新增三個 theme presets。
   - 更新 Settings selector 與 i18n labels。
   - 補 theme persistence / option tests。
@@ -158,14 +158,14 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
 
 ## 驗收條件
 
-- [ ] Settings 可選 `macaron-pink` / `macaron-green` / `macaron-blue`。
-- [ ] 三個新主題 reload / app restart 後保持。
-- [ ] 新 theme labels 已加入 `en` / `zh-TW`。
-- [ ] 三個主題不破壞既有 theme。
+- [x] Settings 可選 `macaron-pink` / `macaron-green` / `macaron-blue`。
+- [x] 三個新主題 reload / app restart 後保持。
+- [x] 新 theme labels 已加入 `en` / `zh-TW`。
+- [x] 三個主題不破壞既有 theme。
 - [ ] 主要 UI surface 無明顯文字重疊或低對比不可讀。
 - [ ] Focus / hover / selected / disabled 狀態仍清楚。
-- [ ] Unit / component tests 通過。
-- [ ] `bun run build` 通過。
+- [x] Unit / component tests 通過。
+- [x] `bun run build` 通過。
 - [ ] 若有視覺變更，提供 screenshots。
 
 ## 下一步
@@ -173,8 +173,11 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
 - [x] 已預建 T0018 theme architecture / token inventory。
 - [x] PLAN-002 DONE 後已自動 YOLO 派發 T0018：terminal `7b14c686b9ebf9dfcc454c0e086d9e1e`。
 - [x] T0018 已回報 theme architecture / token inventory。
-- [ ] 派發 T0019 Implement macaron theme presets。
+- [x] 已建立並派發 T0019 Implement macaron theme presets：terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`。
+- [x] T0019 已回報 macaron theme presets 實作結果；visual screenshots 留給 T0020。
+- [ ] 派發 T0020 Theme visual verification closeout。
 
 ## 關聯工單
 
-- T0018：Research current theme architecture and token inventory（DONE；terminal `7b14c686b9ebf9dfcc454c0e086d9e1e`）
+- T0018：Research current theme architecture and token inventory（DONE；terminal `7b14c686b9ebf9dfcc454c0e086d9e1e`；commit `1520616c1e44714591a83abe7acc9989cbc1ff24`）
+- T0019：Implement macaron theme presets（DONE；terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`；commit 待收尾回填）
