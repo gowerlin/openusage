@@ -2,12 +2,15 @@ import type { PaceResult, PaceStatus } from "@/lib/pace-status"
 import type { ProgressFormat } from "@/lib/plugin-types"
 import type { DisplayMode } from "@/lib/settings"
 import { formatCountNumber, formatFixedPrecisionNumber } from "@/lib/utils"
+import { DEFAULT_LOCALE, t, type Locale } from "@/lib/i18n"
 
-export function getPaceStatusText(status: PaceStatus): string {
-  return status === "ahead" ? "Plenty of room" : status === "on-track" ? "Right on target" : "Will run out"
+export function getPaceStatusText(status: PaceStatus, locale: Locale = DEFAULT_LOCALE): string {
+  if (status === "ahead") return t(locale, "pace.ahead")
+  if (status === "on-track") return t(locale, "pace.onTrack")
+  return t(locale, "pace.behind")
 }
 
-export function formatCompactDuration(deltaMs: number): string | null {
+export function formatCompactDuration(deltaMs: number, locale: Locale = DEFAULT_LOCALE): string | null {
   if (!Number.isFinite(deltaMs) || deltaMs <= 0) return null
   const totalSeconds = Math.floor(deltaMs / 1000)
   const totalMinutes = Math.floor(totalSeconds / 60)
@@ -15,11 +18,14 @@ export function formatCompactDuration(deltaMs: number): string | null {
   const days = Math.floor(totalHours / 24)
   const hours = totalHours % 24
   const minutes = totalMinutes % 60
+  const dayUnit = t(locale, "duration.day")
+  const hourUnit = t(locale, "duration.hour")
+  const minuteUnit = t(locale, "duration.minute")
 
-  if (days > 0) return `${days}d ${hours}h`
-  if (totalHours > 0) return `${totalHours}h ${minutes}m`
-  if (totalMinutes > 0) return `${totalMinutes}m`
-  return "<1m"
+  if (days > 0) return `${days}${dayUnit} ${hours}${hourUnit}`
+  if (totalHours > 0) return `${totalHours}${hourUnit} ${minutes}${minuteUnit}`
+  if (totalMinutes > 0) return `${totalMinutes}${minuteUnit}`
+  return t(locale, "duration.lessThanMinute")
 }
 
 function getRunsOutDurationText({
@@ -29,6 +35,7 @@ function getRunsOutDurationText({
   periodDurationMs,
   resetsAtMs,
   nowMs,
+  locale = DEFAULT_LOCALE,
 }: {
   paceResult: PaceResult | null
   used: number
@@ -36,6 +43,7 @@ function getRunsOutDurationText({
   periodDurationMs: number
   resetsAtMs: number
   nowMs: number
+  locale?: Locale
 }): string | null {
   if (!paceResult || paceResult.status !== "behind") return null
   const rate = paceResult.projectedUsage / periodDurationMs
@@ -43,7 +51,7 @@ function getRunsOutDurationText({
   const etaMs = (limit - used) / rate
   const remainingMs = resetsAtMs - nowMs
   if (etaMs <= 0 || etaMs >= remainingMs) return null
-  return formatCompactDuration(etaMs)
+  return formatCompactDuration(etaMs, locale)
 }
 
 /**
@@ -57,6 +65,7 @@ export function formatRunsOutText({
   periodDurationMs,
   resetsAtMs,
   nowMs,
+  locale = DEFAULT_LOCALE,
 }: {
   paceResult: PaceResult | null
   used: number
@@ -64,9 +73,10 @@ export function formatRunsOutText({
   periodDurationMs: number
   resetsAtMs: number
   nowMs: number
+  locale?: Locale
 }): string | null {
-  const durationText = getRunsOutDurationText({ paceResult, used, limit, periodDurationMs, resetsAtMs, nowMs })
-  return durationText ? `Runs out in ${durationText}` : null
+  const durationText = getRunsOutDurationText({ paceResult, used, limit, periodDurationMs, resetsAtMs, nowMs, locale })
+  return durationText ? `${t(locale, "pace.runsOutIn")} ${durationText}${t(locale, "pace.runsOutSuffix")}` : null
 }
 
 export function buildPaceDetailText({
@@ -77,6 +87,7 @@ export function buildPaceDetailText({
   resetsAtMs,
   nowMs,
   displayMode,
+  locale = DEFAULT_LOCALE,
 }: {
   paceResult: PaceResult | null
   used: number
@@ -85,29 +96,31 @@ export function buildPaceDetailText({
   resetsAtMs: number
   nowMs: number
   displayMode: DisplayMode
+  locale?: Locale
 }): string | null {
   if (!paceResult || !Number.isFinite(limit) || limit <= 0 || paceResult.projectedUsage === 0) return null
 
   if (paceResult.status === "behind") {
-    const durationText = getRunsOutDurationText({ paceResult, used, limit, periodDurationMs, resetsAtMs, nowMs })
-    if (durationText) return `Limit in ${durationText}`
+    const durationText = getRunsOutDurationText({ paceResult, used, limit, periodDurationMs, resetsAtMs, nowMs, locale })
+    if (durationText) return `${t(locale, "pace.limitIn")} ${durationText}${t(locale, "pace.limitSuffix")}`
   }
 
   // Show projected % at reset (clamped to 100%)
   const projectedPercent = Math.min(100, Math.round((paceResult.projectedUsage / limit) * 100))
   const shownPercent = displayMode === "left" ? 100 - projectedPercent : projectedPercent
-  const suffix = displayMode === "left" ? "left at reset" : "used at reset"
+  const suffix = displayMode === "left" ? t(locale, "pace.leftAtReset") : t(locale, "pace.usedAtReset")
   return `${shownPercent}% ${suffix}`
 }
 
 export function formatDeficitText(
   deficit: number,
   format: ProgressFormat,
-  displayMode: DisplayMode
+  displayMode: DisplayMode,
+  locale: Locale = DEFAULT_LOCALE
 ): string | null {
   if (!Number.isFinite(deficit) || deficit <= 0) return null
 
-  const suffix = displayMode === "left" ? "short" : "in deficit"
+  const suffix = displayMode === "left" ? t(locale, "pace.short") : t(locale, "pace.inDeficit")
   if (format.kind === "percent") {
     const roundedPercent = Math.round(deficit)
     return roundedPercent > 0 ? `${roundedPercent}% ${suffix}` : null

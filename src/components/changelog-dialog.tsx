@@ -3,6 +3,7 @@ import { Loader2, ChevronRight, ExternalLink as ExternalLinkIcon } from "lucide-
 import { useChangelog } from "@/hooks/use-changelog"
 import { Button } from "@/components/ui/button"
 import { openUrl } from "@tauri-apps/plugin-opener"
+import { useI18n } from "@/hooks/use-i18n"
 
 interface ChangelogDialogProps {
   currentVersion: string
@@ -172,6 +173,8 @@ function SimpleMarkdown({ content }: { content: string }) {
 
 export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDialogProps) {
   const { releases, loading, error } = useChangelog(currentVersion)
+  const { t } = useI18n()
+  const displayError = error === "Failed to fetch releases" ? t("changelog.failedFetch") : error
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -199,11 +202,11 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
             <button
               onClick={onBack}
               className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
-              title="Back"
+              title={t("changelog.back")}
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
             </button>
-            <h2 className="font-semibold text-sm tracking-tight">Release Notes</h2>
+            <h2 className="font-semibold text-sm tracking-tight">{t("changelog.releaseNotes")}</h2>
           </div>
         </div>
 
@@ -211,14 +214,14 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
           {loading ? (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
               <Loader2 className="w-6 h-6 animate-spin" />
-              <span className="text-xs">Fetching release info...</span>
+              <span className="text-xs">{t("changelog.fetching")}</span>
             </div>
           ) : error ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-4">
-              <span className="text-destructive text-sm font-medium mb-1">Failed to load release notes</span>
-              <span className="text-xs text-muted-foreground mb-4">{error}</span>
+              <span className="text-destructive text-sm font-medium mb-1">{t("changelog.failedLoad")}</span>
+              <span className="text-xs text-muted-foreground mb-4">{displayError}</span>
               <Button size="xs" variant="outline" onClick={() => window.location.reload()}>
-                Try again
+                {t("changelog.tryAgain")}
               </Button>
             </div>
           ) : currentRelease ? (
@@ -233,9 +236,9 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
                           const year = d.getUTCFullYear()
                           const month = String(d.getUTCMonth() + 1).padStart(2, "0")
                           const day = String(d.getUTCDate()).padStart(2, "0")
-                          return `Released on ${year}/${month}/${day}`
+                          return `${t("changelog.releasedOn")} ${year}/${month}/${day}`
                         })()
-                      : "Unpublished release"}
+                      : t("changelog.unpublishedRelease")}
                   </p>
                 </div>
                 <button
@@ -253,12 +256,12 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
               {releases.length >= 1 && (
                 <div className="mt-8 pt-6 border-t border-dashed">
                   <p className="text-[10px] text-muted-foreground text-center">
-                    Looking for older versions? Check the{" "}
+                    {t("changelog.olderPrefix")}{" "}
                     <button 
                       onClick={() => openUrl("https://github.com/robinebers/openusage/releases").catch(console.error)}
                       className="text-[#58a6ff] hover:underline"
                     >
-                      full changelog
+                      {t("changelog.fullChangelog")}
                     </button>
                   </p>
                 </div>
@@ -266,13 +269,15 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-4 opacity-60">
-              <span className="text-sm font-medium mb-1">No specific notes for v{currentVersion}</span>
-              <span className="text-xs mb-4">This version might be a pre-release or local build.</span>
+              <span className="text-sm font-medium mb-1">
+                {t("changelog.noSpecificNotesPrefix")}{currentVersion}{t("changelog.noSpecificNotesSuffix") && ` ${t("changelog.noSpecificNotesSuffix")}`}
+              </span>
+              <span className="text-xs mb-4">{t("changelog.localBuild")}</span>
               <button 
                 onClick={() => openUrl("https://github.com/robinebers/openusage/releases").catch(console.error)}
                 className="text-xs text-[#58a6ff] hover:underline"
               >
-                View all releases on GitHub
+                {t("changelog.viewAllReleases")}
               </button>
             </div>
           )}

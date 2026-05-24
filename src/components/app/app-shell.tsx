@@ -7,6 +7,7 @@ import type { SettingsPluginState } from "@/hooks/app/use-settings-plugin-list"
 import { useAppVersion } from "@/hooks/app/use-app-version"
 import { usePanel } from "@/hooks/app/use-panel"
 import { useAppUpdate } from "@/hooks/use-app-update"
+import { useI18n } from "@/hooks/use-i18n"
 import { useAppUiStore } from "@/stores/app-ui-store"
 
 const ARROW_OVERHEAD_PX = 37
@@ -66,6 +67,7 @@ export function AppShell({
 
   const appVersion = useAppVersion()
   const { updateStatus, triggerInstall, checkForUpdates } = useAppUpdate()
+  const { t } = useI18n()
 
   return (
     <div
@@ -79,11 +81,11 @@ export function AppShell({
         style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - ARROW_OVERHEAD_PX}px` } : undefined}
       >
         <div
-          aria-label="Move panel"
+          aria-label={t("app.movePanel")}
           className="flex h-3 shrink-0 cursor-grab items-center justify-center bg-card active:cursor-grabbing"
           data-testid="panel-drag-handle"
           onPointerDown={startPanelDrag}
-          title="Move panel"
+          title={t("app.movePanel")}
         >
           <span aria-hidden="true" className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         </div>

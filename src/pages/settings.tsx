@@ -19,7 +19,7 @@ import { GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { GlobalShortcutSection } from "@/components/global-shortcut-section";
-import { LOCALE_OPTIONS, type Locale } from "@/lib/i18n";
+import { LOCALE_OPTIONS, type I18nKey, type Locale } from "@/lib/i18n";
 import { getBarFillLayout, getTrayIconSizePx } from "@/lib/tray-bars-icon";
 import {
   AUTO_UPDATE_OPTIONS,
@@ -50,6 +50,41 @@ interface PluginConfig {
 const TRAY_PREVIEW_SIZE_PX = getTrayIconSizePx(1);
 
 const PREVIEW_BAR_TRACK_PX = 20;
+
+const AUTO_UPDATE_LABEL_KEYS = {
+  5: "settings.autoRefresh.option.5",
+  15: "settings.autoRefresh.option.15",
+  30: "settings.autoRefresh.option.30",
+  60: "settings.autoRefresh.option.60",
+} as const satisfies Record<AutoUpdateIntervalMinutes, I18nKey>;
+
+const DISPLAY_MODE_LABEL_KEYS = {
+  left: "settings.usageMode.option.left",
+  used: "settings.usageMode.option.used",
+} as const satisfies Record<DisplayMode, I18nKey>;
+
+const RESET_TIMER_LABEL_KEYS = {
+  relative: "settings.resetTimers.option.relative",
+  absolute: "settings.resetTimers.option.absolute",
+} as const satisfies Record<ResetTimerDisplayMode, I18nKey>;
+
+const TIME_FORMAT_LABEL_KEYS = {
+  auto: "settings.timeFormat.option.auto",
+  "12h": "settings.timeFormat.option.12h",
+  "24h": "settings.timeFormat.option.24h",
+} as const satisfies Record<TimeFormatMode, I18nKey>;
+
+const MENUBAR_ICON_LABEL_KEYS = {
+  provider: "settings.menubarIcon.option.provider",
+  donut: "settings.menubarIcon.option.donut",
+  bars: "settings.menubarIcon.option.bars",
+} as const satisfies Record<MenubarIconStyle, I18nKey>;
+
+const THEME_LABEL_KEYS = {
+  system: "settings.appTheme.option.system",
+  light: "settings.appTheme.option.light",
+  dark: "settings.appTheme.option.dark",
+} as const satisfies Record<ThemeMode, I18nKey>;
 
 function getPreviewBarLayout(fraction: number): { fillPercent: number; remainderPercent: number } {
   const { fillW, remainderDrawW } = getBarFillLayout(PREVIEW_BAR_TRACK_PX, fraction);
@@ -333,12 +368,12 @@ export function SettingsPage({
   return (
     <div className="py-3 space-y-4">
       <section>
-        <h3 className="text-lg font-semibold mb-0">Auto Refresh</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.autoRefresh.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          How obsessive are you
+          {t("settings.autoRefresh.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Auto-update interval">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.autoRefresh.ariaLabel")}>
             {AUTO_UPDATE_OPTIONS.map((option) => {
               const isActive = option.value === autoUpdateInterval;
               return (
@@ -352,7 +387,7 @@ export function SettingsPage({
                   className="flex-1"
                   onClick={() => onAutoUpdateIntervalChange(option.value)}
                 >
-                  {option.label}
+                  {t(AUTO_UPDATE_LABEL_KEYS[option.value])}
                 </Button>
               );
             })}
@@ -360,12 +395,12 @@ export function SettingsPage({
         </div>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">Usage Mode</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.usageMode.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          Glass half full or half empty
+          {t("settings.usageMode.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Usage display mode">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.usageMode.ariaLabel")}>
             {DISPLAY_MODE_OPTIONS.map((option) => {
               const isActive = option.value === displayMode;
               return (
@@ -379,7 +414,7 @@ export function SettingsPage({
                   className="flex-1"
                   onClick={() => onDisplayModeChange(option.value)}
                 >
-                  {option.label}
+                  {t(DISPLAY_MODE_LABEL_KEYS[option.value])}
                 </Button>
               );
             })}
@@ -387,16 +422,18 @@ export function SettingsPage({
         </div>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">Reset Timers</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.resetTimers.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          Countdown or clock time
+          {t("settings.resetTimers.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Reset timer display mode">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.resetTimers.ariaLabel")}>
             {RESET_TIMER_DISPLAY_OPTIONS.map((option) => {
               const isActive = option.value === resetTimerDisplayMode;
-              const absoluteTimeExample = getTimeFormatter(timeFormatMode).format(new Date(2026, 1, 2, 11, 4));
-              const example = option.value === "relative" ? "5h 12m" : `today at ${absoluteTimeExample}`;
+              const absoluteTimeExample = getTimeFormatter(timeFormatMode, language).format(new Date(2026, 1, 2, 11, 4));
+              const example = option.value === "relative"
+                ? t("settings.resetTimers.example.relative")
+                : `${t("settings.resetTimers.example.todayAt")} ${absoluteTimeExample}`;
               return (
                 <Button
                   key={option.value}
@@ -408,7 +445,7 @@ export function SettingsPage({
                   className="flex-1 flex flex-col items-center gap-0 py-2 h-auto"
                   onClick={() => onResetTimerDisplayModeChange(option.value)}
                 >
-                  <span>{option.label}</span>
+                  <span>{t(RESET_TIMER_LABEL_KEYS[option.value])}</span>
                   <span
                     className={cn(
                       "text-xs font-normal",
@@ -424,28 +461,28 @@ export function SettingsPage({
         </div>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">Time Format</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.timeFormat.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          12-hour or 24-hour clock
+          {t("settings.timeFormat.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Time format">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.timeFormat.ariaLabel")}>
             {TIME_FORMAT_OPTIONS.map((option) => {
               const isActive = option.value === timeFormatMode;
-              const example = getTimeFormatter(option.value).format(new Date(2026, 1, 2, 11, 4));
+              const example = getTimeFormatter(option.value, language).format(new Date(2026, 1, 2, 11, 4));
               return (
                 <Button
                   key={option.value}
                   type="button"
                   role="radio"
                   aria-checked={isActive}
-                  aria-label={option.label}
+                  aria-label={t(TIME_FORMAT_LABEL_KEYS[option.value])}
                   variant={isActive ? "default" : "outline"}
                   size="sm"
                   className="flex-1 flex flex-col items-center gap-0 py-2 h-auto"
                   onClick={() => onTimeFormatModeChange(option.value)}
                 >
-                  <span>{option.label}</span>
+                  <span>{t(TIME_FORMAT_LABEL_KEYS[option.value])}</span>
                   <span
                     className={cn(
                       "text-xs font-normal",
@@ -461,12 +498,12 @@ export function SettingsPage({
         </div>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">Menubar Icon</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.menubarIcon.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          What shows in the menu bar
+          {t("settings.menubarIcon.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Menubar icon style">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.menubarIcon.ariaLabel")}>
             {MENUBAR_ICON_STYLE_OPTIONS.map((option) => {
               const isActive = option.value === menubarIconStyle;
               return (
@@ -474,7 +511,7 @@ export function SettingsPage({
                   key={option.value}
                   type="button"
                   role="radio"
-                  aria-label={option.label}
+                  aria-label={t(MENUBAR_ICON_LABEL_KEYS[option.value])}
                   aria-checked={isActive}
                   variant={isActive ? "default" : "outline"}
                   size="sm"
@@ -493,12 +530,12 @@ export function SettingsPage({
         </div>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">App Theme</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.appTheme.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          How it looks around here
+          {t("settings.appTheme.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Theme mode">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.appTheme.ariaLabel")}>
             {THEME_OPTIONS.map((option) => {
               const isActive = option.value === themeMode;
               return (
@@ -512,7 +549,7 @@ export function SettingsPage({
                   className="flex-1"
                   onClick={() => onThemeModeChange(option.value)}
                 >
-                  {option.label}
+                  {t(THEME_LABEL_KEYS[option.value])}
                 </Button>
               );
             })}
@@ -551,9 +588,9 @@ export function SettingsPage({
         </div>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">Start on Login</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.startOnLogin.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          OpenUsage starts when you sign in
+          {t("settings.startOnLogin.description")}
         </p>
         <label className="flex items-center gap-2 text-sm select-none text-foreground">
           <Checkbox
@@ -561,13 +598,13 @@ export function SettingsPage({
             checked={startOnLogin}
             onCheckedChange={(checked) => onStartOnLoginChange(checked === true)}
           />
-          Start on login
+          {t("settings.startOnLogin.label")}
         </label>
       </section>
       <section>
-        <h3 className="text-lg font-semibold mb-0">Plugins</h3>
+        <h3 className="text-lg font-semibold mb-0">{t("settings.plugins.title")}</h3>
         <p className="text-sm text-muted-foreground mb-2">
-          Your AI coding lineup
+          {t("settings.plugins.description")}
         </p>
         <div className="bg-muted/50 rounded-lg p-1 space-y-1">
           <DndContext

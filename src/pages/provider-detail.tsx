@@ -1,4 +1,5 @@
 import { ProviderCard } from "@/components/provider-card"
+import { useI18n } from "@/hooks/use-i18n"
 import type { PluginDisplayState } from "@/lib/plugin-types"
 import type { DisplayMode, ResetTimerDisplayMode, TimeFormatMode } from "@/lib/settings"
 
@@ -19,10 +20,12 @@ export function ProviderDetailPage({
   timeFormatMode = "auto",
   onResetTimerDisplayModeToggle,
 }: ProviderDetailPageProps) {
+  const { t } = useI18n()
+
   if (!plugin) {
     return (
       <div className="text-center text-muted-foreground py-8">
-        Provider not found
+        {t("provider.notFound")}
       </div>
     )
   }

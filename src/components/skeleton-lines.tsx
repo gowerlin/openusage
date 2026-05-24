@@ -2,6 +2,8 @@ import { Fragment } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ManifestLine } from "@/lib/plugin-types"
 import { groupLinesByType } from "@/lib/group-lines-by-type"
+import { useI18n } from "@/hooks/use-i18n"
+import { translateDisplayLabel } from "@/lib/i18n"
 
 function SkeletonText({ label }: { label: string }) {
   return (
@@ -35,15 +37,18 @@ function SkeletonProgress({ label }: { label: string }) {
 }
 
 export function SkeletonLine({ line }: { line: ManifestLine }) {
+  const { locale } = useI18n()
+  const label = translateDisplayLabel(locale, line.label)
+
   switch (line.type) {
     case "text":
-      return <SkeletonText label={line.label} />
+      return <SkeletonText label={label} />
     case "badge":
-      return <SkeletonBadge label={line.label} />
+      return <SkeletonBadge label={label} />
     case "progress":
-      return <SkeletonProgress label={line.label} />
+      return <SkeletonProgress label={label} />
     default:
-      return <SkeletonText label={line.label} />
+      return <SkeletonText label={label} />
   }
 }
 

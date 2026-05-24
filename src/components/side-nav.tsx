@@ -29,6 +29,7 @@ function GaugeIcon({ className }: { className?: string }) {
 import { cn } from "@/lib/utils"
 import { getRelativeLuminance } from "@/lib/color"
 import { useDarkMode } from "@/hooks/use-dark-mode"
+import { useI18n } from "@/hooks/use-i18n"
 
 type ActiveView = "home" | "settings" | string
 
@@ -148,6 +149,7 @@ export function SideNav({
   onReorder,
 }: SideNavProps) {
   const isDark = useDarkMode()
+  const { t } = useI18n()
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -178,19 +180,19 @@ export function SideNav({
       ;(async () => {
         const reloadItem = await MenuItem.new({
           id: `ctx-reload-${pluginId}`,
-          text: "Refresh usage",
+          text: t("nav.context.refreshUsage"),
           enabled: isPluginRefreshAvailable ? isPluginRefreshAvailable(pluginId) : true,
           action: () => onPluginContextAction(pluginId, "reload"),
         })
         const removeItem = await MenuItem.new({
           id: `ctx-remove-${pluginId}`,
-          text: "Disable plugin",
+          text: t("nav.context.disablePlugin"),
           action: () => onPluginContextAction(pluginId, "remove"),
         })
         const bottomSeparator = await PredefinedMenuItem.new({ item: "Separator" })
         const inspectItem = await MenuItem.new({
           id: `ctx-inspect-${pluginId}`,
-          text: "Inspect Element",
+          text: t("nav.context.inspectElement"),
           action: () => {
             invoke("open_devtools").catch(console.error)
           },
@@ -211,7 +213,7 @@ export function SideNav({
         }
       })().catch(console.error)
     },
-    [isPluginRefreshAvailable, onPluginContextAction]
+    [isPluginRefreshAvailable, onPluginContextAction, t]
   )
 
   return (
@@ -220,7 +222,7 @@ export function SideNav({
       <NavButton
         isActive={activeView === "home"}
         onClick={() => onViewChange("home")}
-        aria-label="Home"
+        aria-label={t("nav.home")}
       >
         <GaugeIcon className="size-6 dark:text-page-accent" />
       </NavButton>
@@ -258,7 +260,7 @@ export function SideNav({
           openUrl("https://github.com/robinebers/openusage/issues").catch(console.error)
           invoke("hide_panel").catch(console.error)
         }}
-        aria-label="Help"
+        aria-label={t("nav.help")}
       >
         <CircleHelp className="size-6" />
       </NavButton>
@@ -267,7 +269,7 @@ export function SideNav({
       <NavButton
         isActive={activeView === "settings"}
         onClick={() => onViewChange("settings")}
-        aria-label="Settings"
+        aria-label={t("nav.settings")}
       >
         <Settings className="size-6" />
       </NavButton>
