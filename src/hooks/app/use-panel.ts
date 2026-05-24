@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { invoke, isTauri } from "@tauri-apps/api/core"
 import { listen } from "@tauri-apps/api/event"
 import { getCurrentWindow, PhysicalSize, currentMonitor } from "@tauri-apps/api/window"
@@ -43,6 +43,15 @@ export function usePanel({
   const focusContainer = useCallback(() => {
     window.requestAnimationFrame(() => {
       containerRef.current?.focus({ preventScroll: true })
+    })
+  }, [])
+  const startPanelDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return
+    if (!isTauri()) return
+
+    event.preventDefault()
+    void getCurrentWindow().startDragging().catch((error) => {
+      console.error("Failed to start panel drag:", error)
     })
   }, [])
 
@@ -233,5 +242,6 @@ export function usePanel({
     scrollRef,
     canScrollDown,
     maxPanelHeightPx,
+    startPanelDrag,
   }
 }

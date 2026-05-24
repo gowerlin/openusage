@@ -3,6 +3,7 @@ mod app_nap;
 mod config;
 mod local_http_api;
 mod panel;
+mod panel_position;
 mod plugin_engine;
 mod tray;
 #[cfg(target_os = "macos")]
@@ -493,6 +494,9 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::Builder::new().build())
+        .on_window_event(|window, event| {
+            panel_position::persist_panel_position_from_event(window, event);
+        })
         .invoke_handler(tauri::generate_handler![
             init_panel,
             hide_panel,

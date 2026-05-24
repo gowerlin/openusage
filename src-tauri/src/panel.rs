@@ -6,6 +6,7 @@ pub use other::{hide_panel, init, show_panel, toggle_panel, toggle_panel_at_tray
 
 #[cfg(target_os = "macos")]
 mod macos {
+    use crate::panel_position;
     use tauri::{AppHandle, Manager, Position, Size};
     use tauri_nspanel::{
         CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt, tauri_panel,
@@ -109,10 +110,16 @@ mod macos {
         }
     }
 
+    fn position_panel_from_saved_or_tray(app_handle: &AppHandle) {
+        if !panel_position::apply_stored_position(app_handle) {
+            position_panel_from_tray(app_handle);
+        }
+    }
+
     pub fn show_panel(app_handle: &AppHandle) {
         if let Some(panel) = get_or_init_panel!(app_handle) {
             panel.show_and_make_key();
-            position_panel_from_tray(app_handle);
+            position_panel_from_saved_or_tray(app_handle);
         }
     }
 
@@ -133,7 +140,7 @@ mod macos {
         } else {
             log::debug!("toggle_panel: showing panel");
             panel.show_and_make_key();
-            position_panel_from_tray(app_handle);
+            position_panel_from_saved_or_tray(app_handle);
         }
     }
 
@@ -154,7 +161,9 @@ mod macos {
 
         log::debug!("tray click: showing panel");
         panel.show_and_make_key();
-        position_panel_at_tray_icon(app_handle, icon_position, icon_size);
+        if !panel_position::apply_stored_position(app_handle) {
+            position_panel_at_tray_icon(app_handle, icon_position, icon_size);
+        }
     }
 
     tauri_panel! {
@@ -290,6 +299,7 @@ mod macos {
 
 #[cfg(not(target_os = "macos"))]
 mod other {
+    use crate::panel_position;
     use tauri::{AppHandle, Manager, Position, Size};
 
     fn main_window(app_handle: &AppHandle) -> Option<tauri::WebviewWindow> {
@@ -309,6 +319,7 @@ mod other {
         let Some(window) = main_window(app_handle) else {
             return;
         };
+        let _ = panel_position::apply_stored_position(app_handle);
         if let Err(error) = window.show() {
             log::error!("failed to show main window: {}", error);
             return;

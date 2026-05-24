@@ -7,12 +7,14 @@ const {
   invokeMock,
   isTauriMock,
   listenMock,
+  startDraggingMock,
 } = vi.hoisted(() => ({
   invokeMock: vi.fn(),
   isTauriMock: vi.fn(),
   listenMock: vi.fn(),
   getCurrentWindowMock: vi.fn(),
   currentMonitorMock: vi.fn(),
+  startDraggingMock: vi.fn(),
 }))
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -47,12 +49,17 @@ describe("usePanel", () => {
     listenMock.mockReset()
     getCurrentWindowMock.mockReset()
     currentMonitorMock.mockReset()
+    startDraggingMock.mockReset()
 
     isTauriMock.mockReturnValue(true)
     invokeMock.mockResolvedValue(undefined)
     listenMock.mockResolvedValue(vi.fn())
     currentMonitorMock.mockResolvedValue(null)
-    getCurrentWindowMock.mockReturnValue({ setSize: vi.fn().mockResolvedValue(undefined) })
+    startDraggingMock.mockResolvedValue(undefined)
+    getCurrentWindowMock.mockReturnValue({
+      setSize: vi.fn().mockResolvedValue(undefined),
+      startDragging: startDraggingMock,
+    })
   })
 
   it("handles tray show-about event", async () => {
@@ -340,5 +347,50 @@ describe("usePanel", () => {
 
     document.body.removeChild(container)
     requestAnimationFrameSpy.mockRestore()
+  })
+
+  it("starts native panel dragging from a primary pointer drag handle", () => {
+    const { result } = renderHook(() =>
+      usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+    )
+
+    const event = {
+      button: 0,
+      preventDefault: vi.fn(),
+    } as unknown as React.PointerEvent<HTMLElement>
+
+    act(() => {
+      result.current.startPanelDrag(event)
+    })
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1)
+    expect(startDraggingMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("ignores non-primary pointer drag attempts", () => {
+    const { result } = renderHook(() =>
+      usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+    )
+
+    act(() => {
+      result.current.startPanelDrag({
+        button: 2,
+        preventDefault: vi.fn(),
+      } as unknown as React.PointerEvent<HTMLElement>)
+    })
+
+    expect(startDraggingMock).not.toHaveBeenCalled()
   })
 })

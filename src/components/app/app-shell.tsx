@@ -55,6 +55,7 @@ export function AppShell({
     scrollRef,
     canScrollDown,
     maxPanelHeightPx,
+    startPanelDrag,
   } = usePanel({
     activeView,
     setActiveView,
@@ -77,6 +78,15 @@ export function AppShell({
         className="relative bg-card rounded-xl overflow-hidden select-none w-full border shadow-lg flex flex-col"
         style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - ARROW_OVERHEAD_PX}px` } : undefined}
       >
+        <div
+          aria-label="Move panel"
+          className="flex h-3 shrink-0 cursor-grab items-center justify-center bg-card active:cursor-grabbing"
+          data-testid="panel-drag-handle"
+          onPointerDown={startPanelDrag}
+          title="Move panel"
+        >
+          <span aria-hidden="true" className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+        </div>
         <div className="flex flex-1 min-h-0 flex-row">
           <SideNav
             activeView={activeView}
