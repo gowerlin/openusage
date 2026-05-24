@@ -10,7 +10,7 @@ created_at: "2026-05-24 09:42:46 +08:00"
 started_at: "2026-05-24T09:46:10+08:00"
 completed_at: "2026-05-24T09:55:02+08:00"
 updated_at: "2026-05-24T09:55:02+08:00"
-commit: null
+commit: 67d5cbc8422a757df314498b29d96d03918affde
 bug_id: BUG-002
 plan_id: null
 sizing: medium
@@ -151,7 +151,7 @@ FIXED
 - 套用範圍：env shell stdout command、`ccusage` runner availability check、`ccusage` query command config。
 - 保留原 stdout/stderr/exit status path；非 Windows helper 為 no-op。
 - `_ct-workorders/BUG-002-background-shell-window-visible.md`：更新修復狀態與驗證摘要。
-- commit：待回填
+- commit：67d5cbc8422a757df314498b29d96d03918affde
 
 ### 驗證
 - `cmd /c "...VsDevCmd.bat... && set LIBCLANG_PATH=... && cargo test windows_background_commands_use_create_no_window_flag --lib"`：RED，修復前因缺少 `CREATE_NO_WINDOW` helper 失敗。

@@ -74,4 +74,4 @@ FIXED
 - `cargo check`：PASS。
 - `cargo test --lib`：PASS，100 tests。
 - 未執行 packaged app 視覺 smoke；本次以 Windows-specific creation flag、helper-level regression test、Rust build/test 驗證。
-- commit：待回填
+- commit：67d5cbc8422a757df314498b29d96d03918affde
