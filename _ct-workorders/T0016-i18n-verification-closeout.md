@@ -9,8 +9,8 @@ intervention_type: fire-and-forget
 created_at: "2026-05-24 11:05:45 +08:00"
 started_at: "2026-05-24T11:09:02+08:00"
 completed_at: "2026-05-24T11:14:58+08:00"
-updated_at: "2026-05-24T11:14:58+08:00"
-commit: null
+updated_at: "2026-05-24T11:18:58+08:00"
+commit: fc527f76ebf4faf5df2f8b357897af416073fc12
 bug_id: null
 plan_id: PLAN-002
 sizing: medium
@@ -34,6 +34,7 @@ depends_on:
 - **建立時間**：2026-05-24 11:05:45 (UTC+8)
 - **開始時間**：2026-05-24T11:09:02+08:00
 - **完成時間**：2026-05-24T11:14:58+08:00
+- **Commit**：fc527f76ebf4faf5df2f8b357897af416073fc12
 - **目標子專案**：frontend / i18n closeout
 - **關聯 PLAN**：PLAN-002
 - **intervention_type**：fire-and-forget
@@ -155,7 +156,7 @@ PARTIAL
 - 已載入 `AGENTS.md`、PLAN-002、T0012、T0014、T0015、`package.json` 與 i18n source/test。
 - 未發現需要修改 source/test 的直接 i18n regression。
 - PLAN-002 保持 `IN_PROGRESS`：source/test/build 與 browser immediate switch smoke 已通過，但 Tauri runtime reload persistence 尚未完成實機驗收。
-- Commit：待 closeout commit 產生後補填。
+- Commit：`fc527f76ebf4faf5df2f8b357897af416073fc12` (`docs(i18n): record T0016 verification`)。
 
 ### 驗證
 - `bun run test --run` → PASS（exit 0；既有 app-update error-path tests 會輸出預期 stderr）。
