@@ -1,15 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-05-24 19:23 (UTC+8)
+> 最後更新：2026-05-24 20:01 (UTC+8)
 
 ### 立即待辦
-1. BUG-001：使用者安裝測試確認 T0031 解決 native title bar / deactive 問題；BUG-001 CLOSED。
-2. BUG-002 / BUG-003：使用者安裝測試確認皆驗收通過；BUG-002 CLOSED、BUG-003 CLOSED。
-3. T0016 / T0020：使用者安裝測試已確認 i18n 繁體中文與 Theme 切換全部正常；兩張 PARTIAL closeout 工單已收斂為 DONE。
-4. PLAN-003：DONE；T0021 Tauri runtime theme persistence smoke PASS，三個 macaron themes reload 後保持。
-5. PLAN-002：DONE；T0017 Tauri runtime language persistence smoke 已通過，commit `5652730d1c062ede94a659917274324ef14dbfbb`。
-6. 專案基線工單尚未建立；待使用者確認是否需要。
+1. Release：`v0.6.25` 正式 GitHub Release 已重新建立並通過 Publish run `26360375391`；`latest.json`、NSIS installer、`.sig` 已上傳。
+2. BUG-001 / BUG-002 / BUG-003：使用者安裝測試皆驗收通過，全部 CLOSED。
+3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
+4. 工單 T0001-T0031：全部 DONE；目前無 active workorder。
+5. 專案基線工單尚未建立；待使用者確認是否需要。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -86,6 +85,7 @@
 - 2026-05-24：T0030 安裝版仍有其他 native title bar 出現途徑；T0031 改採 Windows native subclass，於 message 層攔截 standard frame calculation / activation / paint / style changing，local NSIS package PASS。
 - 2026-05-24：使用者回報 T0031 安裝版「解決了」；BUG-001 CLOSED。
 - 2026-05-24：使用者回報 BUG-002 / BUG-003 也都驗收通過；BUG-002 CLOSED、BUG-003 維持 CLOSED。
+- 2026-05-24：修正正式 release 流程，將版本 bump 到 `0.6.25`，清理錯誤 `0.6.25` / 舊 `v0.6.25` tag，重建 `v0.6.25`；Publish run `26360375391` 成功，release assets 與 `latest.json` 驗證通過。
 
 ### 快速連結
 - Bug Tracker → [_bug-tracker.md]
@@ -112,7 +112,7 @@
 | 工單 | T0031 |
 | BUG | BUG-003 |
 | PLAN | PLAN-003 |
-| 決策 | D049 |
+| 決策 | D054 |
 
 ---
 
@@ -130,7 +130,7 @@
 | Windows docs UI polish | T0006 | ✅ DONE | 無 | 已衍生 T0007 |
 | Windows release verification closeout | T0007 | ✅ DONE | release gate 已由 T0009 通過 | 無 |
 | Signed Windows release verification | T0008 | ✅ DONE | release gate 已由 T0009 通過 | 無 |
-| Fork release flow | T0009 | ✅ DONE | 無 | release `v0.6.24` verified |
+| Fork release flow | T0009 | ✅ DONE | 無 | release `v0.6.24` / `v0.6.25` verified |
 | Windows-only release config | T0010 | ✅ DONE | 無 | 已納入 T0009 release |
 | Panel draggable position persistence | BUG-001 / T0011 / T0022 / T0025 / T0026 / T0027 / T0028 / T0029 / T0030 / T0031 | ✅ CLOSED | 無 | 使用者安裝測試確認 T0031 解決 native title bar / deactive 問題 |
 | System tray icon | BUG-003 / T0023 / T0024 | ✅ CLOSED | 無 | 使用者安裝測試確認 tray icon 正確 |
@@ -195,6 +195,7 @@
 - D051：T0030 安裝版仍有其他 native title bar 出現途徑；依 Microsoft Win32 文件，根層修法改為安裝 native subclass，攔截 `WM_NCCALCSIZE`、`WM_NCACTIVATE`、`WM_NCPAINT`、`WM_STYLECHANGING`，不再只在 Tauri event 後補 prune。
 - D052：使用者安裝測試確認 T0031 解決 BUG-001 native title bar / deactive 問題；BUG-001 CLOSED。
 - D053：使用者回報 BUG-002 / BUG-003 也都驗收通過；BUG-002 由 FIXED 收斂為 CLOSED，BUG-003 維持 CLOSED 並更新驗收時間。
+- D054：正式 release `0.6.25` 必須從 `main` 的版本 bump commit 發出；清理錯誤 `0.6.25` / 舊 `v0.6.25` tag 後，重建 `v0.6.25` 指向 `f8e31e9`，Publish run `26360375391` 已成功並驗證 updater assets。
 
 ---
 

@@ -3,7 +3,7 @@ schema_version: 1
 schema_kind: index
 id: _backlog
 index_kind: plans
-generated_at: "2026-05-24T15:52:18+08:00"
+generated_at: "2026-05-24T20:01:42+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/PLAN-*.md

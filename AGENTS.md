@@ -43,53 +43,18 @@ Use below list to store and recall user notes when asked to do so.
 <claude-mem-context>
 # Memory Context
 
-# [openusage] recent context, 2026-05-24 7:26pm GMT+8
+# [openusage] recent context, 2026-05-24 8:11pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (21,015t read) | 433,010t work | 95% savings
+Stats: 50 obs (18,832t read) | 290,006t work | 94% savings
 
 ### May 24, 2026
 S7452 Windows port transparent window debugging - window dragging works but background transparency effect not rendering (May 24, 4:39 PM)
 S7451 Initial session greeting (May 24, 4:39 PM)
 S7453 User installed T0028 diagnostic build, reproduced BUG-001 native title bar issue, and requested log location for analysis (May 24, 4:52 PM)
-16643 4:54p 🔵 Windows transparent window implementation uses active cursor event masking
-16644 " 🔵 Windows panel implementation lacks explicit transparency configuration present in macOS code
-16645 " 🔵 Windows shadow control API exists but is not invoked in openusage panel code
-16646 4:55p 🔵 Windows GDI region APIs available but not used for visual transparency masking
-16647 " 🔵 Tauri set_shadow API controls Windows undecorated window visual effects including rounded corners
-16648 5:45p 🔵 Tray icon flash from template-mode race between backend initialization and frontend updates
-16649 " 🔵 Frontend tray hook unconditionally enables template mode immediately after backend initialization
-16650 5:46p ✅ Added failing test for Windows tray icon preservation strategy
-16651 " 🔴 Implemented Windows platform detection to preserve backend desktop tray icon
-16652 " ✅ Windows tray icon preservation test now passing after platform detection fix
-16653 5:47p ✅ Full App test suite passes with Windows tray icon fix, confirming no regressions
-16654 " ✅ Complete test suite passes with 1139 tests validating Windows tray icon fix has no regressions
-16655 5:48p ✅ Frontend production build succeeds with Windows tray icon platform detection code
-16656 " 🔵 Tauri build blocked by missing LIBCLANG_PATH environment variable for rquickjs-sys bindgen
-16657 5:49p 🔵 Setting LIBCLANG_PATH alone insufficient, requires full Visual Studio Developer Command Prompt environment
-16658 5:51p ✅ Windows NSIS installer build succeeds with tray icon fix in VS Developer Command Prompt environment
-16659 5:52p ✅ Created work order T0024 documenting Windows tray icon frontend fix and updated BUG-003 with complete root cause
-16660 6:08p 🔵 Tauri application initialization sequence in lib.rs
-16661 6:09p 🟣 Added automatic window chrome enforcement to panel hit test loop
-16662 6:11p ✅ Built production release 0.6.24 with window chrome enforcement
-16663 " ⚖️ Iterative fix strategy for Windows title bar async regression
-16664 6:12p 🟣 Created dedicated panel_hit_test module for Windows window chrome management
-16665 6:15p 🔵 Historical release workflow context retrieved from memory
-16666 6:16p 🔵 Windows DWM non-client rendering APIs confirmed in windows-0.61.3 crate
-16667 " ✅ Added Win32_Graphics_Dwm feature to windows crate dependency
-16668 " 🟣 Implemented DWM non-client rendering disablement for custom window chrome
-16669 6:17p 🔵 DWM non-client rendering changes validated by panel_hit_test unit tests
-16670 " 🔵 Full test suite validates DWM implementation across all modules
-16671 6:18p ✅ Production build successful with DWM non-client rendering implementation
-16672 6:21p 🔵 Windows titlebar async regression resolved with continuous HWND style monitoring
-16673 " ✅ Created T0027 work order documenting DWM non-client rendering disablement
-16674 6:22p ✅ Updated BUG-001 with T0027 remediation and T0026 installation failure
-16675 " ✅ Updated tower state to reflect T0027 DWM remediation status
-16676 6:23p 🔵 DWM implementation verified with all formatting and test checks passing
-16677 6:24p ✅ Production build successful with DWM non-client rendering implementation
 16678 6:25p 🔵 Windows NSIS installer package verified with DWM implementation
 16679 " ✅ Updated T0027 and BUG-001 workorders with fresh package metadata
 16680 " ✅ Synchronized tracking document timestamps to package build completion time
@@ -100,37 +65,64 @@ S7453 User installed T0028 diagnostic build, reproduced BUG-001 native title bar
 16685 " 🔵 Running OpenUsage process identified with executable in separate directory from data
 16686 6:45p 🔵 OpenUsage main panel window exists but is not visible
 16687 6:46p 🔴 Added configure_panel_window calls after show, focus, and hide operations
-**16688** " 🔴 **Added enforce_chrome on every window event with before/after snapshots**
-Enhanced trace_window_event in src-tauri/src/panel_hit_test.rs to proactively enforce chrome style stripping on every window event. The modification captures a before-snapshot (window_event_snapshot_before_enforce), calls enforce_chrome to strip window chrome bits (WS_CAPTION, WS_SYSMENU, WS_THICKFRAME), then captures an after-snapshot (window_event_snapshot_after_enforce) showing the enforcement effect. If enforcement fails, the error is logged as window_event_enforce_error with full event context. This addresses the root cause of the visibility issue where window inspection showed chrome style 0x04CB0000 (with chrome bits present) instead of the expected stripped styles 0x04000000 or 0x14000000 observed in earlier log entries. The before/after snapshots will reveal exactly when chrome styles revert during window lifecycle events (resize, focus, show, hide), enabling precise diagnosis of which window events trigger the reversion. This complements the panel.rs fix by enforcing correct window styling reactively on every window event rather than only during explicit show/hide/focus operations.
-~467t 🛠️ 3,820
-
-**16689** 6:48p ✅ **Successfully built Windows installer with panel visibility fixes**
-Successfully compiled Windows NSIS installer incorporating the panel visibility fixes for OpenUsage v0.6.24. The build completed in 77.9 seconds and bundled 18 plugins (amp, antigravity, claude, codex, copilot, cursor, factory, gemini, grok, jetbrains-ai-assistant, kimi, kiro, minimax, opencode-go, perplexity, synthetic, windsurf, zai). All 109 unit tests passed, including the critical 9 panel_hit_test tests that verify chrome style stripping (strips_native_windows_title_bar_style_bits) and window region masking behavior. The build incorporated two key fixes: panel.rs now calls configure_panel_window after show/focus/hide operations to maintain window configuration across visibility changes, and panel_hit_test.rs now proactively enforces chrome style stripping on every window event with before/after snapshots for debugging. The resulting installer (5.28 MB) is ready for local testing to verify the fixes resolve the window visibility issue where hwnd 0x9A0052 reported Visible=False despite the process running normally.
-~490t 🛠️ 583
-
-**16690** " ✅ **Created T0029 workorder documenting panel chrome enforcement fixes**
-Created comprehensive workorder documentation T0029-enforce-panel-chrome-after-window-state-changes.md summarizing the complete panel chrome enforcement debugging and fix session. The document captures the investigation flow in Traditional Chinese: user reproduced BUG-001 native title bar leak after installing T0028, requested log analysis, which revealed logs at %APPDATA%\com.sunstory.openusage\logs and %LOCALAPPDATA%\com.sunstory.openusage\logs. Trace analysis showed initial chrome pruning worked (style=0x04000000), but resize events after focus loss reverted styles to 0x14CB0000 with has_chrome_bits=true, proving Tauri/Tao window state paths write decorated style bits back. The fix adds configure_panel_window calls immediately after show/focus/hide operations in panel.rs and enforce_chrome with before/after snapshots on every window event in panel_hit_test.rs. All verification passed including 109 unit tests and Windows NSIS build producing 5,288,954 byte installer. The workorder marks the task DONE pending final visual acceptance testing after user reinstalls the fixed version to confirm no native title bar appears during window state transitions.
-~595t 🛠️ 5,228
-
-**16691** 6:49p ✅ **Updated BUG-001 bug tracker with T0029 fix information and T0028 failure analysis**
-Updated BUG-001 bug tracker document to reflect the complete diagnostic and fix cycle through T0028 and T0029. Added T0028 acceptance failure section documenting that user confirmed issue reproduction after installing the diagnostic build. Trace analysis revealed the root cause: Focused(false) followed by Resized events cause window style to revert from stripped 0x04000000 to decorated 0x14CB0000 with has_chrome_bits=true, proving Tauri/Tao window state code writes native chrome bits (WS_CAPTION, WS_SYSMENU) back to the HWND. The background monitoring loop prunes the style back to 0x14000000 approximately 3ms later, but this delay allows the native title bar to become visible or leave residual artifacts. Live HWND inspection of the hidden panel confirmed style=0x04CB0000, further proving state transitions restore decorated styles. Added T0029 fix documentation explaining the solution: enforce chrome synchronously immediately after show/focus/hide operations in panel.rs and on every non-Moved window event in panel_hit_test.rs with before/after diagnostic snapshots. Updated related workorder reference to T0029 with new installer details (5.28 MB, SHA256 hash). Bug status remains VERIFY pending user visual acceptance testing after reinstalling the fixed version.
-~628t 🛠️ 6,625
-
+16688 " 🔴 Added enforce_chrome on every window event with before/after snapshots
+16689 6:48p ✅ Successfully built Windows installer with panel visibility fixes
+16690 " ✅ Created T0029 workorder documenting panel chrome enforcement fixes
+16691 6:49p ✅ Updated BUG-001 bug tracker with T0029 fix information and T0028 failure analysis
 S7454 User reproduced BUG-001 native title bar issue after installing T0028 diagnostic build and requested log file locations for analysis (May 24, 6:52 PM)
 S7455 Observer session monitoring T0030 verification and user preparation for trace-based acceptance testing (May 24, 6:52 PM)
-**16692** 6:53p 🔵 **T0029 fix verification shows successful chrome bit prevention during window state transitions**
-User reinstalled OpenUsage with T0029 fixes and new trace evidence confirms the synchronous chrome enforcement strategy successfully prevents chrome bit reversion. The enhanced trace shows a fresh app instance (hwnd 0x3110D8) with before/after enforcement snapshots captured at every window event per T0029 modifications. Critically, all window_event_snapshot_before_enforce and window_event_snapshot_after_enforce pairs show has_chrome_bits=false with styles remaining at stripped 0x04000000 or 0x14000000 throughout focus/blur/resize transitions. This contrasts sharply with T0028 trace where Focused(false) followed by Resized caused style reversion from 0x04000000 to 0x14CB0000 with has_chrome_bits=true. The chrome_style_pruned events visible in new trace (before_style=0x14CB0000 after_style=0x14000000) are from background monitoring detecting cursor_ignore_changed operations that temporarily add WS_EX_TRANSPARENT (exstyle changes from 0x00040010 to 0x000C0030), not from window state transition reversions. The before/after snapshot pairs being identical demonstrates that synchronous enforce_chrome calls in panel.rs (after show/focus/hide) and panel_hit_test.rs (on every window event) successfully prevent Tauri/Tao from writing chrome bits back during window state transitions. This is strong evidence T0029 has resolved BUG-001 root cause.
-~645t 🔍 29,193
-
+16692 6:53p 🔵 T0029 fix verification shows successful chrome bit prevention during window state transitions
 S7456 T0031 completion verification sweep - Windows native subclass implementation to eliminate native title bar during panel deactivation (May 24, 7:20 PM)
-**Investigated**: Primary session executed systematic pre-completion verification following verification-before-completion skill: examined Tauri library structure (run_on_main_thread implementation in tauri-runtime-wry-2.11.1), lib.rs app initialization flow (start_mask at line 569, on_window_event at line 506), git repository state (diff --check, status), T0031 workorder documentation, Cargo.toml dependencies, panel_hit_test.rs implementation, and Control Tower tracking file cross-references
+16693 7:31p 🔴 Bug tracker parser now handles title-case section headings
+16694 " 🔄 Bug tracker parser enhanced with punctuation-insensitive matching
+16695 " 🔵 Parser fix verified against real openusage bug tracker data
+16696 7:32p 🔵 Production build verified successfully after parser changes
+16697 7:37p 🔵 GitHub release with tag 0.6.25 only packaged source code due to tag pattern mismatch
+16698 7:38p 🔵 Release 0.6.25 has no build artifacts because tag lacks v prefix required by publish workflow
+16699 " 🔵 Tag 0.6.25 exists only on remote GitHub repository, not in local clone
+16700 " 🔵 Tag 0.6.25 points to commit with version still set to 0.6.24 in package.json
+16701 7:39p 🔵 All version files at tag 0.6.25 remain at 0.6.24 confirming no version bump was performed
+16702 7:43p 🔵 CI pipeline failed on version validation for v0.6.25 release
+16703 7:44p 🔵 Root cause identified: version files still at 0.6.24 when tagged as v0.6.25
+16704 " 🔵 GitHub release v0.6.25 published with no build artifacts
+16705 7:45p 🔴 Version files bumped from 0.6.24 to 0.6.25 to match git tag
+16706 " ✅ Version bump committed to repository as f8e31e9
+16707 7:46p ✅ Version bump pushed to gowerlin/openusage main branch
+16708 " ✅ Deleted broken v0.6.25 release and tag from GitHub
+16709 " ✅ Removed stale v0.6.25 tags from local and remote repositories
+16710 7:47p 🟣 Created and pushed corrected v0.6.25 tag to remote repository
+16711 " 🔵 New CI workflow triggered for corrected v0.6.25 tag
+16712 7:49p 🔵 Version validation step passed successfully in new CI run
+16713 7:55p 🔵 GitHub Actions workflow watch timeout
+16714 " 🔵 Tauri Windows publish workflow in progress at build step
+16715 7:59p ✅ v0.6.25 Windows Release Published
+16716 " 🔵 Auto-Update Infrastructure Verified for v0.6.25
+16717 8:00p 🔵 openusage Project Uses BMad Control Tower for Windows Port Work
+16718 8:01p 🔵 Control Tower YOLO Mode Enabled with Complete Windows Port Project History
+16719 8:02p 🔵 Complete Windows MVP Project with Zero Outstanding Work
+16720 8:03p ✅ Manual Control Tower Sync Implementation via Inline Node.js Script
+16721 " ✅ Tower State Updated for v0.6.25 Release Completion
+16722 8:04p 🔵 Control Tower Sync Operation Modified Four Files Including AGENTS.md
+**16723** " 🔴 **Removed Trailing Blank Lines from Generated Control Tower Index Files**
+Fixed formatting issues in generated control tower index files by removing trailing blank lines that triggered git diff --check warnings. The inline Node.js sync script had added blank lines at end-of-file when regenerating _bug-tracker.md and _backlog.md, which violated repository whitespace conventions. Applied targeted patches to both files removing the trailing newlines while preserving all functional content including status breakdowns (3 bugs CLOSED, 3 plans DONE), updated timestamps, and table structures. The git diff --check command now passes cleanly with only informational LF-to-CRLF warnings remaining for Windows repository conventions. Final verification via Node.js regex checks confirms all critical content intact: bug tracker shows CLOSED:3, backlog shows DONE:3, tower state documents v0.6.25 release and decision D054. The three control tower files now ready for commit with proper formatting and no whitespace violations.
+~386t 🛠️ 4,920
 
-**Learned**: Tauri run_on_main_thread routes tasks through Message::Task to main event loop; start_mask called during app.setup; Win32_UI_Shell feature provides SetWindowSubclass API; subclass installation occurs at multiple lifecycle points (init, show_panel) with idempotency protection; all T0031 implementation claims verified against actual source code and documentation
+**16724** 8:05p 🔄 **Removed Extraneous Blank Lines from Empty Status Sections**
+Further refined the generated control tower index files by removing extraneous blank lines that appeared after empty status section tables. The initial inline Node.js sync script had added blank lines after each section header table (Open, Fixing, Fixed, Verify, Closed in bug tracker; Active, Completed, Dropped in backlog) even when the section was empty. Removed these unnecessary blank lines through targeted patches, reducing visual clutter and minimizing the git diff footprint. The bug tracker change count dropped from 6 lines to 2 lines, and the backlog from 3 lines to 2 lines, bringing the total diff from 28 lines changed down to 23 lines. The final state shows only essential changes: updated generated_at timestamps in both index files (from 15:52:18/19:23:00 to 20:01:42), and substantive tower state updates documenting v0.6.25 release completion with decision D054. All whitespace checks continue to pass cleanly.
+~394t 🛠️ 6,559
 
-**Completed**: T0031 implementation verification complete: Win32_UI_Shell feature confirmed in Cargo.toml line 53; windows_panel_subclass_policy (line 133), install_hwnd_subclass (line 301), panel_subclass_proc (line 328) confirmed in panel_hit_test.rs; Control Tower documentation verified (BUG-001, _tower-state.md D051, _bug-tracker.md all reference T0031 with timestamp 2026-05-24T19:14:36+08:00); git diff --check passed (exit 0, only pre-existing CRLF warnings); repository state clean with expected file modifications
+**16725** 8:10p 🔵 **Bug tracker file shows 0 open bugs, 3 closed bugs**
+Investigation was triggered by a question about why bugs still appear as "Open" in the BAT interface. A grep search of the bug tracker markdown file revealed that the source data actually shows the correct state: all three tracked bugs (BUG-001 through BUG-003) are properly marked as closed, with 0 bugs in the open state. This suggests a potential discrepancy between the markdown source file and how the bug list is being displayed or rendered in the BAT interface.
+~246t 🔍 1,373
 
-**Next Steps**: Primary session has completed verification sweep and is ready for user acceptance testing phase - awaiting user installation of OpenUsage_0.6.24_x64-setup.exe (SHA256: 4FEDB23E41083D63F1AF7ACC4939122B2D04AB0F9BBE94E62006A565E4BE1126) and runtime verification that native title bar no longer appears during panel deactivate/focus transitions
+**16726** " 🔵 **Bug status parsing logic uses case-insensitive heading detection**
+Investigation of the bug status parsing mechanism revealed that the TypeScript code uses a sectionToStatus function to map markdown section headings to bug statuses. The function normalizes headings to uppercase, creates a compact version by removing whitespace and punctuation, then checks for keywords in priority order. The logic supports both English and Chinese text (e.g., 'CLOSED' or '已關閉'). A grep of the compiled app.asar confirmed this logic is present in the installed application, suggesting the parsing code itself is correct and deployed.
+~299t 🔍 12,613
+
+**16727** " 🔵 **Installed BAT app.asar last modified 2026-05-23 21:13:48**
+Verification of the installed BetterAgentTerminal application showed the app.asar bundle was built on May 23, 2026 at 9:13:48 PM, making it approximately one day old. The bundle contains the bug status parsing logic that was found in the source repository. This timestamp provides a reference point for determining whether recent code changes have been deployed to the production installation. The presence of the parsing logic in the bundle confirms the code is deployed, but the UI issue persisting suggests the problem may be in how the parsed data is rendered or displayed rather than in the parsing itself.
+~269t 🔍 12,613
 
 
-Access 433k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 290k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>
