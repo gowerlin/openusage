@@ -7,7 +7,7 @@ status: IN_PROGRESS
 priority: Medium
 plan_type: feature
 created_at: "2026-05-24 11:26:33 +08:00"
-updated_at: "2026-05-24T15:04:44+08:00"
+updated_at: "2026-05-24T15:31:35+08:00"
 affects_files: []
 depends_on:
   - PLAN-002
@@ -175,9 +175,11 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
 - [x] T0018 已回報 theme architecture / token inventory。
 - [x] 已建立並派發 T0019 Implement macaron theme presets：terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`。
 - [x] T0019 已回報 macaron theme presets 實作結果；visual screenshots 留給 T0020。
-- [ ] 派發 T0020 Theme visual verification closeout。
+- [x] 已建立並派發 T0020 Theme visual verification closeout：terminal `384e603eb27165270d62dc82d269c9ae`。
+- [ ] T0020 已完成 browser visual smoke 並修復 compact selector overlap；Tauri runtime reload / app restart persistence 尚未驗證，PLAN-003 保持 IN_PROGRESS。
 
 ## 關聯工單
 
 - T0018：Research current theme architecture and token inventory（DONE；terminal `7b14c686b9ebf9dfcc454c0e086d9e1e`；commit `1520616c1e44714591a83abe7acc9989cbc1ff24`）
-- T0019：Implement macaron theme presets（DONE；terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`；commit 待收尾回填）
+- T0019：Implement macaron theme presets（DONE；terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`；commit `a9dc8fb82eafb2b40a4887c105d0dba82406425c`）
+- T0020：Theme visual verification closeout（PARTIAL；terminal `384e603eb27165270d62dc82d269c9ae`；commit `8fb84e04c31bfc12ab245a00372868a4f9c13628`；runtime persistence gap remains）
