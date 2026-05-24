@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-05-24 15:46 (UTC+8)
+> 最後更新：2026-05-24 15:52 (UTC+8)
 
 ### 立即待辦
 1. PLAN-003：DONE；T0021 Tauri runtime theme persistence smoke PASS，三個 macaron themes reload 後保持。
@@ -92,7 +92,7 @@
 | 工單 | T0021 |
 | BUG | BUG-002 |
 | PLAN | PLAN-003 |
-| 決策 | D039 |
+| 決策 | D040 |
 
 ---
 
@@ -160,6 +160,7 @@
 - D037：接受 T0018 DONE；PLAN-003 採方案 A 延伸既有 `ThemeMode`，先實作 light-only `macaron-pink` / `macaron-green` / `macaron-blue`，視覺 screenshots closeout 留給 T0020。
 - D038：接受 T0019 DONE；macaron theme presets source implementation 已完成，PLAN-003 剩餘 screenshots / visual smoke gate，建立並派發 T0020 做 closeout。
 - D039：接受 T0020 PARTIAL；browser visual smoke / screenshots 與 compact selector fix 已完成，剩餘 Tauri runtime reload/app restart persistence，建立並派發 T0021 做 final closeout。
+- D040：接受 T0021 DONE；Tauri runtime guard 與三個 macaron themes reload persistence 全部通過，PLAN-003 正式收斂為 DONE。
 
 ---
 

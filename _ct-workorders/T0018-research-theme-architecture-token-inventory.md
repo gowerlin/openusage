@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0018
 title: Research theme architecture and token inventory
-status: IN_PROGRESS
+status: DONE
 type: research
 intervention_type: fire-and-forget
 created_at: "2026-05-24 11:32:21 +08:00"
 started_at: "2026-05-24T11:46:02+08:00"
-completed_at: null
-updated_at: "2026-05-24T11:51:36+08:00"
-commit: null
+completed_at: "2026-05-24T11:53:18+08:00"
+updated_at: "2026-05-24T11:53:18+08:00"
+commit: 1520616c1e44714591a83abe7acc9989cbc1ff24
 bug_id: null
 plan_id: PLAN-003
 sizing: medium
@@ -26,10 +26,10 @@ depends_on:
 ## 元資料
 - **工單編號**：T0018
 - **任務名稱**：Research theme architecture and token inventory
-- **狀態**：IN_PROGRESS
+- **狀態**：DONE
 - **建立時間**：2026-05-24 11:32:21 (UTC+8)
 - **開始時間**：2026-05-24 11:46:02 (UTC+8)
-- **完成時間**：-
+- **完成時間**：2026-05-24 11:53:18 (UTC+8)
 - **目標子專案**：frontend / theme system
 - **關聯 PLAN**：PLAN-003
 - **intervention_type**：fire-and-forget
@@ -192,10 +192,12 @@ DONE
   - Dialogs / popovers / tooltip / alert：`bg-card`、`bg-popover`、`border`、`destructive`。
   - Empty / loading / error states：`text-muted-foreground`、`Skeleton bg-muted`、`PluginError` destructive style。
 - 已更新 `_ct-workorders/PLAN-003-add-macaron-theme-presets.md`，加入 T0018 研究結論、palette、T0019 scope。
-- Commit：收尾 commit 後回填。
+- Commit：`1520616c1e44714591a83abe7acc9989cbc1ff24`
 
 ### 驗證
 - Contrast spot-check（inline Node）：foreground/background 最低 13.97；primary foreground/primary 最低 4.65；muted foreground/muted 最低 5.20；accent foreground/accent 最低 9.58。
+- `git diff --cached --check`：PASS（僅 LF/CRLF warning）。
+- `scripts/lint-frontmatter.mjs`：未執行；此 repo 無該檔案。
 - Source tests/build 未執行；本工單是 research-only，未修改 `src`。
 
 ### 互動紀錄
@@ -234,10 +236,10 @@ DONE
 無
 
 ### 遭遇問題
-- 無。
+- 無阻斷問題。frontmatter lint 腳本不存在，改以 staged diff check 與人工檢查 frontmatter。
 
 ### sprint-status.yaml 已更新
 不適用
 
 ### 回報時間
-2026-05-24 11:51:36 (UTC+8)
+2026-05-24 11:53:18 (UTC+8)

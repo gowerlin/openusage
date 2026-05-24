@@ -3,7 +3,7 @@ schema_version: 1
 schema_kind: workorder
 id: T0011
 title: Make panel window draggable and persist position
-status: FIXED
+status: DONE
 type: execution
 intervention_type: fire-and-forget
 created_at: "2026-05-24 09:17:34 +08:00"
@@ -30,7 +30,7 @@ depends_on:
 ## 元資料
 - **工單編號**：T0011
 - **任務名稱**：Make panel window draggable and persist position
-- **狀態**：FIXED
+- **狀態**：DONE
 - **建立時間**：2026-05-24 09:17:34 (UTC+8)
 - **開始時間**：2026-05-24T09:22:06+08:00
 - **完成時間**：2026-05-24T09:34:45+08:00

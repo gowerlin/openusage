@@ -1,0 +1,3 @@
+enable_plan_tracking: true
+enable_bug_tracking: true
+auto-session: yolo

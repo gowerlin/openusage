@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0019
 title: Implement macaron theme presets
-status: IN_PROGRESS
+status: DONE
 type: execution
 intervention_type: fire-and-forget
 created_at: "2026-05-24 14:55:34 +08:00"
 started_at: "2026-05-24T14:58:06+08:00"
-completed_at: null
-updated_at: "2026-05-24T14:58:06+08:00"
-commit: null
+completed_at: "2026-05-24T15:07:55+08:00"
+updated_at: "2026-05-24T15:07:55+08:00"
+commit: a9dc8fb82eafb2b40a4887c105d0dba82406425c
 bug_id: null
 plan_id: PLAN-003
 sizing: medium
@@ -31,10 +31,10 @@ depends_on:
 ## 元資料
 - **工單編號**：T0019
 - **任務名稱**：Implement macaron theme presets
-- **狀態**：IN_PROGRESS
+- **狀態**：DONE
 - **建立時間**：2026-05-24 14:55:34 (UTC+8)
 - **開始時間**：2026-05-24T14:58:06+08:00
-- **完成時間**：-
+- **完成時間**：2026-05-24T15:07:55+08:00
 - **目標子專案**：frontend / theme system
 - **關聯 PLAN**：PLAN-003
 - **intervention_type**：fire-and-forget
@@ -200,6 +200,7 @@ DONE
 - `src/index.css` 已新增三個 `:root.theme-macaron-*` token blocks；status semantic colors 未改動。
 - Settings App Theme selector 已可容納六個選項，並加入 `en` / `zh-TW` theme labels。
 - 已補 `settings` persistence/options、Settings selector、i18n labels、root class behavior focused tests。
+- Commit：`a9dc8fb82eafb2b40a4887c105d0dba82406425c`
 
 ### 驗證
 - RED：`bun run test --run src/lib/settings.test.ts src/pages/settings.test.tsx src/lib/i18n.test.ts src/hooks/app/use-settings-theme.test.ts` 初次失敗 9 tests，確認缺少 macaron behavior。

@@ -10,7 +10,7 @@ created_at: "2026-05-24 10:02:32 +08:00"
 started_at: "2026-05-24T10:05:57+08:00"
 completed_at: "2026-05-24T10:14:07+08:00"
 updated_at: "2026-05-24T10:14:07+08:00"
-commit: 638754f
+commit: 638754f443b3630da40d33343c657f252b8604cd
 bug_id: null
 plan_id: PLAN-002
 sizing: medium
@@ -148,7 +148,7 @@ depends_on:
 DONE
 
 ### 產出摘要
-- Commit：`638754f` (`docs(i18n): research T0012 architecture`)
+- Commit：`638754f443b3630da40d33343c657f252b8604cd` (`docs(i18n): research T0012 architecture`)
 - 現有前端是 Vite + React 19 + Zustand；無 router，畫面由 `src/stores/app-ui-store.ts` 的 `activeView` 和 `src/components/app/app-content.tsx` 切換。
 - 目前沒有 locale / i18n helper。設定持久化集中在 `src/lib/settings.ts`，使用 Tauri `LazyStore("settings.json")`；這是語言設定最小落點。
 - 推薦先建本地 typed dictionary，不新增 dependency：`src/lib/i18n.ts` 或 `src/i18n/resources.ts` 提供 `Locale`、`I18nKey`、`resources`、`t()`；React 用 `useI18n()` 讀取 `useAppPreferencesStore.language`。

@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: workorder
 id: T0021
 title: Theme Tauri runtime persistence smoke
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: verification
 plan_id: PLAN-003
 created_at: "2026-05-24T15:35:59+08:00"
-updated_at: "2026-05-24T15:38:09+08:00"
+updated_at: "2026-05-24T15:49:49+08:00"
 started_at: "2026-05-24T15:38:09+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-05-24T15:49:49+08:00"
+commit: be029ba499d41b5c7e6b68a9da84392d580bd543
 agent: codex
 terminal_id: 79264ba994057240b1e0bf4a5b3f22c7
 intervention_type: fire-and-forget
@@ -127,6 +127,7 @@ DONE
 - 使用隔離 Tauri identifier `com.sunstory.openusage.t0021`，app data 寫入 `C:\Users\Gower\AppData\Roaming\com.sunstory.openusage.t0021\settings.json`，未污染正式 `com.sunstory.openusage`。
 - Runtime smoke 只產生驗證 artifacts，未修改 source/test files。
 - PLAN-003 已依 runtime smoke 結論收斂為 DONE。
+- Commit：`be029ba499d41b5c7e6b68a9da84392d580bd543` (`docs(theme): record T0021 runtime smoke`)。
 
 ### 驗證
 

@@ -7,7 +7,7 @@ status: DONE
 priority: High
 plan_type: architecture
 created_at: "2026-05-23 22:31:25 +08:00"
-updated_at: "2026-05-24T03:02:03+08:00"
+updated_at: "2026-05-24T09:08:40+08:00"
 affects_files: []
 depends_on: []
 ---
@@ -76,17 +76,18 @@ depends_on: []
 - [x] 使用者要求產生新 Tauri updater key pair，並同步更新 `tauri.conf.json` updater `pubkey`。
 - [x] T0009 Renew #3 DONE：key rotation、secret update、pubkey commit、retag/release verification 已完成；GitHub Actions run `26340728709` 成功。
 - [x] Windows public release PASS：`v0.6.24` release 已存在，包含 NSIS setup、`.sig`、`latest.json` Windows platform entries，artifact URLs 指向 `gowerlin/openusage`。
+- [x] 塔台收斂：T0001/T0005/T0008 歷史 PARTIAL/BLOCKED 已標記為 DONE，保留原回報區證據。
 
 ## 關聯工單
 
-- T0001：Research Windows porting plan（PARTIAL；結論可決策）
+- T0001：Research Windows porting plan（DONE；結論已由後續工單採用）
 - T0002：Windows Rust build baseline（DONE）
 - T0003：Windows host API MVP（DONE）
 - T0004：Windows provider path audit（DONE）
-- T0005：Windows packaging / release workflow（PARTIAL）
+- T0005：Windows packaging / release workflow（DONE；release artifacts 已由 T0009 驗證）
 - T0006：Windows docs/UI polish（DONE）
 - T0007：Windows release verification closeout（DONE）
-- T0008：Signed Windows release verification（BLOCKED）
+- T0008：Signed Windows release verification（DONE；release gate 已由 T0009 通過）
 - T0009：Fork release flow for Windows artifacts（DONE；release `v0.6.24` verified）
 - T0010：Windows-only release config for fork（DONE）
-- 下一步建議：PLAN-001 可收斂為 DONE；若要處理 CI warning，可另開 follow-up 將 `tauri-action` input `uploadUpdaterJson` 改成目前 action 支援的 `includeUpdaterJson`。
+- 下一步建議：PLAN-001 已收斂為 DONE；CI warning cleanup 已完成，`tauri-action` input 已改為 `includeUpdaterJson`。
