@@ -3,13 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0012
 title: Research i18n architecture and string inventory
-status: IN_PROGRESS
+status: DONE
 type: research
 intervention_type: fire-and-forget
 created_at: "2026-05-24 10:02:32 +08:00"
 started_at: "2026-05-24T10:05:57+08:00"
-completed_at: null
-updated_at: "2026-05-24T10:05:57+08:00"
+completed_at: "2026-05-24T10:14:07+08:00"
+updated_at: "2026-05-24T10:14:07+08:00"
+commit: 638754f
 bug_id: null
 plan_id: PLAN-002
 sizing: medium
@@ -24,10 +25,10 @@ depends_on:
 ## 元資料
 - **工單編號**：T0012
 - **任務名稱**：Research i18n architecture and string inventory
-- **狀態**：IN_PROGRESS
+- **狀態**：DONE
 - **建立時間**：2026-05-24 10:02:32 (UTC+8)
 - **開始時間**：2026-05-24T10:05:57+08:00
-- **完成時間**：-
+- **完成時間**：2026-05-24T10:14:07+08:00
 - **目標子專案**：frontend / app shell
 - **關聯 PLAN**：PLAN-002
 - **intervention_type**：fire-and-forget
@@ -147,6 +148,7 @@ depends_on:
 DONE
 
 ### 產出摘要
+- Commit：`638754f` (`docs(i18n): research T0012 architecture`)
 - 現有前端是 Vite + React 19 + Zustand；無 router，畫面由 `src/stores/app-ui-store.ts` 的 `activeView` 和 `src/components/app/app-content.tsx` 切換。
 - 目前沒有 locale / i18n helper。設定持久化集中在 `src/lib/settings.ts`，使用 Tauri `LazyStore("settings.json")`；這是語言設定最小落點。
 - 推薦先建本地 typed dictionary，不新增 dependency：`src/lib/i18n.ts` 或 `src/i18n/resources.ts` 提供 `Locale`、`I18nKey`、`resources`、`t()`；React 用 `useI18n()` 讀取 `useAppPreferencesStore.language`。
@@ -210,4 +212,4 @@ DONE
 不適用
 
 ### 回報時間
-2026-05-24T10:11:04+08:00
+2026-05-24T10:14:07+08:00
