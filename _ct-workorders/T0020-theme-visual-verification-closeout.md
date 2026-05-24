@@ -3,12 +3,12 @@ schema_version: 1
 schema_kind: workorder
 id: T0020
 title: Theme visual verification closeout
-status: PARTIAL
+status: DONE
 priority: Medium
 type: verification
 plan_id: PLAN-003
 created_at: "2026-05-24T15:12:53+08:00"
-updated_at: "2026-05-24T15:31:35+08:00"
+updated_at: "2026-05-24T16:21:31+08:00"
 started_at: "2026-05-24T15:15:00+08:00"
 completed_at: "2026-05-24T15:31:35+08:00"
 commit: 8fb84e04c31bfc12ab245a00372868a4f9c13628
@@ -76,6 +76,12 @@ T0019 已完成三個 macaron theme presets 實作，並回報 source tests / bu
 - Visual smoke 全部通過：將 T0020 標記 DONE，並將 PLAN-003 收斂為 DONE。
 - 有明確 visual regression 但已修復：標記 DONE，附 commit 與 verification。
 - 有未解 visual regression 或 runtime gap：標記 PARTIAL / BLOCKED，保留 PLAN-003 IN_PROGRESS，並列出下一步。
+
+## 塔台收斂註記
+
+**時間**：2026-05-24 16:21:31 (UTC+8)
+**狀態調整**：PARTIAL → DONE
+**理由**：T0020 原缺口是 browser dev server 無法驗證 Tauri reload / app restart persistence；後續 T0021 已完成 Tauri runtime theme persistence smoke，且使用者回報安裝測試中 Theme 切換全部正常。原回報區保留當時 PARTIAL 的 browser runtime gap 證據。
 
 ## 回報區
 

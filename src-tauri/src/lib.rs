@@ -3,6 +3,7 @@ mod app_nap;
 mod config;
 mod local_http_api;
 mod panel;
+mod panel_hit_test;
 mod panel_position;
 mod plugin_engine;
 mod tray;
@@ -197,6 +198,14 @@ fn init_panel(app_handle: tauri::AppHandle) {
 #[tauri::command]
 fn hide_panel(app_handle: tauri::AppHandle) {
     panel::hide_panel(&app_handle);
+}
+
+#[tauri::command]
+fn set_panel_window_mask(
+    app_handle: tauri::AppHandle,
+    mask: panel_hit_test::PanelWindowMask,
+) -> Result<(), String> {
+    panel_hit_test::set_mask(&app_handle, mask)
 }
 
 #[tauri::command]
@@ -496,10 +505,12 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .on_window_event(|window, event| {
             panel_position::persist_panel_position_from_event(window, event);
+            panel_hit_test::trace_window_event(window, event);
         })
         .invoke_handler(tauri::generate_handler![
             init_panel,
             hide_panel,
+            set_panel_window_mask,
             open_devtools,
             start_probe_batch,
             list_plugins,
@@ -555,6 +566,7 @@ pub fn run() {
             local_http_api::start_server();
 
             tray::create(app.handle())?;
+            panel_hit_test::start_mask(app.handle().clone());
 
             app.handle()
                 .plugin(tauri_plugin_updater::Builder::new().build())?;

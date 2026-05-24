@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-002
 title: Background shell commands should not show terminal windows
-status: FIXED
+status: CLOSED
 severity: Medium
 created_at: "2026-05-24 09:42:46 +08:00"
-updated_at: "2026-05-24T09:55:02+08:00"
+updated_at: "2026-05-24T19:23:00+08:00"
 related_workorder: T0013
 affects_files:
   - src-tauri/src/plugin_engine/host_api.rs
@@ -18,7 +18,7 @@ depends_on: []
 ## 元資料
 - **編號**：BUG-002
 - **標題**：Background shell commands should not show terminal windows
-- **狀態**：FIXED
+- **狀態**：CLOSED
 - **嚴重度**：🟡 Medium
 - **建立時間**：2026-05-24 09:42:46 (UTC+8)
 - **關聯工單**：T0013
@@ -64,7 +64,7 @@ depends_on: []
 ## 回報區
 
 ### 修復狀態
-FIXED
+CLOSED
 
 ### 驗證紀錄
 - T0013 在 `src-tauri/src/plugin_engine/host_api.rs` 新增 Windows background command helper，使用 `CommandExt::creation_flags(CREATE_NO_WINDOW)`。
@@ -75,3 +75,4 @@ FIXED
 - `cargo test --lib`：PASS，100 tests。
 - 未執行 packaged app 視覺 smoke；本次以 Windows-specific creation flag、helper-level regression test、Rust build/test 驗證。
 - commit：67d5cbc8422a757df314498b29d96d03918affde
+- 使用者安裝版驗收：PASS；2026-05-24T19:23:00+08:00 回報 BUG-002 驗收通過。

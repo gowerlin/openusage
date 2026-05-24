@@ -237,6 +237,11 @@ body,
   padding: 0;
 }
 
+*[data-tauri-drag-region] {
+  app-region: drag;
+  -webkit-app-region: drag;
+}
+
 /* Hide scrollbar track globally */
 .scrollbar-none {
   scrollbar-width: none;          /* Firefox */

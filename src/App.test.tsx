@@ -514,6 +514,33 @@ describe("App", () => {
     await waitFor(() => expect(state.traySetTitleMock).toHaveBeenCalledWith("--%"))
   })
 
+  it("keeps the desktop tray icon on Windows", async () => {
+    vi.spyOn(window.navigator, "platform", "get").mockReturnValue("Win32")
+    state.invokeMock.mockImplementation(async (cmd: string) => {
+      if (cmd === "list_plugins") {
+        return [
+          {
+            id: "a",
+            name: "Alpha",
+            iconUrl: "icon-a",
+            primaryCandidates: ["Session"],
+            lines: [{ type: "progress", label: "Session", scope: "overview" }],
+          },
+        ]
+      }
+      return null
+    })
+    state.loadPluginSettingsMock.mockResolvedValueOnce({ order: ["a"], disabled: [] })
+
+    render(<App />)
+    await waitFor(() => expect(state.startBatchMock).toHaveBeenCalled())
+    await waitFor(() => expect(state.trayGetByIdMock).toHaveBeenCalled())
+
+    expect(state.renderTrayBarsIconMock).not.toHaveBeenCalled()
+    expect(state.traySetIconMock).not.toHaveBeenCalled()
+    expect(state.traySetIconAsTemplateMock).not.toHaveBeenCalled()
+  })
+
   it("bars style path passed to renderTrayBarsIcon when loadMenubarIconStyle returns bars", async () => {
     state.loadMenubarIconStyleMock.mockResolvedValue("bars")
     state.invokeMock.mockImplementation(async (cmd: string) => {

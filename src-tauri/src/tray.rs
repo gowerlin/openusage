@@ -1,8 +1,7 @@
 use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
-use tauri::path::BaseDirectory;
 use tauri::tray::{MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter};
 use tauri_plugin_store::StoreExt;
 
 use crate::panel::{show_panel, toggle_panel_at_tray_icon};
@@ -44,10 +43,7 @@ fn set_stored_log_level(app_handle: &AppHandle, level: log::LevelFilter) {
 }
 
 pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
-    let tray_icon_path = app_handle
-        .path()
-        .resolve("icons/tray-icon.png", BaseDirectory::Resource)?;
-    let icon = Image::from_path(tray_icon_path)?;
+    let icon = Image::from_bytes(include_bytes!("../icons/32x32.png"))?;
 
     // Load persisted log level
     let current_level = get_stored_log_level(app_handle);
@@ -137,7 +133,7 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id("tray")
         .icon(icon)
-        .icon_as_template(true)
+        .icon_as_template(false)
         .tooltip("OpenUsage")
         .menu(&menu)
         .show_menu_on_left_click(false)

@@ -7,7 +7,7 @@ status: DONE
 priority: Medium
 plan_type: feature
 created_at: "2026-05-24 11:26:33 +08:00"
-updated_at: "2026-05-24T15:52:18+08:00"
+updated_at: "2026-05-24T16:21:31+08:00"
 completed_at: "2026-05-24T15:46:01+08:00"
 affects_files: []
 depends_on:
@@ -152,7 +152,7 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
   - 新增三個 theme presets。
   - 更新 Settings selector 與 i18n labels。
   - 補 theme persistence / option tests。
-- [x] T0020 Theme visual verification closeout。（PARTIAL；browser visual smoke / screenshots pass；compact selector overlap fixed；Tauri runtime persistence covered by T0021）
+- [x] T0020 Theme visual verification closeout。（DONE；browser visual smoke / screenshots pass；compact selector overlap fixed；Tauri runtime persistence covered by T0021；使用者安裝測試確認 Theme 切換正常）
   - 對三個主題做 desktop / compact viewport smoke。
   - 檢查文字可讀性、互動狀態、主要 surface。
   - 提供 screenshots，收斂 PLAN-003。
@@ -180,7 +180,7 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
 - [x] 已建立並派發 T0019 Implement macaron theme presets：terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`。
 - [x] T0019 已回報 macaron theme presets 實作結果；visual screenshots 留給 T0020。
 - [x] 已建立並派發 T0020 Theme visual verification closeout：terminal `384e603eb27165270d62dc82d269c9ae`。
-- [x] T0020 已完成 browser visual smoke 並修復 compact selector overlap；Tauri runtime reload persistence 由 T0021 驗證通過。
+- [x] T0020 已收斂為 DONE；browser visual smoke / screenshots、compact selector fix、Tauri runtime persistence 與使用者安裝測試均 PASS。
 - [x] 已建立並派發 T0021 Theme Tauri runtime persistence smoke：terminal `79264ba994057240b1e0bf4a5b3f22c7`。
 - [x] T0021 已回報 Tauri runtime theme persistence PASS；PLAN-003 收斂為 DONE。
 
@@ -188,5 +188,5 @@ Contrast spot-check：foreground/background 最低 13.97；primary foreground/pr
 
 - T0018：Research current theme architecture and token inventory（DONE；terminal `7b14c686b9ebf9dfcc454c0e086d9e1e`；commit `1520616c1e44714591a83abe7acc9989cbc1ff24`）
 - T0019：Implement macaron theme presets（DONE；terminal `c3a3ba572226ccaaff3ccd5aab7d6bb5`；commit `a9dc8fb82eafb2b40a4887c105d0dba82406425c`）
-- T0020：Theme visual verification closeout（PARTIAL；terminal `384e603eb27165270d62dc82d269c9ae`；commit `8fb84e04c31bfc12ab245a00372868a4f9c13628`；runtime persistence covered by T0021）
+- T0020：Theme visual verification closeout（DONE；terminal `384e603eb27165270d62dc82d269c9ae`；commit `8fb84e04c31bfc12ab245a00372868a4f9c13628`；runtime persistence covered by T0021；user install smoke PASS）
 - T0021：Theme Tauri runtime persistence smoke（DONE；terminal `79264ba994057240b1e0bf4a5b3f22c7`；Tauri runtime guard and macaron theme reload persistence PASS）

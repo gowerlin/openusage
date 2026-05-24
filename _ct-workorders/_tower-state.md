@@ -1,12 +1,15 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-05-24 15:52 (UTC+8)
+> 最後更新：2026-05-24 19:23 (UTC+8)
 
 ### 立即待辦
-1. PLAN-003：DONE；T0021 Tauri runtime theme persistence smoke PASS，三個 macaron themes reload 後保持。
-2. PLAN-002：DONE；T0017 Tauri runtime language persistence smoke 已通過，commit `5652730d1c062ede94a659917274324ef14dbfbb`。
-3. 專案基線工單尚未建立；待使用者確認是否需要。
+1. BUG-001：使用者安裝測試確認 T0031 解決 native title bar / deactive 問題；BUG-001 CLOSED。
+2. BUG-002 / BUG-003：使用者安裝測試確認皆驗收通過；BUG-002 CLOSED、BUG-003 CLOSED。
+3. T0016 / T0020：使用者安裝測試已確認 i18n 繁體中文與 Theme 切換全部正常；兩張 PARTIAL closeout 工單已收斂為 DONE。
+4. PLAN-003：DONE；T0021 Tauri runtime theme persistence smoke PASS，三個 macaron themes reload 後保持。
+5. PLAN-002：DONE；T0017 Tauri runtime language persistence smoke 已通過，commit `5652730d1c062ede94a659917274324ef14dbfbb`。
+6. 專案基線工單尚未建立；待使用者確認是否需要。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -66,6 +69,23 @@
 - 2026-05-24：T0020 PARTIAL；commit `8fb84e04c31bfc12ab245a00372868a4f9c13628`；browser visual smoke / screenshots 通過，compact theme selector overlap 已修復，但 Tauri runtime theme persistence 未驗證。
 - 2026-05-24：接受 T0020 PARTIAL，建立並派發 T0021 Theme Tauri runtime persistence smoke 到 BAT terminal `79264ba994057240b1e0bf4a5b3f22c7`。
 - 2026-05-24：T0021 DONE；Tauri runtime guard 通過，`macaron-pink` / `macaron-green` / `macaron-blue` reload persistence 通過，PLAN-003 收斂為 DONE。
+- 2026-05-24：使用者回報安裝測試 i18n 繁體中文全部正常；T0016 由 PARTIAL 收斂為 DONE。
+- 2026-05-24：使用者回報安裝測試 Theme 切換全部正常；T0020 由 PARTIAL 收斂為 DONE。
+- 2026-05-24：使用者回報 BUG-001 安裝版驗收失敗：拖曳區無法拖曳、透明 padding 仍攔截滑鼠事件。
+- 2026-05-24：T0022 DONE / BUG-001 轉 VERIFY；補 `core:window:allow-start-dragging`、Tauri drag region、Windows hit-test mask；source/tests/local NSIS package PASS，等待使用者安裝版滑鼠實機驗收。
+- 2026-05-24：使用者補充 BUG-001 實際缺口為 native 不規則去背視窗；T0022 升級為 Windows `SetWindowRgn` panel/arrow region mask 並關閉 native undecorated shadow，local NSIS package PASS。
+- 2026-05-24：建立 BUG-003 / T0023；System Tray icon 改用 desktop icon set 的 `icons/32x32.png` 並關閉 template mode，local NSIS package PASS，等待使用者安裝版視覺驗收。
+- 2026-05-24：使用者回報 BUG-003 新安裝版啟動瞬間有青綠色 desktop icon，隨後變黑；T0024 修正 Windows 前端不再覆寫 Rust 初始 desktop tray icon，local NSIS package PASS。
+- 2026-05-24：使用者確認 BUG-003 System Tray icon 正確，BUG-003 CLOSED；BUG-001 不規則透明視窗遮罩有效，但某些狀態會出現 Windows native title bar / controls。
+- 2026-05-24：T0025 DONE；Windows panel 在 init/show、`SetWindowRgn` 前、cursor passthrough 切換後都強制清除 native title bar / frame style bits，local NSIS package PASS。
+- 2026-05-24：T0025 安裝版驗收 FAIL，使用者截圖顯示完整 native title bar 仍會出現；T0026 改為可見期間 mask thread 每 33ms 檢查並清除 async 寫回的 title / frame style bits，local NSIS package PASS。
+- 2026-05-24：T0026 安裝版驗收 FAIL，使用者補充 native title bar 似乎在 Active / Focus 後、離開 focus 時出現；T0027 停用 DWM non-client rendering / paint，local NSIS package PASS。
+- 2026-05-24：T0027 安裝版驗收 FAIL，使用者回報仍一樣；T0028 新增 Windows-only `panel-window-trace.log`，記錄 focus/blur、HWND style/exstyle、DWM attribute、window/client/frame bounds 與 region / cursor passthrough 狀態，local NSIS package PASS。
+- 2026-05-24：T0028 trace 回收；實際 trace path 為 `C:\Users\Gower\AppData\Roaming\com.sunstory.openusage\logs\panel-window-trace.log`，root cause 為 Tauri / Tao state transition 寫回 `WS_CAPTION` / frame bits；T0029 在 show/focus/hide/window event 後同步 enforce chrome，local NSIS package PASS。
+- 2026-05-24：T0029 安裝版仍在面板 deactive 後顯示 native title bar；T0030 trace 追到 `set_ignore_cursor_events(...)` 是 style 回寫來源之一，已移除 cursor-ignore toggle 並改用精準 `SetWindowRgn` region，local NSIS package PASS。
+- 2026-05-24：T0030 安裝版仍有其他 native title bar 出現途徑；T0031 改採 Windows native subclass，於 message 層攔截 standard frame calculation / activation / paint / style changing，local NSIS package PASS。
+- 2026-05-24：使用者回報 T0031 安裝版「解決了」；BUG-001 CLOSED。
+- 2026-05-24：使用者回報 BUG-002 / BUG-003 也都驗收通過；BUG-002 CLOSED、BUG-003 維持 CLOSED。
 
 ### 快速連結
 - Bug Tracker → [_bug-tracker.md]
@@ -89,10 +109,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0021 |
-| BUG | BUG-002 |
+| 工單 | T0031 |
+| BUG | BUG-003 |
 | PLAN | PLAN-003 |
-| 決策 | D040 |
+| 決策 | D049 |
 
 ---
 
@@ -112,10 +132,11 @@
 | Signed Windows release verification | T0008 | ✅ DONE | release gate 已由 T0009 通過 | 無 |
 | Fork release flow | T0009 | ✅ DONE | 無 | release `v0.6.24` verified |
 | Windows-only release config | T0010 | ✅ DONE | 無 | 已納入 T0009 release |
-| Panel draggable position persistence | BUG-001 / T0011 | ✅ FIXED | 無 | source commit `b354778a0fca22c1899a1f9aa17d7dd79bbf018a` |
-| i18n support with Traditional Chinese locale | PLAN-002 / T0017 | ✅ DONE | 無 | runtime persistence verified；commit `5652730d1c062ede94a659917274324ef14dbfbb` |
-| Macaron theme presets | PLAN-003 / T0021 | ✅ DONE | 無 | runtime persistence verified |
-| Background shell window visibility | BUG-002 / T0013 | ✅ FIXED | packaged visual smoke 未執行 | source commit `67d5cbc8422a757df314498b29d96d03918affde` |
+| Panel draggable position persistence | BUG-001 / T0011 / T0022 / T0025 / T0026 / T0027 / T0028 / T0029 / T0030 / T0031 | ✅ CLOSED | 無 | 使用者安裝測試確認 T0031 解決 native title bar / deactive 問題 |
+| System tray icon | BUG-003 / T0023 / T0024 | ✅ CLOSED | 無 | 使用者安裝測試確認 tray icon 正確 |
+| i18n support with Traditional Chinese locale | PLAN-002 / T0016 / T0017 | ✅ DONE | 無 | runtime persistence + user install test verified |
+| Macaron theme presets | PLAN-003 / T0020 / T0021 | ✅ DONE | 無 | visual smoke + runtime persistence + user install test verified |
+| Background shell window visibility | BUG-002 / T0013 | ✅ CLOSED | 無 | 使用者安裝測試確認背景 shell 不再顯示終端視窗 |
 
 ---
 
@@ -161,12 +182,29 @@
 - D038：接受 T0019 DONE；macaron theme presets source implementation 已完成，PLAN-003 剩餘 screenshots / visual smoke gate，建立並派發 T0020 做 closeout。
 - D039：接受 T0020 PARTIAL；browser visual smoke / screenshots 與 compact selector fix 已完成，剩餘 Tauri runtime reload/app restart persistence，建立並派發 T0021 做 final closeout。
 - D040：接受 T0021 DONE；Tauri runtime guard 與三個 macaron themes reload persistence 全部通過，PLAN-003 正式收斂為 DONE。
+- D041：使用者完成安裝測試並確認 i18n 繁體中文與 Theme 切換全部正常；T0016 / T0020 由 PARTIAL closeout 收斂為 DONE，不另開新工單。
+- D042：使用者回報 BUG-001 安裝版驗收未過；建立 T0022 做補救修復，BUG-001 轉 VERIFY，最後 gate 以使用者新安裝包滑鼠實測為準。
+- D043：使用者釐清 BUG-001 需要 native 不規則去背視窗，且另回報 System Tray icon 空白；T0022 採 Windows `SetWindowRgn` region mask，BUG-003/T0023 改 tray icon 使用 desktop icon set，兩者最後 gate 以新安裝包實測為準。
+- D044：使用者實測確認 BUG-003 初始 desktop tray icon 會被前端動態 tray icon 覆寫成黑色；T0024 決定 Windows 保留 Rust 初始 desktop icon，前端只在非 Windows 維持動態 menubar icon。
+- D045：使用者確認 BUG-003 已修正，並確認 BUG-001 irregular mask 有效；剩餘 native title bar leak 以 T0025 修正，Windows HWND style 在 cursor passthrough 切換後也強制清除 title / frame bits。
+- D046：T0025 安裝版仍出現完整 native title bar，判定一次性 HWND style enforcement 會被 Tauri / Tao async window-state 晚一步覆蓋；T0026 改為可見期間持續檢查，只有 style bits 回來時才刷新 HWND。
+- D047：T0026 安裝版仍在 focus/blur 後出現 native title bar，判定為 Windows `WM_NCACTIVATE` / DWM non-client paint 路徑；T0027 停用 DWM non-client rendering / paint，保留既有 style bit pruning。
+- D048：T0027 安裝版仍失敗；停止追加修補假設，T0028 改加 Windows panel detail trace，讓下一輪根據 runtime evidence 判斷是否需要 native message hook / focus policy / window architecture 調整。
+- D049：T0028 trace 顯示根因不是 DWM paint，而是 Tauri / Tao hidden/show/focus/resize state transition 會寫回 decorated style bits；T0029 改為在 show/focus/hide/window event 後同步 enforce chrome，避免等待 33ms loop。
+- D050：T0029 安裝版仍在 deactive 後出現 native title bar；trace 顯示 `set_ignore_cursor_events(...)` passthrough toggle 會回寫 decorated style bits。T0030 移除該 API，透明 padding 改由精準 `SetWindowRgn` 不規則視窗 region 處理。
+- D051：T0030 安裝版仍有其他 native title bar 出現途徑；依 Microsoft Win32 文件，根層修法改為安裝 native subclass，攔截 `WM_NCCALCSIZE`、`WM_NCACTIVATE`、`WM_NCPAINT`、`WM_STYLECHANGING`，不再只在 Tauri event 後補 prune。
+- D052：使用者安裝測試確認 T0031 解決 BUG-001 native title bar / deactive 問題；BUG-001 CLOSED。
+- D053：使用者回報 BUG-002 / BUG-003 也都驗收通過；BUG-002 由 FIXED 收斂為 CLOSED，BUG-003 維持 CLOSED 並更新驗收時間。
 
 ---
 
 ## ⏳ 待處理事項
 - 確認是否要建立專案基線工單。
-- PLAN-003：DONE；T0021 Tauri runtime macaron theme persistence 已通過。
+- BUG-001：CLOSED；使用者安裝測試確認 T0031 解決 native title bar / deactive 問題。
+- BUG-002：CLOSED；使用者安裝測試確認背景 shell 不再顯示終端視窗。
+- BUG-003：CLOSED；使用者安裝測試確認 System Tray icon 正確。
+- PLAN-003：DONE；T0021 Tauri runtime macaron theme persistence 已通過；T0020 使用者安裝測試已驗收。
+- PLAN-002：DONE；T0017 Tauri runtime language persistence 已通過；T0016 使用者安裝測試已驗收。
 - 無 Windows release 阻塞待辦。
 - PLAN / BUG 追蹤已啟用；EXP 追蹤尚未啟用。
 
@@ -195,7 +233,7 @@
 | _decision-log | 🆕 | 可建立 |
 | 跨專案參照 | 📋 | 無關聯 |
 | Global 學習 | ✅ | 0 patterns, 26 playbooks |
-| BUG/PLAN 追蹤 | ✅ | PLAN:3；BUG:2（project config 啟用） |
+| BUG/PLAN 追蹤 | ✅ | PLAN:3；BUG:3（project config 啟用） |
 | 實驗追蹤 | 📋 | 未啟用（使用預設值） |
 | 設定來源 | project | `_ct-workorders/_tower-config.yaml` |
 | 能力等級 | Level 1 | Core + ECC/memsync 可用，Project 層尚未初始化 |

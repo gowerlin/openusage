@@ -36,6 +36,8 @@ export function usePanel({
   displayPlugins,
 }: UsePanelArgs) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const trayArrowRef = useRef<HTMLDivElement>(null)
+  const panelSurfaceRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollDown, setCanScrollDown] = useState(false)
   const [maxPanelHeightPx, setMaxPanelHeightPx] = useState<number | null>(null)
@@ -53,6 +55,55 @@ export function usePanel({
     void getCurrentWindow().startDragging().catch((error) => {
       console.error("Failed to start panel drag:", error)
     })
+  }, [])
+
+  useEffect(() => {
+    if (!isTauri()) return
+    const panelSurface = panelSurfaceRef.current
+    const trayArrow = trayArrowRef.current
+    if (!panelSurface) return
+
+    let frame = 0
+    const syncBounds = () => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(() => {
+        const panelRect = panelSurface.getBoundingClientRect()
+        const arrowRect = trayArrow?.getBoundingClientRect() ?? null
+        invoke("set_panel_window_mask", {
+          mask: {
+            panelBounds: {
+              left: panelRect.left,
+              top: panelRect.top,
+              right: panelRect.right,
+              bottom: panelRect.bottom,
+            },
+            arrowBounds: arrowRect
+              ? {
+                  left: arrowRect.left,
+                  top: arrowRect.top,
+                  right: arrowRect.right,
+                  bottom: arrowRect.bottom,
+                }
+              : null,
+          },
+        }).catch((error) => {
+          console.error("Failed to update panel window mask:", error)
+        })
+      })
+    }
+
+    syncBounds()
+
+    const observer = new ResizeObserver(syncBounds)
+    observer.observe(panelSurface)
+    if (trayArrow) observer.observe(trayArrow)
+    window.addEventListener("resize", syncBounds)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener("resize", syncBounds)
+    }
   }, [])
 
   useEffect(() => {
@@ -239,6 +290,8 @@ export function usePanel({
 
   return {
     containerRef,
+    trayArrowRef,
+    panelSurfaceRef,
     scrollRef,
     canScrollDown,
     maxPanelHeightPx,

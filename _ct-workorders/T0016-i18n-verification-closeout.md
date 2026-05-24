@@ -3,13 +3,13 @@ schema_version: 1
 schema_kind: workorder
 id: T0016
 title: i18n verification closeout
-status: PARTIAL
+status: DONE
 type: verification
 intervention_type: fire-and-forget
 created_at: "2026-05-24 11:05:45 +08:00"
 started_at: "2026-05-24T11:09:02+08:00"
 completed_at: "2026-05-24T11:14:58+08:00"
-updated_at: "2026-05-24T11:18:58+08:00"
+updated_at: "2026-05-24T16:21:31+08:00"
 commit: fc527f76ebf4faf5df2f8b357897af416073fc12
 bug_id: null
 plan_id: PLAN-002
@@ -30,7 +30,7 @@ depends_on:
 ## 元資料
 - **工單編號**：T0016
 - **任務名稱**：i18n verification closeout
-- **狀態**：PARTIAL
+- **狀態**：DONE
 - **建立時間**：2026-05-24 11:05:45 (UTC+8)
 - **開始時間**：2026-05-24T11:09:02+08:00
 - **完成時間**：2026-05-24T11:14:58+08:00
@@ -126,7 +126,7 @@ depends_on:
 - [x] 缺漏翻譯 fail loud 或 tests 會失敗。
 - [x] 預設語言為 `en`。
 - [x] Settings 可切換 `zh-TW`。
-- [ ] language setting reload 後保持。（source tests PASS；純 browser smoke 受 Tauri runtime 缺失阻擋）
+- [x] language setting reload 後保持。（T0017 Tauri runtime smoke PASS；使用者安裝測試確認 i18n 繁體中文正常）
 - [x] provider raw matching values 未被翻譯破壞。
 - [x] PLAN-002 狀態已依驗證結果收斂。
 
@@ -142,6 +142,12 @@ depends_on:
 5. 執行 i18n resource / hard-coded text / provider semantics 檢查。
 6. 若環境可行，執行 UI smoke 與截圖。
 7. 更新 PLAN-002 與 T0016 回報區。
+
+## 塔台收斂註記
+
+**時間**：2026-05-24 16:21:31 (UTC+8)
+**狀態調整**：PARTIAL → DONE
+**理由**：T0016 原缺口是純 browser 無法驗證 Tauri reload / app restart persistence；後續 T0017 已完成 Tauri runtime persistence smoke，且使用者回報安裝測試中 i18n / 繁體中文功能全部正常。原回報區保留當時 PARTIAL 的 browser runtime gap 證據。
 
 ---
 

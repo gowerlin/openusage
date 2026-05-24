@@ -310,8 +310,26 @@ mod other {
         window
     }
 
+    #[cfg(windows)]
+    fn configure_panel_window(window: &tauri::WebviewWindow) {
+        if let Err(error) = window.set_decorations(false) {
+            log::warn!("failed to disable native panel decorations: {}", error);
+        }
+        if let Err(error) = window.set_shadow(false) {
+            log::warn!("failed to disable native panel shadow: {}", error);
+        }
+        if let Err(error) = crate::panel_hit_test::enforce_panel_chrome(window) {
+            log::warn!("failed to enforce native panel chrome: {}", error);
+        }
+    }
+
+    #[cfg(not(windows))]
+    fn configure_panel_window(_window: &tauri::WebviewWindow) {}
+
     pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
-        let _ = main_window(app_handle);
+        if let Some(window) = main_window(app_handle) {
+            configure_panel_window(&window);
+        }
         Ok(())
     }
 
@@ -320,13 +338,16 @@ mod other {
             return;
         };
         let _ = panel_position::apply_stored_position(app_handle);
+        configure_panel_window(&window);
         if let Err(error) = window.show() {
             log::error!("failed to show main window: {}", error);
             return;
         }
+        configure_panel_window(&window);
         if let Err(error) = window.set_focus() {
             log::warn!("failed to focus main window: {}", error);
         }
+        configure_panel_window(&window);
     }
 
     pub fn hide_panel(app_handle: &AppHandle) {
@@ -336,6 +357,7 @@ mod other {
         if let Err(error) = window.hide() {
             log::error!("failed to hide main window: {}", error);
         }
+        configure_panel_window(&window);
     }
 
     pub fn toggle_panel(app_handle: &AppHandle) {
