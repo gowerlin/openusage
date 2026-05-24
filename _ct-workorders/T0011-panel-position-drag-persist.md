@@ -10,6 +10,7 @@ created_at: "2026-05-24 09:17:34 +08:00"
 started_at: "2026-05-24T09:22:06+08:00"
 completed_at: "2026-05-24T09:34:45+08:00"
 updated_at: "2026-05-24T09:34:45+08:00"
+commit: b354778a0fca22c1899a1f9aa17d7dd79bbf018a
 bug_id: BUG-001
 plan_id: null
 sizing: medium
@@ -157,7 +158,7 @@ FIXED
 - `src-tauri/src/panel_position.rs`：新增面板位置保存、讀取、顯示前套用與螢幕 work area clamp helper。
 - `src-tauri/src/panel.rs` / `src-tauri/src/lib.rs`：顯示面板時優先套用已存位置；主視窗 move event 寫入 `settings.json` 的 `panelPosition`。
 - `src/hooks/app/use-panel.test.ts`：新增拖曳觸發與非 primary pointer 忽略測試。
-- commit：待補
+- commit：b354778a0fca22c1899a1f9aa17d7dd79bbf018a
 
 ### 驗證
 - `bun run test src/hooks/app/use-panel.test.ts --run`：PASS，9 tests。
