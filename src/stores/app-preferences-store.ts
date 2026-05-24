@@ -3,6 +3,7 @@ import {
   DEFAULT_AUTO_UPDATE_INTERVAL,
   DEFAULT_DISPLAY_MODE,
   DEFAULT_GLOBAL_SHORTCUT,
+  DEFAULT_LANGUAGE,
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
   DEFAULT_START_ON_LOGIN,
@@ -16,6 +17,7 @@ import {
   type ThemeMode,
   type TimeFormatMode,
 } from "@/lib/settings"
+import type { Locale } from "@/lib/i18n"
 
 type AppPreferencesStore = {
   autoUpdateInterval: AutoUpdateIntervalMinutes
@@ -24,6 +26,7 @@ type AppPreferencesStore = {
   resetTimerDisplayMode: ResetTimerDisplayMode
   timeFormatMode: TimeFormatMode
   globalShortcut: GlobalShortcut
+  language: Locale
   startOnLogin: boolean
   menubarIconStyle: MenubarIconStyle
   setAutoUpdateInterval: (value: AutoUpdateIntervalMinutes) => void
@@ -32,6 +35,7 @@ type AppPreferencesStore = {
   setResetTimerDisplayMode: (value: ResetTimerDisplayMode) => void
   setTimeFormatMode: (value: TimeFormatMode) => void
   setGlobalShortcut: (value: GlobalShortcut) => void
+  setLanguage: (value: Locale) => void
   setStartOnLogin: (value: boolean) => void
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   resetState: () => void
@@ -44,6 +48,7 @@ const initialState = {
   resetTimerDisplayMode: DEFAULT_RESET_TIMER_DISPLAY_MODE,
   timeFormatMode: DEFAULT_TIME_FORMAT_MODE,
   globalShortcut: DEFAULT_GLOBAL_SHORTCUT,
+  language: DEFAULT_LANGUAGE,
   startOnLogin: DEFAULT_START_ON_LOGIN,
   menubarIconStyle: DEFAULT_MENUBAR_ICON_STYLE,
 }
@@ -56,6 +61,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>((set) => ({
   setResetTimerDisplayMode: (value) => set({ resetTimerDisplayMode: value }),
   setTimeFormatMode: (value) => set({ timeFormatMode: value }),
   setGlobalShortcut: (value) => set({ globalShortcut: value }),
+  setLanguage: (value) => set({ language: value }),
   setStartOnLogin: (value) => set({ startOnLogin: value }),
   setMenubarIconStyle: (value) => set({ menubarIconStyle: value }),
   resetState: () => set(initialState),

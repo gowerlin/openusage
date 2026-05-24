@@ -7,6 +7,7 @@ import type { SettingsPluginState } from "@/hooks/app/use-settings-plugin-list"
 import { useAppVersion } from "@/hooks/app/use-app-version"
 import { usePanel } from "@/hooks/app/use-panel"
 import { useAppUpdate } from "@/hooks/use-app-update"
+import { useI18n } from "@/hooks/use-i18n"
 import { useAppUiStore } from "@/stores/app-ui-store"
 
 const ARROW_OVERHEAD_PX = 37
@@ -52,9 +53,12 @@ export function AppShell({
 
   const {
     containerRef,
+    trayArrowRef,
+    panelSurfaceRef,
     scrollRef,
     canScrollDown,
     maxPanelHeightPx,
+    startPanelDrag,
   } = usePanel({
     activeView,
     setActiveView,
@@ -65,6 +69,7 @@ export function AppShell({
 
   const appVersion = useAppVersion()
   const { updateStatus, triggerInstall, checkForUpdates } = useAppUpdate()
+  const { t } = useI18n()
 
   return (
     <div
@@ -72,11 +77,22 @@ export function AppShell({
       tabIndex={-1}
       className="flex flex-col items-center p-6 pt-1.5 bg-transparent outline-none"
     >
-      <div className="tray-arrow" />
+      <div ref={trayArrowRef} className="tray-arrow" />
       <div
+        ref={panelSurfaceRef}
         className="relative bg-card rounded-xl overflow-hidden select-none w-full border shadow-lg flex flex-col"
         style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - ARROW_OVERHEAD_PX}px` } : undefined}
       >
+        <div
+          aria-label={t("app.movePanel")}
+          className="flex h-3 shrink-0 cursor-grab items-center justify-center bg-card active:cursor-grabbing"
+          data-tauri-drag-region
+          data-testid="panel-drag-handle"
+          onPointerDown={startPanelDrag}
+          title={t("app.movePanel")}
+        >
+          <span aria-hidden="true" className="pointer-events-none h-1 w-10 rounded-full bg-muted-foreground/30" />
+        </div>
         <div className="flex flex-1 min-h-0 flex-row">
           <SideNav
             activeView={activeView}

@@ -16,6 +16,7 @@ import type {
   ThemeMode,
   TimeFormatMode,
 } from "@/lib/settings"
+import type { Locale } from "@/lib/i18n"
 
 type AppContentDerivedProps = {
   displayPlugins: DisplayPluginState[]
@@ -36,6 +37,7 @@ export type AppContentActionProps = {
   onMenubarIconStyleChange: (value: MenubarIconStyle) => void
   traySettingsPreview: TraySettingsPreview
   onGlobalShortcutChange: (value: GlobalShortcut) => void
+  onLanguageChange: (value: Locale) => void
   onStartOnLoginChange: (value: boolean) => void
 }
 
@@ -57,6 +59,7 @@ export function AppContent({
   onMenubarIconStyleChange,
   traySettingsPreview,
   onGlobalShortcutChange,
+  onLanguageChange,
   onStartOnLoginChange,
 }: AppContentProps) {
   const { activeView } = useAppUiStore(
@@ -72,6 +75,7 @@ export function AppContent({
     menubarIconStyle,
     autoUpdateInterval,
     globalShortcut,
+    language,
     themeMode,
     startOnLogin,
   } = useAppPreferencesStore(
@@ -82,6 +86,7 @@ export function AppContent({
       menubarIconStyle: state.menubarIconStyle,
       autoUpdateInterval: state.autoUpdateInterval,
       globalShortcut: state.globalShortcut,
+      language: state.language,
       themeMode: state.themeMode,
       startOnLogin: state.startOnLogin,
     }))
@@ -121,6 +126,8 @@ export function AppContent({
         traySettingsPreview={traySettingsPreview}
         globalShortcut={globalShortcut}
         onGlobalShortcutChange={onGlobalShortcutChange}
+        language={language}
+        onLanguageChange={onLanguageChange}
         startOnLogin={startOnLogin}
         onStartOnLoginChange={onStartOnLoginChange}
       />

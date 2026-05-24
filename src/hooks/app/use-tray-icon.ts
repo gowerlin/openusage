@@ -33,6 +33,10 @@ const EMPTY_TRAY_SETTINGS_PREVIEW: TraySettingsPreview = {
   providerPercentText: "--%",
 }
 
+function shouldKeepDesktopTrayIcon(): boolean {
+  return window.navigator.platform.toLowerCase().startsWith("win")
+}
+
 function isSameTraySettingsPreview(a: TraySettingsPreview, b: TraySettingsPreview): boolean {
   if (a.providerIconUrl !== b.providerIconUrl) return false
   if (a.providerPercentText !== b.providerPercentText) return false
@@ -57,6 +61,7 @@ export function useTrayIcon({
   menubarIconStyle,
   activeView,
 }: UseTrayIconArgs) {
+  const keepDesktopTrayIcon = shouldKeepDesktopTrayIcon()
   const trayRef = useRef<TrayIcon | null>(null)
   const trayGaugeIconPathRef = useRef<string | null>(null)
   const trayUpdateTimerRef = useRef<number | null>(null)
@@ -125,6 +130,11 @@ export function useTrayIcon({
 
       const tray = trayRef.current
       if (!tray) {
+        finalizeUpdate()
+        return
+      }
+
+      if (keepDesktopTrayIcon) {
         finalizeUpdate()
         return
       }
@@ -315,7 +325,7 @@ export function useTrayIcon({
           finalizeUpdate()
         })
     }, delayMs)
-  }, [])
+  }, [keepDesktopTrayIcon])
 
   const trayInitializedRef = useRef(false)
   useEffect(() => {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ChangelogDialog } from "./changelog-dialog";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/hooks/use-i18n";
 
 interface AboutDialogProps {
   version: string;
@@ -32,6 +33,7 @@ function ExternalLink({
 
 export function AboutDialog({ version, onClose }: AboutDialogProps) {
   const [view, setView] = useState<"about" | "changelog">("about");
+  const { t } = useI18n();
 
   // Close on ESC key
   useEffect(() => {
@@ -103,23 +105,23 @@ export function AboutDialog({ version, onClose }: AboutDialogProps) {
             onClick={() => setView("changelog")}
             className="text-[10px] h-5 px-1.5"
           >
-            View Changelog
+            {t("about.viewChangelog")}
           </Button>
         </div>
 
         <div className="text-sm text-muted-foreground space-y-1">
           <p>
-            Built by{" "}
+            {t("about.builtBy")}{" "}
             <ExternalLink href="https://itsbyrob.in/x">Robin Ebers</ExternalLink>
           </p>
           <p>
-            Open source on{" "}
+            {t("about.openSourceOn")}{" "}
             <ExternalLink href="https://github.com/robinebers/openusage">
               GitHub
             </ExternalLink>
           </p>
           <p className="text-xs pt-1">
-            Maintainers:{" "}
+            {t("about.maintainers")}{" "}
             <ExternalLink href="https://github.com/validatedev">
               validatedev
             </ExternalLink>

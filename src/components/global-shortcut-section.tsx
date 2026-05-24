@@ -2,17 +2,31 @@ import { useEffect, useRef, useState } from "react"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { GlobalShortcut } from "@/lib/settings"
+import { useI18n } from "@/hooks/use-i18n"
 
-// Convert internal shortcut format to display format
-// e.g., "CommandOrControl+Shift+U" -> "Cmd + Shift + U"
+function isMacPlatform(): boolean {
+  if (typeof navigator === "undefined") return false
+  return /Mac|iPhone|iPad|iPod/.test(navigator.platform)
+}
+
+function commandOrControlLabel(): string {
+  return isMacPlatform() ? "Cmd" : "Ctrl"
+}
+
+function altLabel(): string {
+  return isMacPlatform() ? "Opt" : "Alt"
+}
+
+// Convert internal shortcut format to platform display format.
 function formatShortcutForDisplay(shortcut: string): string {
-  return shortcut
-    .replace(/CommandOrControl/g, "Cmd")
-    .replace(/Command/g, "Cmd")
-    .replace(/Control/g, "Ctrl")
-    .replace(/Option/g, "Opt")
-    .replace(/Alt/g, "Opt")
-    .replace(/\+/g, " + ")
+  return shortcut.split("+").map((part) => {
+    if (part === "CommandOrControl") return commandOrControlLabel()
+    if (part === "Command") return "Cmd"
+    if (part === "Control") return "Ctrl"
+    if (part === "Option") return "Opt"
+    if (part === "Alt") return altLabel()
+    return part
+  }).join(" + ")
 }
 
 // Modifier codes (using event.code for reliable detection)
@@ -107,12 +121,12 @@ function buildShortcutFromCodes(codes: Set<string>): { display: string; tauri: s
       if (normalized === "Meta" || normalized === "Control") {
         if (!modifiers.includes("CommandOrControl")) {
           modifiers.push("CommandOrControl")
-          displayMods.push("Cmd")
+          displayMods.push(commandOrControlLabel())
         }
       } else if (normalized === "Alt") {
         if (!modifiers.includes("Alt")) {
           modifiers.push("Alt")
-          displayMods.push("Opt")
+          displayMods.push(altLabel())
         }
       } else if (normalized === "Shift") {
         if (!modifiers.includes("Shift")) {
@@ -151,6 +165,7 @@ export function GlobalShortcutSection({
   globalShortcut,
   onGlobalShortcutChange,
 }: GlobalShortcutSectionProps) {
+  const { t } = useI18n()
   const [isRecording, setIsRecording] = useState(false)
   // Track pressed keys using event.code (physical key location)
   const pressedCodesRef = useRef<Set<string>>(new Set())
@@ -234,18 +249,18 @@ export function GlobalShortcutSection({
   const getDisplayValue = (): string => {
     if (isRecording) {
       if (pendingDisplay) return pendingDisplay
-      return "Press keys..."
+      return t("settings.globalShortcut.pressKeys")
     }
-    return globalShortcut ? formatShortcutForDisplay(globalShortcut) : "Click to set"
+    return globalShortcut ? formatShortcutForDisplay(globalShortcut) : t("settings.globalShortcut.clickToSet")
   }
 
   const hasShortcut = globalShortcut !== null
 
   return (
     <section>
-      <h3 className="text-lg font-semibold mb-0">Global Shortcut</h3>
+      <h3 className="text-lg font-semibold mb-0">{t("settings.globalShortcut.title")}</h3>
       <p className="text-sm text-muted-foreground mb-2">
-        Show panel from anywhere
+        {t("settings.globalShortcut.description")}
       </p>
       <div className="space-y-2">
         {isRecording ? (
@@ -253,7 +268,7 @@ export function GlobalShortcutSection({
             ref={recordingRef}
             tabIndex={0}
             role="textbox"
-            aria-label="Press keys to record shortcut"
+            aria-label={t("settings.globalShortcut.recordAriaLabel")}
             onKeyDown={handleKeyDown}
             onKeyUp={handleKeyUp}
             onBlur={handleBlur}
@@ -283,18 +298,18 @@ export function GlobalShortcutSection({
                 type="button"
                 onClick={handleClear}
                 className="ml-auto p-0.5 rounded hover:bg-background/50 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Clear shortcut"
+                aria-label={t("settings.globalShortcut.clearShortcut")}
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             ) : (
-              <span className="ml-auto text-xs text-muted-foreground">Click to set</span>
+              <span className="ml-auto text-xs text-muted-foreground">{t("settings.globalShortcut.clickToSet")}</span>
             )}
           </div>
         )}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Press Escape while recording to clear.
+        {t("settings.globalShortcut.clearHelp")}
       </p>
     </section>
   )

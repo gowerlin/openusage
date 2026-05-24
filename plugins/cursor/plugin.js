@@ -13,6 +13,8 @@
   const CLIENT_ID = "KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB"
   const REFRESH_BUFFER_MS = 5 * 60 * 1000 // refresh 5 minutes before expiration
   const LOGIN_HINT = "Sign in via Cursor app or run `agent login`."
+  const WINDOWS_UNSUPPORTED =
+    "Cursor is not supported on Windows yet. Cursor needs Windows Credential Manager or bundled sqlite support."
 
   function readStateValue(ctx, key) {
     try {
@@ -375,6 +377,10 @@
   }
 
   function probe(ctx) {
+    if (ctx.app && ctx.app.platform === "windows") {
+      throw WINDOWS_UNSUPPORTED
+    }
+
     const authState = loadAuthState(ctx)
     let accessToken = authState.accessToken
     const refreshTokenValue = authState.refreshToken

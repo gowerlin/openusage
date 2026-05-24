@@ -57,6 +57,7 @@ function App() {
     setResetTimerDisplayMode,
     setTimeFormatMode,
     setGlobalShortcut,
+    setLanguage,
     setStartOnLogin,
   } = useAppPreferencesStore(
     useShallow((state) => ({
@@ -72,6 +73,7 @@ function App() {
       setResetTimerDisplayMode: state.setResetTimerDisplayMode,
       setTimeFormatMode: state.setTimeFormatMode,
       setGlobalShortcut: state.setGlobalShortcut,
+      setLanguage: state.setLanguage,
       setStartOnLogin: state.setStartOnLogin,
     }))
   )
@@ -121,6 +123,7 @@ function App() {
     setResetTimerDisplayMode,
     setTimeFormatMode,
     setGlobalShortcut,
+    setLanguage,
     setStartOnLogin,
     setLoadingForPlugins,
     setErrorForPlugins,
@@ -149,12 +152,14 @@ function App() {
   const {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
+    handleLanguageChange,
     handleStartOnLoginChange,
   } = useSettingsSystemActions({
     pluginSettings,
     setAutoUpdateInterval,
     setAutoUpdateNextAt,
     setGlobalShortcut,
+    setLanguage,
     setStartOnLogin,
     applyStartOnLogin,
   })
@@ -253,6 +258,7 @@ function App() {
         onMenubarIconStyleChange: handleMenubarIconStyleChange,
         traySettingsPreview,
         onGlobalShortcutChange: handleGlobalShortcutChange,
+        onLanguageChange: handleLanguageChange,
         onStartOnLoginChange: handleStartOnLoginChange,
       }}
     />

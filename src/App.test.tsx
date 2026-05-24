@@ -19,11 +19,15 @@ const state = vi.hoisted(() => ({
   saveDisplayModeMock: vi.fn(),
   loadResetTimerDisplayModeMock: vi.fn(),
   saveResetTimerDisplayModeMock: vi.fn(),
+  loadTimeFormatModeMock: vi.fn(),
+  saveTimeFormatModeMock: vi.fn(),
   loadMenubarIconStyleMock: vi.fn(),
   saveMenubarIconStyleMock: vi.fn(),
   migrateLegacyTraySettingsMock: vi.fn(),
   loadGlobalShortcutMock: vi.fn(),
   saveGlobalShortcutMock: vi.fn(),
+  loadLanguageMock: vi.fn(),
+  saveLanguageMock: vi.fn(),
   loadStartOnLoginMock: vi.fn(),
   saveStartOnLoginMock: vi.fn(),
   autostartEnableMock: vi.fn(),
@@ -227,11 +231,15 @@ vi.mock("@/lib/settings", async () => {
     saveDisplayMode: state.saveDisplayModeMock,
     loadResetTimerDisplayMode: state.loadResetTimerDisplayModeMock,
     saveResetTimerDisplayMode: state.saveResetTimerDisplayModeMock,
+    loadTimeFormatMode: state.loadTimeFormatModeMock,
+    saveTimeFormatMode: state.saveTimeFormatModeMock,
     loadMenubarIconStyle: state.loadMenubarIconStyleMock,
     saveMenubarIconStyle: state.saveMenubarIconStyleMock,
     migrateLegacyTraySettings: state.migrateLegacyTraySettingsMock,
     loadGlobalShortcut: state.loadGlobalShortcutMock,
     saveGlobalShortcut: state.saveGlobalShortcutMock,
+    loadLanguage: state.loadLanguageMock,
+    saveLanguage: state.saveLanguageMock,
     loadStartOnLogin: state.loadStartOnLoginMock,
     saveStartOnLogin: state.saveStartOnLoginMock,
   }
@@ -244,6 +252,7 @@ import { useAppUiStore } from "@/stores/app-ui-store"
 
 describe("App", () => {
   beforeEach(() => {
+    vi.spyOn(window.navigator, "platform", "get").mockReturnValue("MacIntel")
     useAppUiStore.getState().resetState()
     useAppPluginStore.getState().resetState()
     useAppPreferencesStore.getState().resetState()
@@ -265,11 +274,15 @@ describe("App", () => {
     state.saveDisplayModeMock.mockReset()
     state.loadResetTimerDisplayModeMock.mockReset()
     state.saveResetTimerDisplayModeMock.mockReset()
+    state.loadTimeFormatModeMock.mockReset()
+    state.saveTimeFormatModeMock.mockReset()
     state.loadMenubarIconStyleMock.mockReset()
     state.saveMenubarIconStyleMock.mockReset()
     state.migrateLegacyTraySettingsMock.mockReset()
     state.loadGlobalShortcutMock.mockReset()
     state.saveGlobalShortcutMock.mockReset()
+    state.loadLanguageMock.mockReset()
+    state.saveLanguageMock.mockReset()
     state.loadStartOnLoginMock.mockReset()
     state.saveStartOnLoginMock.mockReset()
     state.autostartEnableMock.mockReset()
@@ -303,11 +316,15 @@ describe("App", () => {
     state.saveDisplayModeMock.mockResolvedValue(undefined)
     state.loadResetTimerDisplayModeMock.mockResolvedValue("relative")
     state.saveResetTimerDisplayModeMock.mockResolvedValue(undefined)
+    state.loadTimeFormatModeMock.mockResolvedValue("auto")
+    state.saveTimeFormatModeMock.mockResolvedValue(undefined)
     state.loadMenubarIconStyleMock.mockResolvedValue("provider")
     state.saveMenubarIconStyleMock.mockResolvedValue(undefined)
     state.migrateLegacyTraySettingsMock.mockResolvedValue(undefined)
     state.loadGlobalShortcutMock.mockResolvedValue(null)
     state.saveGlobalShortcutMock.mockResolvedValue(undefined)
+    state.loadLanguageMock.mockResolvedValue("en")
+    state.saveLanguageMock.mockResolvedValue(undefined)
     state.loadStartOnLoginMock.mockResolvedValue(false)
     state.saveStartOnLoginMock.mockResolvedValue(undefined)
     state.autostartEnableMock.mockResolvedValue(undefined)
@@ -495,6 +512,33 @@ describe("App", () => {
     const firstCall = state.renderTrayBarsIconMock.mock.calls[0]?.[0]
     expect(firstCall.providerIconUrl).toBe("icon-a")
     await waitFor(() => expect(state.traySetTitleMock).toHaveBeenCalledWith("--%"))
+  })
+
+  it("keeps the desktop tray icon on Windows", async () => {
+    vi.spyOn(window.navigator, "platform", "get").mockReturnValue("Win32")
+    state.invokeMock.mockImplementation(async (cmd: string) => {
+      if (cmd === "list_plugins") {
+        return [
+          {
+            id: "a",
+            name: "Alpha",
+            iconUrl: "icon-a",
+            primaryCandidates: ["Session"],
+            lines: [{ type: "progress", label: "Session", scope: "overview" }],
+          },
+        ]
+      }
+      return null
+    })
+    state.loadPluginSettingsMock.mockResolvedValueOnce({ order: ["a"], disabled: [] })
+
+    render(<App />)
+    await waitFor(() => expect(state.startBatchMock).toHaveBeenCalled())
+    await waitFor(() => expect(state.trayGetByIdMock).toHaveBeenCalled())
+
+    expect(state.renderTrayBarsIconMock).not.toHaveBeenCalled()
+    expect(state.traySetIconMock).not.toHaveBeenCalled()
+    expect(state.traySetIconAsTemplateMock).not.toHaveBeenCalled()
   })
 
   it("bars style path passed to renderTrayBarsIcon when loadMenubarIconStyle returns bars", async () => {

@@ -1,4 +1,5 @@
 import { LazyStore } from "@tauri-apps/plugin-store";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
 import type { PluginMeta } from "@/lib/plugin-types";
 
 // Refresh cooldown duration in milliseconds (5 minutes)
@@ -12,7 +13,13 @@ export type PluginSettings = {
 
 export type AutoUpdateIntervalMinutes = 5 | 15 | 30 | 60;
 
-export type ThemeMode = "system" | "light" | "dark";
+export type ThemeMode =
+  | "system"
+  | "light"
+  | "dark"
+  | "macaron-pink"
+  | "macaron-green"
+  | "macaron-blue";
 
 export type DisplayMode = "used" | "left";
 
@@ -31,6 +38,7 @@ const THEME_MODE_KEY = "themeMode";
 const DISPLAY_MODE_KEY = "displayMode";
 const RESET_TIMER_DISPLAY_MODE_KEY = "resetTimerDisplayMode";
 const TIME_FORMAT_MODE_KEY = "timeFormatMode";
+const LANGUAGE_KEY = "language";
 const MENUBAR_ICON_STYLE_KEY = "menubarIconStyle";
 const LEGACY_TRAY_ICON_STYLE_KEY = "trayIconStyle";
 const LEGACY_TRAY_SHOW_PERCENTAGE_KEY = "trayShowPercentage";
@@ -42,12 +50,20 @@ export const DEFAULT_THEME_MODE: ThemeMode = "system";
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "left";
 export const DEFAULT_RESET_TIMER_DISPLAY_MODE: ResetTimerDisplayMode = "relative";
 export const DEFAULT_TIME_FORMAT_MODE: TimeFormatMode = "auto";
+export const DEFAULT_LANGUAGE: Locale = DEFAULT_LOCALE;
 export const DEFAULT_MENUBAR_ICON_STYLE: MenubarIconStyle = "provider";
 export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
 export const DEFAULT_START_ON_LOGIN = false;
 
 const AUTO_UPDATE_INTERVALS: AutoUpdateIntervalMinutes[] = [5, 15, 30, 60];
-const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
+const THEME_MODES: ThemeMode[] = [
+  "system",
+  "light",
+  "dark",
+  "macaron-pink",
+  "macaron-green",
+  "macaron-blue",
+];
 const DISPLAY_MODES: DisplayMode[] = ["used", "left"];
 const RESET_TIMER_DISPLAY_MODES: ResetTimerDisplayMode[] = ["relative", "absolute"];
 const TIME_FORMAT_MODES: TimeFormatMode[] = ["auto", "12h", "24h"];
@@ -65,10 +81,19 @@ export const AUTO_UPDATE_OPTIONS: { value: AutoUpdateIntervalMinutes; label: str
     label: value === 60 ? "1 hour" : `${value} min`,
   }));
 
+const THEME_LABELS: Record<ThemeMode, string> = {
+  system: "System",
+  light: "Light",
+  dark: "Dark",
+  "macaron-pink": "Macaron Pink",
+  "macaron-green": "Macaron Green",
+  "macaron-blue": "Macaron Blue",
+};
+
 export const THEME_OPTIONS: { value: ThemeMode; label: string }[] =
   THEME_MODES.map((value) => ({
     value,
-    label: value.charAt(0).toUpperCase() + value.slice(1),
+    label: THEME_LABELS[value],
   }));
 
 export const DISPLAY_MODE_OPTIONS: { value: DisplayMode; label: string }[] = [
@@ -240,6 +265,17 @@ export async function loadTimeFormatMode(): Promise<TimeFormatMode> {
 
 export async function saveTimeFormatMode(mode: TimeFormatMode): Promise<void> {
   await store.set(TIME_FORMAT_MODE_KEY, mode);
+  await store.save();
+}
+
+export async function loadLanguage(): Promise<Locale> {
+  const stored = await store.get<unknown>(LANGUAGE_KEY);
+  if (isLocale(stored)) return stored;
+  return DEFAULT_LANGUAGE;
+}
+
+export async function saveLanguage(language: Locale): Promise<void> {
+  await store.set(LANGUAGE_KEY, language);
   await store.save();
 }
 

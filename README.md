@@ -6,9 +6,11 @@ See your usage at a glance from your menu bar. No digging through dashboards.
 
 ## Download
 
-[**Download the latest release**](https://github.com/robinebers/openusage/releases/latest) (macOS, Apple Silicon & Intel)
+[**Download the latest release**](https://github.com/gowerlin/openusage/releases/latest) (Windows)
 
-The app auto-updates. Install once and you're set.
+The Windows app auto-updates from this fork's GitHub releases. Install once and you're set after the first signed release is published.
+
+Windows support is in MVP. The source tree has a Windows NSIS installer build path, but public Windows release artifacts, updater `latest.json`, and updater signatures still need tag-release verification with signing secrets. Do not treat the releases page as a verified Windows download yet.
 
 ## What It Does
 

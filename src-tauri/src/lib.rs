@@ -3,6 +3,8 @@ mod app_nap;
 mod config;
 mod local_http_api;
 mod panel;
+mod panel_hit_test;
+mod panel_position;
 mod plugin_engine;
 mod tray;
 #[cfg(target_os = "macos")]
@@ -195,10 +197,15 @@ fn init_panel(app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 fn hide_panel(app_handle: tauri::AppHandle) {
-    use tauri_nspanel::ManagerExt;
-    if let Ok(panel) = app_handle.get_webview_panel("main") {
-        panel.hide();
-    }
+    panel::hide_panel(&app_handle);
+}
+
+#[tauri::command]
+fn set_panel_window_mask(
+    app_handle: tauri::AppHandle,
+    mask: panel_hit_test::PanelWindowMask,
+) -> Result<(), String> {
+    panel_hit_test::set_mask(&app_handle, mask)
 }
 
 #[tauri::command]
@@ -470,11 +477,15 @@ pub fn run() {
     let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     let _guard = runtime.enter();
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_aptabase::Builder::new("A-US-6435241436").build())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_nspanel::init())
+        .plugin(tauri_plugin_store::Builder::default().build());
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_nspanel::init());
+
+    builder
         .plugin(
             tauri_plugin_log::Builder::new()
                 .targets([
@@ -492,9 +503,14 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::Builder::new().build())
+        .on_window_event(|window, event| {
+            panel_position::persist_panel_position_from_event(window, event);
+            panel_hit_test::trace_window_event(window, event);
+        })
         .invoke_handler(tauri::generate_handler![
             init_panel,
             hide_panel,
+            set_panel_window_mask,
             open_devtools,
             start_probe_batch,
             list_plugins,
@@ -550,6 +566,7 @@ pub fn run() {
             local_http_api::start_server();
 
             tray::create(app.handle())?;
+            panel_hit_test::start_mask(app.handle().clone());
 
             app.handle()
                 .plugin(tauri_plugin_updater::Builder::new().build())?;

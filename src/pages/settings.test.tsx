@@ -67,6 +67,8 @@ const defaultProps = {
   },
   globalShortcut: null,
   onGlobalShortcutChange: vi.fn(),
+  language: "en" as const,
+  onLanguageChange: vi.fn(),
   startOnLogin: false,
   onStartOnLoginChange: vi.fn(),
 }
@@ -145,6 +147,16 @@ describe("SettingsPage", () => {
     expect(screen.getByText("System")).toBeInTheDocument()
     expect(screen.getByText("Light")).toBeInTheDocument()
     expect(screen.getByText("Dark")).toBeInTheDocument()
+    expect(screen.getByText("Macaron Pink")).toBeInTheDocument()
+    expect(screen.getByText("Macaron Green")).toBeInTheDocument()
+    expect(screen.getByText("Macaron Blue")).toBeInTheDocument()
+  })
+
+  it("uses two compact columns for theme options", () => {
+    render(<SettingsPage {...defaultProps} />)
+    const themeGroup = screen.getByRole("radiogroup", { name: "Theme mode" })
+    expect(themeGroup).toHaveClass("grid-cols-2")
+    expect(themeGroup).toHaveClass("sm:grid-cols-3")
   })
 
   it("updates theme mode", async () => {
@@ -157,6 +169,18 @@ describe("SettingsPage", () => {
     )
     await userEvent.click(screen.getByText("Dark"))
     expect(onThemeModeChange).toHaveBeenCalledWith("dark")
+  })
+
+  it("updates macaron theme mode", async () => {
+    const onThemeModeChange = vi.fn()
+    render(
+      <SettingsPage
+        {...defaultProps}
+        onThemeModeChange={onThemeModeChange}
+      />
+    )
+    await userEvent.click(screen.getByRole("radio", { name: "Macaron Blue" }))
+    expect(onThemeModeChange).toHaveBeenCalledWith("macaron-blue")
   })
 
   it("updates display mode", async () => {
@@ -269,5 +293,20 @@ describe("SettingsPage", () => {
     )
     await userEvent.click(screen.getByText("Start on login"))
     expect(onStartOnLoginChange).toHaveBeenCalledWith(true)
+  })
+
+  it("renders language selector and updates language", async () => {
+    const onLanguageChange = vi.fn()
+    render(
+      <SettingsPage
+        {...defaultProps}
+        language="en"
+        onLanguageChange={onLanguageChange}
+      />
+    )
+
+    expect(screen.getByText("Language")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("radio", { name: "Traditional Chinese" }))
+    expect(onLanguageChange).toHaveBeenCalledWith("zh-TW")
   })
 })

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AboutDialog } from "@/components/about-dialog";
 import type { UpdateStatus } from "@/hooks/use-app-update";
 import { useNowTicker } from "@/hooks/use-now-ticker";
+import { useI18n } from "@/hooks/use-i18n";
 
 interface PanelFooterProps {
   version: string;
@@ -29,13 +30,15 @@ function VersionDisplay({
   onUpdateCheck: () => void;
   onVersionClick: () => void;
 }) {
+  const { t } = useI18n();
+
   switch (updateStatus.status) {
     case "downloading":
       return (
         <span className="text-xs text-muted-foreground">
           {updateStatus.progress >= 0
-            ? `Downloading update ${updateStatus.progress}%`
-            : "Downloading update..."}
+            ? `${t("footer.downloadingUpdate")} ${updateStatus.progress}%`
+            : t("footer.downloadingUpdateUnknown")}
         </span>
       );
     case "ready":
@@ -46,31 +49,40 @@ function VersionDisplay({
           className="update-border-beam"
           onClick={onUpdateInstall}
         >
-          Restart to update
+          {t("footer.restartToUpdate")}
         </Button>
       );
     case "installing":
       return (
-        <span className="text-xs text-muted-foreground">Installing...</span>
+        <span className="text-xs text-muted-foreground">{t("footer.installing")}</span>
       );
-    case "error":
+    case "error": {
+      const messageTitle =
+        updateStatus.message === "Update check failed"
+          ? t("footer.updateCheckFailed")
+          : updateStatus.message === "Download failed"
+            ? t("footer.downloadFailed")
+            : updateStatus.message === "Install failed"
+              ? t("footer.installFailed")
+              : updateStatus.message
       if (updateStatus.message === "Update check failed") {
         return (
           <button
             type="button"
             onClick={onUpdateCheck}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            title={updateStatus.message}
+            title={messageTitle}
           >
-            Updates soon
+            {t("footer.updatesSoon")}
           </button>
         );
       }
       return (
-        <span className="text-xs text-destructive" title={updateStatus.message}>
-          Update failed
+        <span className="text-xs text-destructive" title={messageTitle}>
+          {t("footer.updateFailed")}
         </span>
       );
+    }
     default:
       return (
         <button
@@ -95,21 +107,22 @@ export function PanelFooter({
   onShowAbout,
   onCloseAbout,
 }: PanelFooterProps) {
+  const { t } = useI18n();
   const now = useNowTicker({
     enabled: Boolean(autoUpdateNextAt),
     resetKey: autoUpdateNextAt,
   });
 
   const countdownLabel = useMemo(() => {
-    if (!autoUpdateNextAt) return "Paused";
+    if (!autoUpdateNextAt) return t("footer.paused");
     const remainingMs = Math.max(0, autoUpdateNextAt - now);
     const totalSeconds = Math.ceil(remainingMs / 1000);
     if (totalSeconds >= 60) {
       const minutes = Math.ceil(totalSeconds / 60);
-      return `Next update in ${minutes}m`;
+      return `${t("footer.nextUpdateIn")} ${minutes}m`;
     }
-    return `Next update in ${totalSeconds}s`;
-  }, [autoUpdateNextAt, now]);
+    return `${t("footer.nextUpdateIn")} ${totalSeconds}s`;
+  }, [autoUpdateNextAt, now, t]);
 
   return (
     <>
@@ -129,7 +142,7 @@ export function PanelFooter({
               onRefreshAll()
             }}
             className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors cursor-pointer"
-            title="Refresh now"
+            title={t("footer.refreshNow")}
           >
             {countdownLabel}
           </button>

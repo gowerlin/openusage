@@ -164,6 +164,21 @@ describe("antigravity plugin", () => {
     expect(() => plugin.probe(ctx)).toThrow("Start Antigravity and try again.")
   })
 
+  it("logs and falls back when LS discovery is unsupported", async () => {
+    const ctx = makeCtx()
+    ctx.host.ls.discover.mockReturnValue({
+      status: "unsupported",
+      api: "ctx.host.ls.discover",
+      platform: "windows",
+      reason: "process discovery is unsupported on Windows",
+    })
+    const plugin = await loadPlugin()
+    expect(() => plugin.probe(ctx)).toThrow("Start Antigravity and try again.")
+    expect(ctx.host.log.info).toHaveBeenCalledWith(
+      expect.stringContaining("LS discovery unsupported")
+    )
+  })
+
   it("throws when no working port found and no DB credentials", async () => {
     const ctx = makeCtx()
     ctx.host.ls.discover.mockReturnValue(makeDiscovery())

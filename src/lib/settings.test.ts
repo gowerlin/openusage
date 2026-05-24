@@ -3,17 +3,20 @@ import {
   DEFAULT_AUTO_UPDATE_INTERVAL,
   DEFAULT_DISPLAY_MODE,
   DEFAULT_GLOBAL_SHORTCUT,
+  DEFAULT_LANGUAGE,
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_PLUGIN_SETTINGS,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
   DEFAULT_START_ON_LOGIN,
   DEFAULT_THEME_MODE,
   DEFAULT_TIME_FORMAT_MODE,
+  THEME_OPTIONS,
   arePluginSettingsEqual,
   getEnabledPluginIds,
   loadAutoUpdateInterval,
   loadDisplayMode,
   loadGlobalShortcut,
+  loadLanguage,
   loadMenubarIconStyle,
   loadPluginSettings,
   loadResetTimerDisplayMode,
@@ -25,6 +28,7 @@ import {
   saveAutoUpdateInterval,
   saveDisplayMode,
   saveGlobalShortcut,
+  saveLanguage,
   saveMenubarIconStyle,
   savePluginSettings,
   saveResetTimerDisplayMode,
@@ -140,9 +144,36 @@ describe("settings", () => {
     await expect(loadThemeMode()).resolves.toBe("dark")
   })
 
+  it("loads stored macaron theme modes", async () => {
+    storeState.set("themeMode", "macaron-pink")
+    await expect(loadThemeMode()).resolves.toBe("macaron-pink")
+
+    storeState.set("themeMode", "macaron-green")
+    await expect(loadThemeMode()).resolves.toBe("macaron-green")
+
+    storeState.set("themeMode", "macaron-blue")
+    await expect(loadThemeMode()).resolves.toBe("macaron-blue")
+  })
+
   it("saves theme mode", async () => {
     await saveThemeMode("light")
     await expect(loadThemeMode()).resolves.toBe("light")
+  })
+
+  it("saves macaron theme mode", async () => {
+    await saveThemeMode("macaron-green")
+    await expect(loadThemeMode()).resolves.toBe("macaron-green")
+  })
+
+  it("exposes macaron theme options", () => {
+    expect(THEME_OPTIONS.map((option) => option.value)).toEqual([
+      "system",
+      "light",
+      "dark",
+      "macaron-pink",
+      "macaron-green",
+      "macaron-blue",
+    ])
   })
 
   it("falls back to default for invalid theme mode", async () => {
@@ -360,5 +391,24 @@ describe("settings", () => {
   it("falls back to default for invalid start on login value", async () => {
     storeState.set("startOnLogin", "invalid")
     await expect(loadStartOnLogin()).resolves.toBe(DEFAULT_START_ON_LOGIN)
+  })
+
+  it("loads default language when missing", async () => {
+    await expect(loadLanguage()).resolves.toBe(DEFAULT_LANGUAGE)
+  })
+
+  it("loads stored language", async () => {
+    storeState.set("language", "zh-TW")
+    await expect(loadLanguage()).resolves.toBe("zh-TW")
+  })
+
+  it("saves language", async () => {
+    await saveLanguage("zh-TW")
+    await expect(loadLanguage()).resolves.toBe("zh-TW")
+  })
+
+  it("falls back to default for invalid language", async () => {
+    storeState.set("language", "fr")
+    await expect(loadLanguage()).resolves.toBe(DEFAULT_LANGUAGE)
   })
 })

@@ -1,4 +1,5 @@
-import { act, renderHook, waitFor } from "@testing-library/react"
+import { act, render, renderHook, waitFor } from "@testing-library/react"
+import { createElement } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const {
@@ -7,12 +8,14 @@ const {
   invokeMock,
   isTauriMock,
   listenMock,
+  startDraggingMock,
 } = vi.hoisted(() => ({
   invokeMock: vi.fn(),
   isTauriMock: vi.fn(),
   listenMock: vi.fn(),
   getCurrentWindowMock: vi.fn(),
   currentMonitorMock: vi.fn(),
+  startDraggingMock: vi.fn(),
 }))
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -47,12 +50,17 @@ describe("usePanel", () => {
     listenMock.mockReset()
     getCurrentWindowMock.mockReset()
     currentMonitorMock.mockReset()
+    startDraggingMock.mockReset()
 
     isTauriMock.mockReturnValue(true)
     invokeMock.mockResolvedValue(undefined)
     listenMock.mockResolvedValue(vi.fn())
     currentMonitorMock.mockResolvedValue(null)
-    getCurrentWindowMock.mockReturnValue({ setSize: vi.fn().mockResolvedValue(undefined) })
+    startDraggingMock.mockResolvedValue(undefined)
+    getCurrentWindowMock.mockReturnValue({
+      setSize: vi.fn().mockResolvedValue(undefined),
+      startDragging: startDraggingMock,
+    })
   })
 
   it("handles tray show-about event", async () => {
@@ -340,5 +348,127 @@ describe("usePanel", () => {
 
     document.body.removeChild(container)
     requestAnimationFrameSpy.mockRestore()
+  })
+
+  it("starts native panel dragging from a primary pointer drag handle", () => {
+    const { result } = renderHook(() =>
+      usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+    )
+
+    const event = {
+      button: 0,
+      preventDefault: vi.fn(),
+    } as unknown as React.PointerEvent<HTMLElement>
+
+    act(() => {
+      result.current.startPanelDrag(event)
+    })
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1)
+    expect(startDraggingMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("syncs panel and arrow bounds for the native window mask", async () => {
+    const panelRect = {
+      left: 24,
+      top: 13,
+      right: 376,
+      bottom: 476,
+      width: 352,
+      height: 463,
+      x: 24,
+      y: 13,
+      toJSON: () => ({}),
+    } as DOMRect
+    const arrowRect = {
+      left: 193,
+      top: 6,
+      right: 207,
+      bottom: 13,
+      width: 14,
+      height: 7,
+      x: 193,
+      y: 6,
+      toJSON: () => ({}),
+    } as DOMRect
+    const rectSpy = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function () {
+      return this.getAttribute("data-testid") === "panel-mask-arrow" ? arrowRect : panelRect
+    })
+    const requestAnimationFrameSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((callback: FrameRequestCallback) => {
+        callback(0)
+        return 1
+      })
+    const cancelAnimationFrameSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {})
+
+    function Harness() {
+      const { panelSurfaceRef, trayArrowRef } = usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+
+      return createElement(
+        "div",
+        null,
+        createElement("div", { ref: trayArrowRef, "data-testid": "panel-mask-arrow" }),
+        createElement("div", { ref: panelSurfaceRef, "data-testid": "panel-mask-surface" })
+      )
+    }
+
+    render(createElement(Harness))
+
+    await waitFor(() => {
+      expect(invokeMock).toHaveBeenCalledWith("set_panel_window_mask", {
+        mask: {
+          panelBounds: {
+            left: 24,
+            top: 13,
+            right: 376,
+            bottom: 476,
+          },
+          arrowBounds: {
+            left: 193,
+            top: 6,
+            right: 207,
+            bottom: 13,
+          },
+        },
+      })
+    })
+
+    rectSpy.mockRestore()
+    requestAnimationFrameSpy.mockRestore()
+    cancelAnimationFrameSpy.mockRestore()
+  })
+
+  it("ignores non-primary pointer drag attempts", () => {
+    const { result } = renderHook(() =>
+      usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+    )
+
+    act(() => {
+      result.current.startPanelDrag({
+        button: 2,
+        preventDefault: vi.fn(),
+      } as unknown as React.PointerEvent<HTMLElement>)
+    })
+
+    expect(startDraggingMock).not.toHaveBeenCalled()
   })
 })

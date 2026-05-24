@@ -1,12 +1,10 @@
 use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
-use tauri::path::BaseDirectory;
 use tauri::tray::{MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager};
-use tauri_nspanel::ManagerExt;
+use tauri::{AppHandle, Emitter};
 use tauri_plugin_store::StoreExt;
 
-use crate::panel::{get_or_init_panel, position_panel_at_tray_icon, show_panel};
+use crate::panel::{show_panel, toggle_panel_at_tray_icon};
 
 const LOG_LEVEL_STORE_KEY: &str = "logLevel";
 
@@ -45,10 +43,7 @@ fn set_stored_log_level(app_handle: &AppHandle, level: log::LevelFilter) {
 }
 
 pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
-    let tray_icon_path = app_handle
-        .path()
-        .resolve("icons/tray-icon.png", BaseDirectory::Resource)?;
-    let icon = Image::from_path(tray_icon_path)?;
+    let icon = Image::from_bytes(include_bytes!("../icons/32x32.png"))?;
 
     // Load persisted log level
     let current_level = get_stored_log_level(app_handle);
@@ -138,7 +133,7 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id("tray")
         .icon(icon)
-        .icon_as_template(true)
+        .icon_as_template(false)
         .tooltip("OpenUsage")
         .menu(&menu)
         .show_menu_on_left_click(false)
@@ -187,20 +182,7 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
             } = event
             {
                 if button_state == MouseButtonState::Up {
-                    let Some(panel) = get_or_init_panel!(app_handle) else {
-                        return;
-                    };
-
-                    if panel.is_visible() {
-                        log::debug!("tray click: hiding panel");
-                        panel.hide();
-                        return;
-                    }
-                    log::debug!("tray click: showing panel");
-
-                    // macOS quirk: must show window before positioning to another monitor
-                    panel.show_and_make_key();
-                    position_panel_at_tray_icon(app_handle, rect.position, rect.size);
+                    toggle_panel_at_tray_icon(app_handle, rect.position, rect.size);
                 }
             }
         })

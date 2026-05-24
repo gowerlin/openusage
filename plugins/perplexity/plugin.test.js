@@ -833,4 +833,15 @@ describe("perplexity plugin", () => {
     expect(rateLimitCall).toBeTruthy()
     expect(rateLimitCall.headers.Authorization).toBe("Bearer " + token)
   })
+
+  it("fails explicitly on windows before reading the mac app cache", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+
+    const plugin = await loadPlugin()
+
+    expect(() => plugin.probe(ctx)).toThrow("Perplexity is not supported on Windows yet.")
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled()
+    expect(ctx.host.http.request).not.toHaveBeenCalled()
+  })
 })
