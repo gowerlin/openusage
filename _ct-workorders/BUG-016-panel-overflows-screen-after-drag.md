@@ -6,8 +6,8 @@ title: Panel can extend below the screen right after dragging low
 status: OPEN
 severity: Low
 created_at: "2026-10-15T16:08:42+08:00"
-updated_at: "2026-10-15T16:08:42+08:00"
-related_workorder: null
+updated_at: "2026-10-15T16:29:08+08:00"
+related_workorder: T0055
 target_version: "0.6.31"
 affects_files:
   - src/hooks/app/use-panel.ts

@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 16:28 (UTC+8)
+> 最後更新：2026-10-15 16:29 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
@@ -9,7 +9,8 @@
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
-6. PLAN-005 DONE（v0.6.30），使用者實測通過，BUG-006–015 CLOSED。剩餘：BUG-016（v0.6.31 候選）、v0.7.x 移植候選、README 補 Perplexity / Synthetic、publish.yml Node 20 警告。
+6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
+7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0062 smoke → T0063 發行（D093）；T0055 已 YOLO 派發。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -110,10 +111,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0054 |
+| 工單 | T0063 |
 | BUG | BUG-016 |
-| PLAN | PLAN-005 |
-| 決策 | D092 |
+| PLAN | PLAN-006 |
+| 決策 | D093 |
 
 ---
 
@@ -159,7 +160,15 @@
 | Blur on WM_NCACTIVATE(0) | BUG-013 / T0052 | ✅ DONE | 無 | BUG-013 FIXED |
 | Windows smoke 0.6.30 | PLAN-005 / T0053 | ✅ DONE | 無 | 全 PASS |
 | Release v0.6.30 | PLAN-005 / T0054 | ✅ DONE | 無 | run `38703798990`；Latest |
-| v0.6.31 候選 | BUG-016 | 📋 OPEN | 無 | 待使用者決定 |
+| Panel refit after drag | BUG-016 / T0055 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| README + CI Node 24 | T0056 | 📋 PENDING | depends_on T0055 | 自動串接 |
+| Port: Codex link | T0057 | 📋 PENDING | depends_on T0056 | 自動串接 |
+| Port: Grok weekly | T0058 | 📋 PENDING | depends_on T0057 | 自動串接 |
+| Port: Claude resets + Fable | T0059 | 📋 PENDING | depends_on T0058 | 自動串接 |
+| Port: OpenCode Go API | T0060 | 📋 PENDING | depends_on T0059 | 自動串接 |
+| Port: Copilot AI Credits | T0061 | 📋 PENDING | depends_on T0060 | 自動串接 |
+| Windows smoke 0.6.31 | PLAN-006 / T0062 | 📋 PENDING | depends_on T0055–T0061 | 自動串接 |
+| Release v0.6.31 | PLAN-006 / T0063 | 📋 PENDING | depends_on T0062 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
@@ -259,6 +268,7 @@
 - D090：接受 T0053 DONE（`c6642617`）：installer 內容 smoke，BUG-013/014/015 新增項與 11 項回歸全 PASS；BUG-015 以真實拖曳驗證；互動紀錄確認使用者同意控制滑鼠。觀察 1（拖到偏下後首頁暫時超出螢幕）非 FAIL → 登記 BUG-016（v0.6.31 候選），依串接規則派發 T0054。
 - D091：接受 T0054 DONE；塔台獨立複驗 `v0.6.30`（非 draft / 非 pre、3 assets、`latest.json` 0.6.30 指向 fork、Latest、run success @ `49754c2f`、fork tag 只多 v0.6.30）。PLAN-005 → DONE。下一步：使用者安裝實測 BUG-006–015。
 - D092：使用者回報「v0.6.30 通過」→ BUG-006 ~ BUG-015 全部 CLOSED。
+- D093：使用者要求剩餘四項（BUG-016、v0.7.x 移植、README、publish.yml）繼續開單處理。建立 PLAN-006 + T0055–T0063，串接到發行 v0.6.31（沿用「修完再發」）。v0.7.x 移植依 T0037 §7「移植」項，每個 provider 一張；上游 Swift 版只能 `git show upstream/main:`，不得 merge；無憑證的 provider 不可偽造 runtime 驗證。T0056 不升級 tauri-action（T0009 前車之鑑）。
 
 ---
 
