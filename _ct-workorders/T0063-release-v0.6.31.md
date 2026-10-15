@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0063
 title: Bump version and publish GitHub release v0.6.31
-status: IN_PROGRESS
+status: DONE
 priority: High
 type: release
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T18:41:45+08:00"
+updated_at: "2026-10-15T18:48:27+08:00"
 started_at: "2026-10-15T18:41:45+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T18:48:27+08:00"
+commit: 4937e11cd97ca5db8ad5fd8aee7ddcc70a3ca6f1
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -71,7 +71,14 @@ PLAN-006 最後一步。流程同 T0054。
 
 ### 狀態
 
-進行中。「Landing check」到「步驟 3」寫於 push 前（2026-10-15T18:42:50+08:00），含在 bump commit 內。
+DONE — v0.6.31 已發行，驗證 Gate 全 PASS。「Landing check」到「步驟 3」寫於 push 前（2026-10-15T18:42:50+08:00），含在 bump commit 內；「步驟 4」之後寫於 2026-10-15T18:47:55+08:00。
+
+| 項目 | 值 |
+|---|---|
+| bump commit | `4937e11cd97ca5db8ad5fd8aee7ddcc70a3ca6f1`（`chore: bump version to 0.6.31`，版本四檔 + 本工單） |
+| tag | `v0.6.31`（annotated，tag object `328fedd899e2732304de00427bee61fa106b24dc` → `4937e11c`） |
+| Publish run | `38722259099` success（job `116379432424`，10:43:17Z–10:47:00Z，3m43s） |
+| Release | https://github.com/gowerlin/openusage/releases/tag/v0.6.31 |
 
 ### Landing check
 
@@ -117,3 +124,76 @@ PASS。範圍：`git diff origin/main` 新增行（含工作區、排除 `*.png`
 | `bun run test --run` | PASS | 70 files / 1254 tests passed |
 | `bun run build` | PASS | exit 0（只有 chunk > 500 kB 既有警告） |
 | `cargo test --locked` | PASS | VsDevCmd x64（`Visual Studio\18\Enterprise`）+ `LIBCLANG_PATH` + `CI=false`：`158 passed; 0 failed` |
+
+### 步驟 4：commit / push / tag
+
+- 精準 `git add` 版本四檔 + 本工單 → `git commit` `4937e11c`（塔台並行改動的 `_backlog.md`、`_tower-state.md`、`PLAN-007`、`T0069`–`T0071` 未 stage）。
+- Commit message 依工單指定 `chore: bump version to 0.6.31`（同 T0054 先例，未加工單 id）。
+- `git push origin main`：`5f03a38d..4937e11c  main -> main`（fast-forward，含塔台 `da726986`、`d284a4ca`）。
+- `git tag -a v0.6.31 -m v0.6.31 4937e11c`；`git push origin v0.6.31`：`* [new tag] v0.6.31 -> v0.6.31`。**沒有**用 `--tags` / `--follow-tags` / `--mirror`、沒有 force-push、沒有動既有 tag / release。
+
+### 步驟 5：Publish workflow
+
+- `gh run list -R gowerlin/openusage --workflow publish.yml` → run `38722259099`（`v0.6.31`，push）。
+- `gh run watch -R gowerlin/openusage 38722259099 --exit-status` → exit 0；`actions/checkout@v7`、`Set up MSVC developer environment`（T0056 inline step）、`Validate release tag`、`Validate app version matches tag`、`tauri-action`、`Verify updater assets uploaded` 全 ✓。
+- **Node 20 annotation：無**。`gh api repos/gowerlin/openusage/check-runs/116379432424/annotations` → 空陣列（0 則；v0.6.30 run 有 Node.js 20 deprecated 警告）；完整 log（1168 行）grep `node.js 20|node20|deprecat` → 0 筆。T0056 升級在正式 publish 生效。
+
+### 步驟 6：release 驗證
+
+| 項目 | 結果 |
+|---|---|
+| draft / prerelease | `false` / `false`；publishedAt `2026-10-15T10:46:48Z`；target `4937e11c` |
+| assets（3） | `OpenUsage_0.6.31_x64-setup.exe`（5449749 bytes）、`.sig`（420）、`latest.json`（1276） |
+| `latest.json` | `"version": "0.6.31"`；`windows-x86_64` 與 `windows-x86_64-nsis` 的 `url` = `https://github.com/gowerlin/openusage/releases/download/v0.6.31/OpenUsage_0.6.31_x64-setup.exe`，都有 signature |
+| updater endpoint | `releases/latest/download/latest.json` → `"version": "0.6.31"`，URL 同上 |
+| Latest | `gh release list -R gowerlin/openusage`：`v0.6.31 Latest`；其餘 `v0.6.31-pre.1`（Pre-release，T0064）、`v0.6.30`、`v0.6.29`、`v0.6.27`、`v0.6.26`、`v0.6.25`、`v0.6.25-pre.1`、`v0.6.24` 不變 |
+| fork tag 比對 | `git ls-remote --tags origin` push 前後 `diff`：只多 `refs/tags/v0.6.31`、`refs/tags/v0.6.31^{}`（`v0.6.31-pre.1` 在本單開工前已存在，由 T0064 建立） |
+
+### 步驟 7：發行說明
+
+- 開工前 release body 為空（tauri-action 預設）。`gh release edit v0.6.31 -R gowerlin/openusage --notes-file <scratchpad>/release-notes-v0.6.31.md`。
+- `gh release view --json body` == 檔案（`true`）；`https://api.github.com/repos/gowerlin/openusage/releases/tags/v0.6.31` body == 檔案（`true`，3624 字元，正規化 CRLF），`draft=false`、`prerelease=false`。
+- 上游引用：版本取自 `git show upstream/main:CHANGELOG.md`（未 checkout / merge `upstream/main`）：#1364 = v0.7.15-beta.1；`d94b5fbb` / `5fcb4312` / #843 / #844 = v0.7.3；#1272 / #1290 = v0.7.13；#1367 = v0.7.15-beta.1；#814 / #807 = v0.7.1；#1141 / #1108 = v0.7.10；#1097 = v0.7.9。
+
+發行說明全文：
+
+```markdown
+本版重點：修正 v0.6.30 的已知問題（拖曳後面板超出螢幕），並從上游 v0.7.x 移植 Codex / Grok / Claude / OpenCode Go / Copilot 的 provider 更新（PLAN-006）。
+
+### Windows 修正
+- 把面板拖到螢幕偏下的位置後，放開滑鼠就會重新計算高度，面板不再超出工作區；拖曳中不改尺寸（BUG-016 / T0055、T0067，[5ec8935](https://github.com/gowerlin/openusage/commit/5ec8935bd7cbb050237280ce54662c4102d51bfd)、[4331f8d](https://github.com/gowerlin/openusage/commit/4331f8de82faed966fd9ab577592818d2596948c)）
+- `panel-window-trace.log` 啟動紀錄的路徑改為遮蔽形式，不再出現 Windows 使用者名稱（BUG-018 / T0067，[4331f8d](https://github.com/gowerlin/openusage/commit/4331f8de82faed966fd9ab577592818d2596948c)）
+
+### Provider 更新（移植自上游 v0.7.x）
+- **Codex**：用量儀表板連結改為 `chatgpt.com/settings/usage`（T0057，[dd69e50](https://github.com/gowerlin/openusage/commit/dd69e5012f8e5ad3d419113cca20b5dfb08feb7d)；上游 v0.7.15-beta.1 [#1364](https://github.com/robinebers/openusage/pull/1364)）
+- **Grok**：新增每週共用額度（Weekly），首頁也會顯示；改用 credits 端點為主，已轉 unified billing 的帳號不再整個失敗；Pay as you go 上限取自 credits（T0058、T0065，[81c3721](https://github.com/gowerlin/openusage/commit/81c37218b4a3fa344d5caddfe076f6ae0d48ca32)、[1f2a281](https://github.com/gowerlin/openusage/commit/1f2a28121d714207a765682593a6ae68077037b1)；上游 v0.7.3 [d94b5fb](https://github.com/robinebers/openusage/commit/d94b5fbb1b7bb8e6ccb34821ede33166c5931bc3)、[5fcb431](https://github.com/robinebers/openusage/commit/5fcb431225e62cb8db365b04fd63aa027507c146)，v0.7.13 [#1272](https://github.com/robinebers/openusage/pull/1272)）
+- **Claude**：新增 Fable 模型每週限額（顯示在 Weekly 下方）與 Rate Limit Resets（可用的重置次數與最近期限，每小時檢查一次）（T0059、T0066，[7da18a1](https://github.com/gowerlin/openusage/commit/7da18a17d01ef4c6f524b9963392c46dc36440a5)、[d50245c](https://github.com/gowerlin/openusage/commit/d50245c351a9d277396f225a7c370f23bebaab7a)；上游 v0.7.1 [#814](https://github.com/robinebers/openusage/pull/814)、v0.7.10 [#1141](https://github.com/robinebers/openusage/pull/1141)、v0.7.13 [#1290](https://github.com/robinebers/openusage/pull/1290)、v0.7.15-beta.1 [#1367](https://github.com/robinebers/openusage/pull/1367)）
+- **OpenCode Go**：改用官方 usage API 顯示 Session / Weekly / Monthly（T0060，[da2e4a1](https://github.com/gowerlin/openusage/commit/da2e4a10d5cc92c6e71cdc64684067078bedbddb)；上游 v0.7.9 [#1097](https://github.com/robinebers/openusage/pull/1097)）
+- **Copilot**：改為 AI Credits + Extra Usage 計費；組織管理員可看到組織層級 credits / 花費；org 管理的席位也顯示個人 credits（T0061，[fcf0738](https://github.com/gowerlin/openusage/commit/fcf073891d146f6fb6c76b4029efdd695bd0717c)；上游 v0.7.1 [#807](https://github.com/robinebers/openusage/pull/807)、v0.7.3 [#843](https://github.com/robinebers/openusage/pull/843) / [#844](https://github.com/robinebers/openusage/pull/844)、v0.7.10 [#1108](https://github.com/robinebers/openusage/pull/1108)）
+
+### 文件 / CI
+- README 支援清單補上 Perplexity、Synthetic，並更新 Claude / Copilot / Grok / OpenCode Go 的說明（T0056、T0060、T0066，[b3788b0](https://github.com/gowerlin/openusage/commit/b3788b087f6020c440ba5622f7812895593d8925)、[da2e4a1](https://github.com/gowerlin/openusage/commit/da2e4a10d5cc92c6e71cdc64684067078bedbddb)、[d50245c](https://github.com/gowerlin/openusage/commit/d50245c351a9d277396f225a7c370f23bebaab7a)）
+- 發行 / 預發行 workflow 改用 Node 24 版本的 action（`actions/checkout@v7`、內建 MSVC 環境設定），不再出現 Node.js 20 deprecated 警告（T0056、T0064，[b3788b0](https://github.com/gowerlin/openusage/commit/b3788b087f6020c440ba5622f7812895593d8925)、[5f03a38](https://github.com/gowerlin/openusage/commit/5f03a38dae1c9a06f4b9b5dd8f29a987fa0c9b51)）
+
+### 已知問題
+- Windows 上 Copilot 讀不到 `gh auth login` 存的 token（gh 存在 Windows 認證管理員），會顯示「Not logged in」；之後版本處理（BUG-017）
+
+**Full Changelog**: [v0.6.30...v0.6.31](https://github.com/gowerlin/openusage/compare/v0.6.30...v0.6.31)
+```
+
+### 驗證 Gate
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| Publish run 成功且無 Node 20 annotation | PASS | run `38722259099` success；check-run annotations 0 則；log 無 Node 20 / deprecated |
+| release / assets / `latest.json` / Latest | PASS | 非 draft / 非 pre；3 assets；version `0.6.31`、URL 指向 fork；`v0.6.31 Latest` |
+| fork 無非預期 tag | PASS | tag diff 只多 `v0.6.31` |
+| release body = API body | PASS | gh 與 API body 都等於發行說明檔 |
+
+### 偏離 / 阻塞 / 後續
+
+- 阻塞：無。偏離：無（commit message 依工單指定，未加工單 id）。
+- 沒有停使用者的 OpenUsage、沒有執行 installer、沒有改 registry、沒有碰剪貼簿、沒有控制滑鼠、沒有新截圖。
+- 收尾 commit（本段 + metadata）只在本機，**沒有 push**（塔台處理）。
+- 觀察：publish job 3m43s（v0.6.30 約 11 分鐘），`swatinem/rust-cache` 命中（log：`Cache hit for: v0-rust-publish-Windows_NT-x64-63f58d45-6d7365c4`）。
+- 後續（已登錄）：BUG-017（Windows Copilot gh token，D102）。
