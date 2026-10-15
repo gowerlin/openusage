@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-018
 title: panel-window-trace.log startup line contains the Windows user name
-status: OPEN
+status: FIXED
 severity: Low
 created_at: "2026-10-15T17:51:22+08:00"
-updated_at: "2026-10-15T17:51:22+08:00"
+updated_at: "2026-10-15T18:15:37+08:00"
 related_workorder: T0067
 affects_files:
   - src-tauri/src/panel_hit_test.rs
@@ -21,10 +21,10 @@ depends_on: []
 
 ## 驗收條件
 
-- [ ] trace log 不出現實際使用者名稱（路徑走既有 `redact_paths` 或只寫相對 / 遮蔽形式）。
-- [ ] 不改 subclass 邏輯（BUG-001 高風險區）。
+- [x] trace log 不出現實際使用者名稱（路徑走既有 `redact_paths` 或只寫相對 / 遮蔽形式）。
+- [x] 不改 subclass 邏輯（BUG-001 高風險區）。
 
 ## 回報區
 
 ### 修復狀態
-OPEN（T0067，D105）
+FIXED：T0067 `4331f8de`。`trace_ready` 經 `redact_log_message` → `path=[PATH]`；實機 trace 使用者名稱 0 次。
