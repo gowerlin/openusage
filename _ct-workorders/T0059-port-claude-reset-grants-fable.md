@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0059
 title: Port v0.7.x: Claude rate limit resets and Fable weekly limit
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:52:59+08:00"
+updated_at: "2026-10-15T17:00:54+08:00"
 started_at: "2026-10-15T16:52:59+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T17:00:54+08:00"
+commit: 7da18a17
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -73,7 +73,7 @@ T0037 §7：
 ### 狀態：DONE
 
 - 執行：2026-10-15T16:52:59+08:00 起；Worker（Claude Code，CT_MODE=yolo）
-- Commit：見 frontmatter `commit`（`feat(claude): rate limit resets and Fable weekly from upstream v0.7.x (T0059)`），未 push / tag / 發行
+- Commit：`7da18a17`（`feat(claude): rate limit resets and Fable weekly from upstream v0.7.x (T0059)`），未 push / tag / 發行
 
 ### Landing Zone
 
