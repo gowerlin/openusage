@@ -64,7 +64,7 @@ WARN — C-0：frontmatter `repo` = absent，`basename(REPO_ROOT)` = `openusage`
 
 ### Commit
 
-`fix(ui): show full text metric values (T0050)``439a9d81`。未 push / tag / 發行。
+`fix(ui): show full text metric values (T0050)` → `439a9d81`。未 push / tag / 發行。
 
 ### 改動
 
