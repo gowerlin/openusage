@@ -461,13 +461,21 @@ fn redact_body(body: &str) -> String {
 }
 
 /// Mask user/system paths. Windows first so `C:/Users/x` becomes `[PATH]`, not `C:[PATH]`.
+/// A user-name segment may contain spaces (`C:\Users\John Smith\...`) only when a path
+/// separator follows it, so plain text after a bare `C:\Users\x` is not swallowed.
 fn redact_paths(text: &str) -> String {
     let mut result = text.to_string();
     // C:\Users\x, C:/Users/x, JSON-escaped C:\\Users\\x; any drive letter, any case.
-    if let Ok(win_re) =
-        regex_lite::Regex::new(r#"(?i)[A-Z]:(?:\\{1,2}|/)Users(?:\\{1,2}|/)[^\s"')]+"#)
-    {
+    if let Ok(win_re) = regex_lite::Regex::new(
+        r#"(?i)[A-Z]:(?:\\{1,2}|/)Users(?:\\{1,2}|/)(?:[^\s\\/:*?"'<>|)]+(?: [^\s\\/:*?"'<>|)]+)+(?:\\{1,2}|/)[^\s"')]*|[^\s"')]+)"#,
+    ) {
         result = win_re.replace_all(&result, "[PATH]").to_string();
+    }
+    // /Users/John Smith/..., /home/John Smith/...
+    if let Ok(spaced_re) =
+        regex_lite::Regex::new(r#"/(?:Users|home)/[^\s/"')]+(?: [^\s/"')]+)+/[^\s"')]*"#)
+    {
+        result = spaced_re.replace_all(&result, "[PATH]").to_string();
     }
     if let Ok(path_re) =
         regex_lite::Regex::new(r#"(/(?:Users|home|opt|private|var|tmp|Applications)/[^\s"')]+)"#)
@@ -1994,17 +2002,50 @@ fn ccusage_enriched_path() -> Option<OsString> {
     ccusage_enriched_path_with(home.as_deref(), existing_path.as_deref())
 }
 
-fn ccusage_runner_available(candidate: &str, enriched_path: Option<&OsStr>) -> bool {
+/// yarn classic (1.x) has no `dlx`; only yarn 2+ counts as a runner.
+fn yarn_version_supports_dlx(version: &str) -> bool {
+    version
+        .trim()
+        .trim_start_matches('v')
+        .split('.')
+        .next()
+        .and_then(|major| major.parse::<u32>().ok())
+        .is_some_and(|major| major >= 2)
+}
+
+fn ccusage_runner_available(
+    kind: CcusageRunnerKind,
+    candidate: &str,
+    enriched_path: Option<&OsStr>,
+) -> bool {
     let mut command = background_command(candidate);
     command.arg("--version");
     if let Some(path) = enriched_path {
         command.env("PATH", path);
     }
-    command
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null());
+    command.stderr(std::process::Stdio::null());
 
-    command.status().map(|s| s.success()).unwrap_or(false)
+    if kind != CcusageRunnerKind::YarnDlx {
+        command.stdout(std::process::Stdio::null());
+        return command.status().map(|s| s.success()).unwrap_or(false);
+    }
+
+    // Same `--version` call; read its output instead of spawning a second probe.
+    let Ok(output) = command.output() else {
+        return false;
+    };
+    let version = String::from_utf8_lossy(&output.stdout);
+    if !output.status.success() {
+        return false;
+    }
+    if !yarn_version_supports_dlx(&version) {
+        log::debug!(
+            "ccusage: skipping yarn {} (no dlx before yarn 2)",
+            version.trim()
+        );
+        return false;
+    }
+    true
 }
 
 fn configure_ccusage_command(
@@ -2031,7 +2072,7 @@ fn configure_ccusage_command(
 fn resolve_ccusage_runner_binary(kind: CcusageRunnerKind) -> Option<String> {
     let path = ccusage_enriched_path();
     for candidate in ccusage_runner_candidates(kind) {
-        if ccusage_runner_available(&candidate, path.as_deref()) {
+        if ccusage_runner_available(kind, &candidate, path.as_deref()) {
             return Some(candidate);
         }
     }
@@ -2220,14 +2261,88 @@ fn kill_ccusage_process_group(child_id: u32) -> std::io::Result<()> {
     Err(err)
 }
 
-fn kill_ccusage_on_timeout(child: &mut std::process::Child) -> std::io::Result<()> {
+/// Windows has no process groups: a kill-on-close Job Object holds the runner tree
+/// (`npx.cmd` -> `cmd.exe` -> `node` -> ...); child processes join the job by default.
+/// Closing the last handle (drop) ends anything still in the job.
+#[cfg(windows)]
+struct CcusageJob(windows::Win32::Foundation::HANDLE);
+
+#[cfg(windows)]
+impl CcusageJob {
+    fn assign(child: &std::process::Child) -> windows::core::Result<Self> {
+        use std::os::windows::io::AsRawHandle;
+        use windows::Win32::Foundation::HANDLE;
+        use windows::Win32::System::JobObjects::{
+            AssignProcessToJobObject, CreateJobObjectW, JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+            JOBOBJECT_EXTENDED_LIMIT_INFORMATION, JobObjectExtendedLimitInformation,
+            SetInformationJobObject,
+        };
+
+        // SAFETY: Win32 calls on a job handle we own (closed on drop) and the live child handle.
+        unsafe {
+            let job = Self(CreateJobObjectW(None, windows::core::PCWSTR::null())?);
+            let mut info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION::default();
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+            SetInformationJobObject(
+                job.0,
+                JobObjectExtendedLimitInformation,
+                (&info as *const JOBOBJECT_EXTENDED_LIMIT_INFORMATION).cast(),
+                std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+            )?;
+            AssignProcessToJobObject(job.0, HANDLE(child.as_raw_handle()))?;
+            Ok(job)
+        }
+    }
+
+    fn terminate(&self) -> std::io::Result<()> {
+        // SAFETY: handle stays valid until drop.
+        unsafe { windows::Win32::System::JobObjects::TerminateJobObject(self.0, 1) }
+            .map_err(std::io::Error::from)
+    }
+}
+
+#[cfg(windows)]
+impl Drop for CcusageJob {
+    fn drop(&mut self) {
+        // SAFETY: we own the handle and close it once.
+        unsafe {
+            let _ = windows::Win32::Foundation::CloseHandle(self.0);
+        }
+    }
+}
+
+/// Unix kills the process group set in `configure_ccusage_command`; no job needed.
+#[cfg(not(windows))]
+struct CcusageJob;
+
+#[cfg(not(windows))]
+impl CcusageJob {
+    fn assign(_child: &std::process::Child) -> std::io::Result<Self> {
+        Ok(Self)
+    }
+}
+
+fn kill_ccusage_on_timeout(
+    child: &mut std::process::Child,
+    job: Option<&CcusageJob>,
+) -> std::io::Result<()> {
     #[cfg(unix)]
     {
+        let _ = job;
         kill_ccusage_process_group(child.id())
     }
 
-    #[cfg(not(unix))]
+    #[cfg(windows)]
     {
+        match job {
+            Some(job) => job.terminate(),
+            None => child.kill(),
+        }
+    }
+
+    #[cfg(not(any(unix, windows)))]
+    {
+        let _ = job;
         child.kill()
     }
 }
@@ -2240,24 +2355,6 @@ fn format_ccusage_timeout(timeout: std::time::Duration) -> String {
         return format!("{}ms", timeout.as_millis());
     }
     format!("{:.3}s", timeout.as_secs_f64())
-}
-
-#[cfg(test)]
-fn run_ccusage_with_runner(
-    kind: CcusageRunnerKind,
-    program: &str,
-    opts: &CcusageQueryOpts,
-    provider: CcusageProvider,
-    plugin_id: &str,
-) -> CcusageRunnerResult {
-    run_ccusage_with_runner_deadline(
-        kind,
-        program,
-        opts,
-        provider,
-        plugin_id,
-        ProbeDeadline::none(),
-    )
 }
 
 fn run_ccusage_with_runner_deadline(
@@ -2353,6 +2450,19 @@ fn run_ccusage_with_runner_timeout(
         }
     };
 
+    let mut job = match CcusageJob::assign(&child) {
+        Ok(job) => Some(job),
+        Err(e) => {
+            log::warn!(
+                "[plugin:{}] ccusage job object setup failed for {}: {}",
+                plugin_id,
+                ccusage_runner_label(kind),
+                e
+            );
+            None
+        }
+    };
+
     // Drain pipes concurrently while the process is running so the child cannot block on full
     // stdout/stderr buffers before exit.
     let mut stdout_reader = child.stdout.take().map(|mut stdout| {
@@ -2374,6 +2484,8 @@ fn run_ccusage_with_runner_timeout(
     loop {
         match child.try_wait() {
             Ok(Some(status)) => {
+                // Windows: end leftover descendants still holding the pipes before joining.
+                drop(job.take());
                 let stdout = stdout_reader
                     .take()
                     .and_then(|reader| reader.join().ok())
@@ -2407,7 +2519,7 @@ fn run_ccusage_with_runner_timeout(
             }
             Ok(None) => {
                 if start.elapsed() > timeout {
-                    if let Err(e) = kill_ccusage_on_timeout(&mut child) {
+                    if let Err(e) = kill_ccusage_on_timeout(&mut child, job.as_ref()) {
                         log::warn!(
                             "[plugin:{}] ccusage process group kill failed for {}: {}",
                             plugin_id,
@@ -4023,6 +4135,54 @@ mod tests {
     }
 
     #[test]
+    fn redact_paths_masks_user_names_with_spaces() {
+        let cases = [
+            (
+                r"home=C:\Users\John Smith\.claude\x.json ok",
+                "home=[PATH] ok",
+            ),
+            (r"home=C:/Users/John Smith/.claude", "home=[PATH]"),
+            (
+                r#"{"homePath":"C:\\Users\\John Smith\\.claude"}"#,
+                r#"{"homePath":"[PATH]"}"#,
+            ),
+            ("home=/Users/John Smith/.claude ok", "home=[PATH] ok"),
+            ("home=/home/John Smith/x", "home=[PATH]"),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(redact_log_message(input), expected, "input: {}", input);
+            assert!(!redact_body(input).contains("Smith"), "input: {}", input);
+        }
+    }
+
+    #[test]
+    fn redact_paths_does_not_swallow_text_after_user_dir() {
+        assert_eq!(
+            redact_log_message(r"home=C:\Users\winuser failed at 10:30"),
+            "home=[PATH] failed at 10:30"
+        );
+        assert_eq!(
+            redact_log_message("home=/home/rebers failed at 10:30"),
+            "home=[PATH] failed at 10:30"
+        );
+        assert_eq!(
+            redact_log_message("Users: 3 at 10:30 home dir"),
+            "Users: 3 at 10:30 home dir"
+        );
+    }
+
+    #[test]
+    fn yarn_dlx_requires_yarn_2_or_newer() {
+        assert!(!yarn_version_supports_dlx("1.22.22\n"));
+        assert!(!yarn_version_supports_dlx("0.27.5"));
+        assert!(!yarn_version_supports_dlx(""));
+        assert!(!yarn_version_supports_dlx("not a version"));
+        assert!(yarn_version_supports_dlx("2.4.3"));
+        assert!(yarn_version_supports_dlx("4.5.1\r\n"));
+        assert!(yarn_version_supports_dlx("v3.6.0"));
+    }
+
+    #[test]
     fn redact_body_redacts_login_and_analytics_tracking_id() {
         let body =
             r#"{"login":"robinebers","analytics_tracking_id":"c9df3f012bb8c2eb7aae6868ee8da6cf"}"#;
@@ -4846,12 +5006,13 @@ esac
             home_path: None,
             claude_path: None,
         };
-        let result = run_ccusage_with_runner(
+        let result = run_ccusage_with_runner_deadline(
             CcusageRunnerKind::Bunx,
             script_path.to_string_lossy().as_ref(),
             &opts,
             CcusageProvider::Codex,
             "codex",
+            ProbeDeadline::none(),
         );
         assert_eq!(
             result,
@@ -4899,6 +5060,51 @@ esac
         let deadline = ProbeDeadline::at(Instant::now());
 
         assert_eq!(deadline.clamp_duration(Duration::from_secs(10)), None);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn ccusage_timeout_kills_windows_job_tree_and_closes_pipes() {
+        use std::time::{Duration, Instant};
+
+        let test_id = format!(
+            "openusage-ccusage-timeout-win-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("system time")
+                .as_nanos()
+        );
+        let dir = std::env::temp_dir().join(test_id);
+        std::fs::create_dir_all(&dir).expect("create temp dir");
+        let script_path = dir.join("fake-ccusage-runner.cmd");
+        // The background ping inherits stdout/stderr; killing only cmd.exe would leave it
+        // holding the pipes and the reader join would wait ~30s.
+        std::fs::write(
+            &script_path,
+            "@echo off\r\nstart \"\" /b ping -n 30 127.0.0.1\r\nping -n 30 127.0.0.1 >nul\r\n",
+        )
+        .expect("write script");
+
+        let opts = CcusageQueryOpts::default();
+        let start = Instant::now();
+        let result = run_ccusage_with_runner_timeout(
+            CcusageRunnerKind::Bunx,
+            script_path.to_string_lossy().as_ref(),
+            &opts,
+            CcusageProvider::Codex,
+            "codex",
+            CcusageCommandFlavor::Current,
+            Duration::from_secs(1),
+        );
+
+        assert_eq!(result, CcusageRunnerResult::TimedOut);
+        assert!(
+            start.elapsed() < Duration::from_secs(5),
+            "job kill should end the grandchild holding the pipes, took {:?}",
+            start.elapsed()
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[cfg(unix)]

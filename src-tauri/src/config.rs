@@ -34,6 +34,9 @@ pub fn get_resolved_proxy() -> Option<&'static ResolvedProxy> {
         .as_ref()
 }
 
+/// Log-safe config path; the resolved path contains the user name.
+const CONFIG_PATH_LABEL: &str = "~/.openusage/config.json";
+
 /// Config file path: ~/.openusage/config.json
 fn config_path() -> Option<PathBuf> {
     dirs::home_dir().map(|home| home.join(".openusage").join("config.json"))
@@ -51,7 +54,7 @@ fn load_and_resolve_proxy() -> Option<ResolvedProxy> {
             Err(e) => {
                 log::warn!(
                     "[config] failed to parse {}: {}, using defaults",
-                    path.display(),
+                    CONFIG_PATH_LABEL,
                     e
                 );
                 return None;
@@ -60,7 +63,7 @@ fn load_and_resolve_proxy() -> Option<ResolvedProxy> {
         Err(_) => {
             log::debug!(
                 "[config] no config file at {}, using defaults",
-                path.display()
+                CONFIG_PATH_LABEL
             );
             return None;
         }
