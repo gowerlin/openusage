@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0037
 title: Research upstream sync (tauri-legacy merge + v0.7.x port candidates)
-status: IN_PROGRESS
+status: DONE
 priority: High
 type: research
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:10:18+08:00"
-updated_at: "2026-10-15T12:11:29+08:00"
+updated_at: "2026-10-15T12:36:41+08:00"
 started_at: "2026-10-15T12:11:29+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T12:36:41+08:00"
+commit: ec2d6491
 agent: default
 intervention_type: decision-requiring
 interaction_mode: enabled
