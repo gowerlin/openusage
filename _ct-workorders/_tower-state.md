@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 12:04 (UTC+8)
+> 最後更新：2026-10-15 12:05 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.26` 已發行（Publish run `38675818087` success，tag `v0.6.26` → `30904bd`）；NSIS installer、`.sig`、`latest.json`（version `0.6.26`，URL 指向 fork）與繁中發行重點說明已驗證。
@@ -9,6 +9,7 @@
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0035：全部 DONE。
 5. BUG-005：FIXED（T0034 `a6c52aa` + T0035 `353c412`）；使用者決定先不發版，下次發行後 App 內實測再 CLOSED。
+6. T0036 release `v0.6.27`：YOLO 派發中（D066）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -109,10 +110,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0035 |
+| 工單 | T0036 |
 | BUG | BUG-005 |
 | PLAN | PLAN-003 |
-| 決策 | D065 |
+| 決策 | D066 |
 
 ---
 
@@ -140,6 +141,7 @@
 | Single app instance | BUG-004 / T0032 | ✅ CLOSED | 無 | 使用者安裝 `v0.6.26` 實測通過 |
 | About / Help links to fork | BUG-005 / T0035 | ✅ DONE | 無 | 下次發行後使用者實測 |
 | In-app changelog source | BUG-005 / T0034 | ✅ DONE | 無 | 下次發行後使用者實測 |
+| Release v0.6.27 | T0036 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
 ---
@@ -211,6 +213,7 @@
 - D063：使用者截圖要求 About dialog 與 side-nav Help 也改指向 fork；署名採「原作者 Robin Ebers + 維護者 gowerlin」，移除上游維護者，LICENSE 不改。建立 T0035（depends_on T0034，避免兩個 Worker 同時 commit），T0034 DONE 後自動派發。
 - D064：接受 T0034 DONE（`a6c52aa`）；新增 `GITHUB_REPO` 常數、dialog 測試改 `importOriginal` 的偏差可接受；browser 實測未跑，留給發行後 final gate。BUG-005 轉 FIXING，依 D063 派發 T0035（可沿用 `GITHUB_REPO` 常數）。
 - D065：接受 T0035 DONE（`353c412`）；接受修改 `src/App.test.tsx` 2 行文案斷言的範圍外偏差（`about.builtBy` 文案變更直接導致）。塔台檢視 after-zh-TW 截圖符合 D063。BUG-005 FIXED，final gate 待下次發行。
+- D066：使用者授權推上 GitHub 並發行 `v0.6.27`；建立 T0036（同 T0033 流程，`gh` 一律 `-R gowerlin/openusage`，繁中發行重點說明，並驗證 GitHub API `releases/tags/v0.6.27` body = App changelog 來源）。發行後請使用者 App 內實測 BUG-005。
 
 ---
 
