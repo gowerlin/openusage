@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0042
 title: Fix ccusage runner discovery on Windows (Usage Trend)
-status: IN_PROGRESS
+status: DONE
 priority: High
 type: bugfix
 bug_id: BUG-006
 plan_id: PLAN-004
 created_at: "2026-10-15T13:18:05+08:00"
-updated_at: "2026-10-15T13:19:45+08:00"
+updated_at: "2026-10-15T13:28:45+08:00"
 started_at: "2026-10-15T13:19:45+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T13:28:45+08:00"
+commit: 1a439dcc
 agent: default
 intervention_type: fire-and-forget
 depends_on:
