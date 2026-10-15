@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { makeCtx } from "../test-helpers.js"
 
@@ -16,6 +17,14 @@ describe("codex plugin", () => {
   beforeEach(() => {
     delete globalThis.__openusage_plugin
     vi.resetModules()
+  })
+
+  it("links to the ChatGPT usage dashboard", () => {
+    const manifest = JSON.parse(readFileSync("plugins/codex/plugin.json", "utf8"))
+    expect(manifest.links).toEqual([
+      { label: "Status", url: "https://status.openai.com/" },
+      { label: "Usage dashboard", url: "https://chatgpt.com/settings/usage" },
+    ])
   })
 
   const expectStaleFileAuthFallsBackToKeychain = async (refreshResponse) => {
