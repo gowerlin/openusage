@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0057
 title: Port v0.7.x: Codex dashboard link fix
-status: IN_PROGRESS
+status: DONE
 priority: Low
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:42:58+08:00"
+updated_at: "2026-10-15T16:47:26+08:00"
 started_at: "2026-10-15T16:42:58+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T16:47:26+08:00"
+commit: dd69e501
 agent: default
 intervention_type: fire-and-forget
 depends_on:
