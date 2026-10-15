@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0039
 title: Devin plugin Windows behavior (credentials path or fail loud)
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: implementation
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:39:32+08:00"
-updated_at: "2026-10-15T12:51:33+08:00"
+updated_at: "2026-10-15T12:52:50+08:00"
 started_at: "2026-10-15T12:50:01+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T12:52:50+08:00"
+commit: 21899655
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -62,7 +62,7 @@ T0038 合併上游後，Devin plugin 取代 Windsurf。T0037 報告 §3：Devin 
 
 - 狀態：DONE
 - 選擇：**A**（Windows 讀 `%APPDATA%\devin\credentials.toml`；Windows 跳過 sqlite fallback）
-- Commit：見 frontmatter `commit`（`fix(devin): explicit Windows behavior (T0039)`）。未 push。
+- Commit：`21899655`（`fix(devin): explicit Windows behavior (T0039)`）。未 push。
 
 ### 落點檢查
 
