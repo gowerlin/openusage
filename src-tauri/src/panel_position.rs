@@ -5,7 +5,8 @@ use tauri_plugin_store::StoreExt;
 
 const MAIN_WINDOW_LABEL: &str = "main";
 const PANEL_POSITION_STORE_KEY: &str = "panelPosition";
-// Frontend refits the panel height to the work area after a user drag.
+// Frontend refits the panel height to the work area after a user move. Windows
+// drags run in a move loop and refit on `panel:drag-ended` instead.
 const PANEL_USER_MOVED_EVENT: &str = "panel:user-moved";
 
 // Position set by `apply_stored_position`; its `Moved` event must not overwrite
@@ -74,6 +75,10 @@ pub fn persist_panel_position_from_event(window: &tauri::Window, event: &tauri::
     }
 
     save_stored_position(window.app_handle(), position);
+    // A resize inside the Windows move loop is undone on release (BUG-016).
+    if crate::panel_hit_test::in_move_loop() {
+        return;
+    }
     if let Err(error) = window.emit(PANEL_USER_MOVED_EVENT, ()) {
         log::warn!("failed to emit panel moved event: {}", error);
     }

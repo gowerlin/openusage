@@ -12,6 +12,11 @@ const WINDOWS_WM_NCPAINT: u32 = 0x0085;
 const WINDOWS_WM_NCACTIVATE: u32 = 0x0086;
 const WINDOWS_WM_STYLECHANGING: u32 = 0x007C;
 const WINDOWS_WM_STYLECHANGED: u32 = 0x007D;
+const WINDOWS_WM_ENTERSIZEMOVE: u32 = 0x0231;
+const WINDOWS_WM_EXITSIZEMOVE: u32 = 0x0232;
+// Frontend skips setSize while the move loop runs and refits once it ends.
+const PANEL_DRAG_STARTED_EVENT: &str = "panel:drag-started";
+const PANEL_DRAG_ENDED_EVENT: &str = "panel:drag-ended";
 
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -146,13 +151,36 @@ fn should_schedule_blur_check(message: u32, wparam: usize) -> bool {
     message == WINDOWS_WM_NCACTIVATE && wparam == 0
 }
 
+/// Move/size modal loop edge: `Some(true)` on enter, `Some(false)` on exit.
+/// Each is sent once per loop (MS docs: WM_ENTERSIZEMOVE / WM_EXITSIZEMOVE).
+fn move_loop_transition(message: u32) -> Option<bool> {
+    match message {
+        WINDOWS_WM_ENTERSIZEMOVE => Some(true),
+        WINDOWS_WM_EXITSIZEMOVE => Some(false),
+        _ => None,
+    }
+}
+
+fn move_loop_event(in_move_loop: bool) -> &'static str {
+    if in_move_loop {
+        PANEL_DRAG_STARTED_EVENT
+    } else {
+        PANEL_DRAG_ENDED_EVENT
+    }
+}
+
+fn trace_ready_details(path: &str) -> String {
+    crate::plugin_engine::host_api::redact_log_message(&format!("path={path}"))
+}
+
 #[cfg(windows)]
 mod platform {
     use super::{
         MAIN_WINDOW_LABEL, PANEL_RADIUS_LOGICAL_PX, PanelWindowMask, WINDOWS_WM_NCACTIVATE,
         WINDOWS_WM_NCCALCSIZE, WINDOWS_WM_NCPAINT, WINDOWS_WM_STYLECHANGED,
-        WINDOWS_WM_STYLECHANGING, arrow_points_from_bounds, physical_bounds_from_logical,
-        should_schedule_blur_check, strip_windows_panel_chrome, windows_panel_subclass_policy,
+        WINDOWS_WM_STYLECHANGING, arrow_points_from_bounds, move_loop_event, move_loop_transition,
+        physical_bounds_from_logical, should_schedule_blur_check, strip_windows_panel_chrome,
+        trace_ready_details, windows_panel_subclass_policy,
     };
     use std::fs::{OpenOptions, create_dir_all};
     use std::io::Write;
@@ -162,7 +190,7 @@ mod platform {
         atomic::{AtomicBool, Ordering},
     };
     use std::time::Duration;
-    use tauri::{AppHandle, Manager};
+    use tauri::{AppHandle, Emitter, Manager};
     use windows::Win32::{
         Foundation::{HWND, POINT, RECT},
         Graphics::Dwm::{
@@ -189,6 +217,13 @@ mod platform {
     static SUBCLASSED_HWND: OnceLock<Mutex<Option<isize>>> = OnceLock::new();
     static STARTED: AtomicBool = AtomicBool::new(false);
     static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
+    static IN_MOVE_LOOP: AtomicBool = AtomicBool::new(false);
+    // Emit threads read the latest state under this lock, so the last event always matches it.
+    static MOVE_LOOP_EMIT: Mutex<()> = Mutex::new(());
+
+    pub fn in_move_loop() -> bool {
+        IN_MOVE_LOOP.load(Ordering::SeqCst)
+    }
 
     fn mask_slot() -> &'static Mutex<Option<PanelWindowMask>> {
         MASK.get_or_init(|| Mutex::new(None))
@@ -362,6 +397,11 @@ mod platform {
             schedule_native_blur_check(hwnd);
         }
 
+        // Observe only: the message still goes to DefSubclassProc below.
+        if let Some(entering) = move_loop_transition(message) {
+            note_move_loop(hwnd, entering);
+        }
+
         if matches!(
             message,
             WINDOWS_WM_NCCALCSIZE
@@ -395,6 +435,34 @@ mod platform {
             format!("hwnd=0x{:X} source=wm_ncactivate", hwnd.0 as usize),
         );
         crate::panel_blur::schedule_blur_check(app_handle.clone(), "wm_ncactivate");
+    }
+
+    /// Runs inside the wndproc: records the state and emits from another thread.
+    fn note_move_loop(hwnd: HWND, entering: bool) {
+        IN_MOVE_LOOP.store(entering, Ordering::SeqCst);
+        let (event, message) = if entering {
+            ("move_loop_enter", "WM_ENTERSIZEMOVE")
+        } else {
+            ("move_loop_exit", "WM_EXITSIZEMOVE")
+        };
+        panel_trace(
+            event,
+            format!("hwnd=0x{:X} message={message}", hwnd.0 as usize),
+        );
+        let Some(app_handle) = APP_HANDLE.get() else {
+            return;
+        };
+        let app_handle = app_handle.clone();
+        std::thread::spawn(move || {
+            let _guard = MOVE_LOOP_EMIT
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
+            let event = move_loop_event(in_move_loop());
+            panel_trace("move_loop_emit", format!("event={event}"));
+            if let Err(error) = app_handle.emit(event, ()) {
+                log::warn!("failed to emit {event}: {error}");
+            }
+        });
     }
 
     fn enforce_hwnd_chrome(hwnd: HWND) -> Result<(), String> {
@@ -523,7 +591,7 @@ mod platform {
 
         panel_trace(
             "trace_ready",
-            format!("path={}", trace_path.to_string_lossy()),
+            trace_ready_details(&trace_path.to_string_lossy()),
         );
     }
 
@@ -744,6 +812,10 @@ mod platform {
     pub fn start_mask(_app_handle: tauri::AppHandle) {}
 
     pub fn trace_window_event(_window: &tauri::Window, _event: &tauri::WindowEvent) {}
+
+    pub fn in_move_loop() -> bool {
+        false
+    }
 }
 
 pub fn set_mask(app_handle: &tauri::AppHandle, mask: PanelWindowMask) -> Result<(), String> {
@@ -762,13 +834,20 @@ pub fn trace_window_event(window: &tauri::Window, event: &tauri::WindowEvent) {
     platform::trace_window_event(window, event)
 }
 
+/// True while Windows runs the panel's move/size modal loop (always false elsewhere).
+pub fn in_move_loop() -> bool {
+    platform::in_move_loop()
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        PanelBounds, PanelWindowMask, PhysicalBounds, PhysicalPoint, WINDOWS_WM_NCACTIVATE,
-        WINDOWS_WM_NCCALCSIZE, WINDOWS_WM_NCPAINT, WINDOWS_WM_STYLECHANGED,
-        WINDOWS_WM_STYLECHANGING, arrow_points_from_bounds, physical_bounds_from_logical,
-        should_schedule_blur_check, strip_windows_panel_chrome, windows_panel_subclass_policy,
+        PanelBounds, PanelWindowMask, PhysicalBounds, PhysicalPoint, WINDOWS_WM_ENTERSIZEMOVE,
+        WINDOWS_WM_EXITSIZEMOVE, WINDOWS_WM_NCACTIVATE, WINDOWS_WM_NCCALCSIZE, WINDOWS_WM_NCPAINT,
+        WINDOWS_WM_STYLECHANGED, WINDOWS_WM_STYLECHANGING, arrow_points_from_bounds,
+        move_loop_event, move_loop_transition, physical_bounds_from_logical,
+        should_schedule_blur_check, strip_windows_panel_chrome, trace_ready_details,
+        windows_panel_subclass_policy,
     };
 
     const MASK: PanelWindowMask = PanelWindowMask {
@@ -899,5 +978,38 @@ mod tests {
             windows_panel_subclass_policy(WINDOWS_WM_STYLECHANGED, 0),
             Some(0)
         );
+    }
+
+    #[test]
+    fn tracks_move_loop_edges_only() {
+        assert_eq!(move_loop_transition(WINDOWS_WM_ENTERSIZEMOVE), Some(true));
+        assert_eq!(move_loop_transition(WINDOWS_WM_EXITSIZEMOVE), Some(false));
+        assert_eq!(move_loop_transition(WINDOWS_WM_NCACTIVATE), None);
+        assert_eq!(move_loop_event(true), "panel:drag-started");
+        assert_eq!(move_loop_event(false), "panel:drag-ended");
+    }
+
+    #[test]
+    fn move_loop_messages_keep_default_handling() {
+        assert_eq!(
+            windows_panel_subclass_policy(WINDOWS_WM_ENTERSIZEMOVE, 0),
+            None
+        );
+        assert_eq!(
+            windows_panel_subclass_policy(WINDOWS_WM_EXITSIZEMOVE, 0),
+            None
+        );
+    }
+
+    #[test]
+    fn trace_ready_path_hides_user_name() {
+        let details = trace_ready_details(
+            r"C:\Users\winuser\AppData\Roaming\com.sunstory.openusage\logs\panel-window-trace.log",
+        );
+        assert!(!details.contains("winuser"), "got: {details}");
+        assert!(details.starts_with("path=[PATH]"), "got: {details}");
+
+        let spaced = trace_ready_details(r"C:\Users\John Smith\AppData\x.log");
+        assert!(!spaced.contains("Smith"), "got: {spaced}");
     }
 }

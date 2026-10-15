@@ -9,19 +9,28 @@ const PANEL_WIDTH = 400
 const MAX_HEIGHT_FALLBACK_PX = 600
 const MAX_HEIGHT_FRACTION_OF_MONITOR = 0.8
 const WORK_AREA_MARGIN_PX = 8
-// Emitted by Rust only for user drags (not programmatic moves).
-const PANEL_USER_MOVED_EVENT = "panel:user-moved"
+// Rust events. Windows drags run in a native move loop that undoes any resize
+// made before release (BUG-016), so resize only after `drag-ended`.
+// `user-moved` covers user moves outside that loop (e.g. macOS).
+const PANEL_MOVE_EVENTS = {
+  "panel:drag-started": "drag-started",
+  "panel:drag-ended": "drag-ended",
+  "panel:user-moved": "user-moved",
+} as const
+const PANEL_DRAG_END_REFIT_DELAY_MS = 40
 const PANEL_MOVE_REFIT_DELAY_MS = 150
 
-export function debounce(fn: () => void, delayMs: number) {
-  let timer: ReturnType<typeof setTimeout> | undefined
-  return {
-    call: () => {
-      clearTimeout(timer)
-      timer = setTimeout(fn, delayMs)
-    },
-    cancel: () => clearTimeout(timer),
-  }
+export type PanelMoveSignal = (typeof PANEL_MOVE_EVENTS)[keyof typeof PANEL_MOVE_EVENTS]
+
+// refitDelayMs: null = keep any pending refit; number = (re)schedule one.
+export function nextPanelMoveState(
+  dragging: boolean,
+  signal: PanelMoveSignal
+): { dragging: boolean; refitDelayMs: number | null } {
+  if (signal === "drag-started") return { dragging: true, refitDelayMs: null }
+  if (signal === "drag-ended") return { dragging: false, refitDelayMs: PANEL_DRAG_END_REFIT_DELAY_MS }
+  if (dragging) return { dragging: true, refitDelayMs: null }
+  return { dragging: false, refitDelayMs: PANEL_MOVE_REFIT_DELAY_MS }
 }
 
 type MonitorArea = {
@@ -75,6 +84,7 @@ export function usePanel({
   const [canScrollDown, setCanScrollDown] = useState(false)
   const [maxPanelHeightPx, setMaxPanelHeightPx] = useState<number | null>(null)
   const maxPanelHeightPxRef = useRef<number | null>(null)
+  const draggingRef = useRef(false)
   const focusContainer = useCallback(() => {
     window.requestAnimationFrame(() => {
       containerRef.current?.focus({ preventScroll: true })
@@ -248,6 +258,7 @@ export function usePanel({
     if (!container) return
 
     const resizeWindow = async () => {
+      if (draggingRef.current) return
       const factor = window.devicePixelRatio
       const width = Math.ceil(PANEL_WIDTH * factor)
       const desiredHeightLogical = Math.max(1, container.scrollHeight)
@@ -280,6 +291,8 @@ export function usePanel({
       const desiredHeightPhysical = Math.ceil(desiredHeightLogical * factor)
       const height = Math.ceil(Math.min(desiredHeightPhysical, maxHeightPhysical!))
 
+      // A drag may have started while awaiting; refit after it ends instead.
+      if (draggingRef.current) return
       try {
         const currentWindow = getCurrentWindow()
         await currentWindow.setSize(new PhysicalSize(width, height))
@@ -295,21 +308,31 @@ export function usePanel({
     })
     observer.observe(container)
 
-    // Max height depends on the window top, so refit once a drag settles.
-    const refitAfterMove = debounce(() => void resizeWindow(), PANEL_MOVE_REFIT_DELAY_MS)
+    // Max height depends on the window top, so refit once a move is done.
+    let refitTimer: ReturnType<typeof setTimeout> | undefined
+    const handleMoveSignal = (signal: PanelMoveSignal) => {
+      const next = nextPanelMoveState(draggingRef.current, signal)
+      draggingRef.current = next.dragging
+      if (next.dragging) clearTimeout(refitTimer)
+      if (next.refitDelayMs === null) return
+      clearTimeout(refitTimer)
+      refitTimer = setTimeout(() => void resizeWindow(), next.refitDelayMs)
+    }
     let disposed = false
-    let unlistenMoved: (() => void) | null = null
-    listen(PANEL_USER_MOVED_EVENT, refitAfterMove.call)
-      .then((unlisten) => {
-        if (disposed) unlisten()
-        else unlistenMoved = unlisten
-      })
-      .catch((error) => console.error("Failed to listen for panel moves:", error))
+    const unlisteners: (() => void)[] = []
+    for (const [eventName, signal] of Object.entries(PANEL_MOVE_EVENTS)) {
+      listen(eventName, () => handleMoveSignal(signal))
+        .then((unlisten) => {
+          if (disposed) unlisten()
+          else unlisteners.push(unlisten)
+        })
+        .catch((error) => console.error("Failed to listen for panel moves:", error))
+    }
 
     return () => {
       disposed = true
-      refitAfterMove.cancel()
-      unlistenMoved?.()
+      clearTimeout(refitTimer)
+      for (const unlisten of unlisteners) unlisten()
       observer.disconnect()
     }
   }, [activeView, displayPlugins])

@@ -41,7 +41,7 @@ vi.mock("@tauri-apps/api/window", () => ({
   },
 }))
 
-import { computeMaxPanelHeightPhysical, debounce, usePanel } from "@/hooks/app/use-panel"
+import { computeMaxPanelHeightPhysical, nextPanelMoveState, usePanel } from "@/hooks/app/use-panel"
 
 describe("computeMaxPanelHeightPhysical", () => {
   // 1920x1440 monitor, 72px taskbar at the bottom -> work area bottom 1368.
@@ -74,25 +74,19 @@ describe("computeMaxPanelHeightPhysical", () => {
   })
 })
 
-describe("debounce", () => {
-  it("runs once after calls settle and can be cancelled", () => {
-    vi.useFakeTimers()
-    const fn = vi.fn()
-    const d = debounce(fn, 150)
+describe("nextPanelMoveState", () => {
+  it("never refits while the native drag loop runs", () => {
+    expect(nextPanelMoveState(false, "drag-started")).toEqual({ dragging: true, refitDelayMs: null })
+    expect(nextPanelMoveState(true, "user-moved")).toEqual({ dragging: true, refitDelayMs: null })
+  })
 
-    d.call()
-    vi.advanceTimersByTime(100)
-    d.call()
-    vi.advanceTimersByTime(149)
-    expect(fn).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(1)
-    expect(fn).toHaveBeenCalledTimes(1)
+  it("refits shortly after the drag ends", () => {
+    expect(nextPanelMoveState(true, "drag-ended")).toEqual({ dragging: false, refitDelayMs: 40 })
+    expect(nextPanelMoveState(false, "drag-ended")).toEqual({ dragging: false, refitDelayMs: 40 })
+  })
 
-    d.call()
-    d.cancel()
-    vi.advanceTimersByTime(500)
-    expect(fn).toHaveBeenCalledTimes(1)
-    vi.useRealTimers()
+  it("debounces moves outside a drag loop", () => {
+    expect(nextPanelMoveState(false, "user-moved")).toEqual({ dragging: false, refitDelayMs: 150 })
   })
 })
 
@@ -564,6 +558,7 @@ describe("usePanel", () => {
     await waitFor(() => {
       expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 620 }))
       expect(callbacks.has("panel:user-moved")).toBe(true)
+      expect(callbacks.has("panel:drag-ended")).toBe(true)
     })
 
     // Dragged low: 1400 - 1003 - 8
@@ -575,6 +570,70 @@ describe("usePanel", () => {
 
     top = 100
     act(() => callbacks.get("panel:user-moved")?.())
+    await waitFor(() => {
+      expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 620 }))
+    })
+  })
+
+  it("does not resize during a native drag and refits after it ends", async () => {
+    const callbacks = new Map<string, () => void>()
+    listenMock.mockImplementation(async (event: string, callback: () => void) => {
+      callbacks.set(event, callback)
+      return vi.fn()
+    })
+    const setSize = vi.fn().mockResolvedValue(undefined)
+    let top = 100
+    getCurrentWindowMock.mockReturnValue({
+      setSize,
+      startDragging: startDraggingMock,
+      outerPosition: vi.fn(async () => ({ x: 0, y: top })),
+    })
+    currentMonitorMock.mockResolvedValue({
+      size: { height: 1440 },
+      workArea: { position: { y: 0 }, size: { height: 1400 } },
+    })
+
+    function Harness() {
+      const { containerRef } = usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+      return createElement("div", {
+        ref: (el: HTMLDivElement | null) => {
+          if (el) Object.defineProperty(el, "scrollHeight", { configurable: true, value: 620 })
+          containerRef.current = el
+        },
+      })
+    }
+
+    render(createElement(Harness))
+
+    await waitFor(() => {
+      expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 620 }))
+      expect(callbacks.has("panel:drag-started")).toBe(true)
+      expect(callbacks.has("panel:drag-ended")).toBe(true)
+    })
+    const callsBeforeDrag = setSize.mock.calls.length
+
+    act(() => callbacks.get("panel:drag-started")?.())
+    top = 1003
+    act(() => callbacks.get("panel:user-moved")?.())
+    await new Promise((resolve) => setTimeout(resolve, 250))
+    expect(setSize).toHaveBeenCalledTimes(callsBeforeDrag)
+
+    act(() => callbacks.get("panel:drag-ended")?.())
+    await waitFor(() => {
+      expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 389 }))
+    })
+
+    // Dragged back up and released after a pause: full height again.
+    act(() => callbacks.get("panel:drag-started")?.())
+    top = 100
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    act(() => callbacks.get("panel:drag-ended")?.())
     await waitFor(() => {
       expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 620 }))
     })
