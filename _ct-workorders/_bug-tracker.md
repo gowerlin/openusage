@@ -3,7 +3,7 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T16:28:34+08:00"
+generated_at: "2026-10-15T16:38:39+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
@@ -11,9 +11,9 @@ exclude_globs:
   - _ct-workorders/_archive/**
 total: 13
 breakdown:
-  OPEN: 1
+  OPEN: 0
   FIXING: 0
-  FIXED: 0
+  FIXED: 1
   VERIFY: 0
   CLOSED: 12
   WONTFIX: 0
@@ -25,13 +25,12 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 1 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 13**
+- Open: 0 | Fixing: 0 | Fixed: 1 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 13**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
-| BUG-016 | Panel can extend below the screen right after dragging low | 🟢 Low | 2026-10-15T16:08:42+08:00 | [BUG-016-panel-overflows-screen-after-drag.md](BUG-016-panel-overflows-screen-after-drag.md) |
 
 ## Fixing
 
@@ -42,6 +41,7 @@ breakdown:
 
 | ID | 標題 | 嚴重度 | 修復時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-016 | Panel can extend below the screen right after dragging low | 🟢 Low | 2026-10-15T16:38:39+08:00 | [BUG-016-panel-overflows-screen-after-drag.md](BUG-016-panel-overflows-screen-after-drag.md) |
 
 ## Verify
 
