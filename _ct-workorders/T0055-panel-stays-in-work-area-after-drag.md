@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0055
 title: Keep panel inside work area right after dragging low
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-016
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:30:52+08:00"
+updated_at: "2026-10-15T16:38:16+08:00"
 started_at: "2026-10-15T16:30:52+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T16:38:16+08:00"
+commit: 5ec8935bd7cbb050237280ce54662c4102d51bfd
 agent: default
 intervention_type: fire-and-forget
 depends_on:
