@@ -13,6 +13,7 @@ import {
   DEFAULT_GLOBAL_SHORTCUT,
   DEFAULT_LANGUAGE,
   DEFAULT_MENUBAR_ICON_STYLE,
+  DEFAULT_MENUBAR_METRIC,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
   DEFAULT_START_ON_LOGIN,
   DEFAULT_THEME_MODE,
@@ -23,7 +24,9 @@ import {
   loadGlobalShortcut,
   loadLanguage,
   loadMenubarIconStyle,
+  loadMenubarMetric,
   migrateLegacyTraySettings,
+  migrateWindsurfToDevin,
   loadPluginSettings,
   loadResetTimerDisplayMode,
   loadStartOnLogin,
@@ -35,6 +38,7 @@ import {
   type DisplayMode,
   type GlobalShortcut,
   type MenubarIconStyle,
+  type MenubarMetric,
   type PluginSettings,
   type ResetTimerDisplayMode,
   type ThemeMode,
@@ -54,6 +58,7 @@ type UseSettingsBootstrapArgs = {
   setLanguage: (value: Locale) => void
   setStartOnLogin: (value: boolean) => void
   setMenubarIconStyle: (value: MenubarIconStyle) => void
+  setMenubarMetric: (value: MenubarMetric) => void
   setLoadingForPlugins: (ids: string[]) => void
   setErrorForPlugins: (ids: string[], error: string) => void
   startBatch: (pluginIds?: string[]) => Promise<string[] | undefined>
@@ -71,6 +76,7 @@ export function useSettingsBootstrap({
   setLanguage,
   setStartOnLogin,
   setMenubarIconStyle,
+  setMenubarMetric,
   setLoadingForPlugins,
   setErrorForPlugins,
   startBatch,
@@ -98,7 +104,8 @@ export function useSettingsBootstrap({
         setPluginsMeta(availablePlugins)
 
         const storedSettings = await loadPluginSettings()
-        const normalized = normalizePluginSettings(storedSettings, availablePlugins)
+        const migratedSettings = migrateWindsurfToDevin(storedSettings)
+        const normalized = normalizePluginSettings(migratedSettings, availablePlugins)
         if (!arePluginSettingsEqual(storedSettings, normalized)) {
           await savePluginSettings(normalized)
         }
@@ -177,6 +184,13 @@ export function useSettingsBootstrap({
           console.error("Failed to load menubar icon style:", error)
         }
 
+        let storedMenubarMetric = DEFAULT_MENUBAR_METRIC
+        try {
+          storedMenubarMetric = await loadMenubarMetric()
+        } catch (error) {
+          console.error("Failed to load menubar metric:", error)
+        }
+
         if (isMounted) {
           setPluginSettings(normalized)
           setAutoUpdateInterval(storedInterval)
@@ -188,6 +202,7 @@ export function useSettingsBootstrap({
           setLanguage(storedLanguage)
           setStartOnLogin(storedStartOnLogin)
           setMenubarIconStyle(storedMenubarIconStyle)
+          setMenubarMetric(storedMenubarMetric)
 
           const enabledIds = getEnabledPluginIds(normalized)
           setLoadingForPlugins(enabledIds)
@@ -219,6 +234,8 @@ export function useSettingsBootstrap({
     setLanguage,
     setLoadingForPlugins,
     setMenubarIconStyle,
+    setMenubarMetric,
+    migrateWindsurfToDevin,
     migrateLegacyTraySettings,
     setPluginSettings,
     setPluginsMeta,

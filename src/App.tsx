@@ -53,6 +53,8 @@ function App() {
     setDisplayMode,
     menubarIconStyle,
     setMenubarIconStyle,
+    menubarMetric,
+    setMenubarMetric,
     resetTimerDisplayMode,
     setResetTimerDisplayMode,
     setTimeFormatMode,
@@ -69,6 +71,8 @@ function App() {
       setDisplayMode: state.setDisplayMode,
       menubarIconStyle: state.menubarIconStyle,
       setMenubarIconStyle: state.setMenubarIconStyle,
+      menubarMetric: state.menubarMetric,
+      setMenubarMetric: state.setMenubarMetric,
       resetTimerDisplayMode: state.resetTimerDisplayMode,
       setResetTimerDisplayMode: state.setResetTimerDisplayMode,
       setTimeFormatMode: state.setTimeFormatMode,
@@ -104,6 +108,7 @@ function App() {
     pluginStates,
     displayMode,
     menubarIconStyle,
+    menubarMetric,
     activeView,
   })
 
@@ -120,6 +125,7 @@ function App() {
     setThemeMode,
     setDisplayMode,
     setMenubarIconStyle,
+    setMenubarMetric,
     setResetTimerDisplayMode,
     setTimeFormatMode,
     setGlobalShortcut,
@@ -139,6 +145,7 @@ function App() {
     handleResetTimerDisplayModeToggle,
     handleTimeFormatModeChange,
     handleMenubarIconStyleChange,
+    handleMenubarMetricChange,
   } = useSettingsDisplayActions({
     setThemeMode,
     setDisplayMode,
@@ -146,6 +153,7 @@ function App() {
     setResetTimerDisplayMode,
     setTimeFormatMode,
     setMenubarIconStyle,
+    setMenubarMetric,
     scheduleTrayIconUpdate,
   })
 
@@ -256,6 +264,7 @@ function App() {
         onResetTimerDisplayModeToggle: handleResetTimerDisplayModeToggle,
         onTimeFormatModeChange: handleTimeFormatModeChange,
         onMenubarIconStyleChange: handleMenubarIconStyleChange,
+        onMenubarMetricChange: handleMenubarMetricChange,
         traySettingsPreview,
         onGlobalShortcutChange: handleGlobalShortcutChange,
         onLanguageChange: handleLanguageChange,

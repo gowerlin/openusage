@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { UsageSparkline } from "@/components/usage-sparkline"
 import type { MetricLine } from "@/lib/plugin-types"
 import type { DisplayMode, ResetTimerDisplayMode, TimeFormatMode } from "@/lib/settings"
 import { calculateDeficit, calculatePaceStatus, type PaceStatus } from "@/lib/pace-status"
@@ -79,10 +80,12 @@ export function MetricLineRenderer({
   if (line.type === "text") {
     return (
       <div>
-        <div className="flex justify-between items-center h-[18px]">
-          <span className="text-xs text-muted-foreground flex-shrink-0">{label}</span>
+        <div className="flex justify-between items-center h-[18px] gap-2">
+          <span className="text-xs text-muted-foreground min-w-0 truncate" title={label}>
+            {label}
+          </span>
           <span
-            className="text-xs text-muted-foreground truncate min-w-0 max-w-[60%] text-right"
+            className="text-xs text-muted-foreground truncate flex-shrink-0 max-w-[45%] text-right"
             style={line.color ? { color: line.color } : undefined}
             title={line.value}
           >
@@ -118,6 +121,12 @@ export function MetricLineRenderer({
           <div className="text-xs text-muted-foreground text-right -mt-0.5">{line.subtitle}</div>
         )}
       </div>
+    )
+  }
+
+  if (line.type === "barChart") {
+    return (
+      <UsageSparkline label={label} points={line.points} note={line.note} color={line.color} />
     )
   }
 
