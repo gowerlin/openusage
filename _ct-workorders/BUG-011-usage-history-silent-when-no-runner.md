@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-011
 title: Usage history silently disappears when no ccusage runner is available
-status: OPEN
+status: FIXED
 severity: Low
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T13:41:38+08:00"
+updated_at: "2026-10-15T14:18:43+08:00"
 related_workorder: T0047
 affects_files:
   - plugins/claude/plugin.js
@@ -22,11 +22,11 @@ Host 回 `{"status":"no_runner"}` 時，claude / codex plugin 直接省略 Today
 
 ## 驗收條件
 
-- [ ] `no_runner` 時詳細頁顯示一行明確提示，en / zh-TW。
-- [ ] 有 runner 時行為不變。
-- [ ] 補測試。
+- [x] `no_runner` 時詳細頁顯示一行明確提示，en / zh-TW。
+- [x] 有 runner 時行為不變。
+- [x] 補測試。
 
 ## 回報區
 
 ### 修復狀態
-OPEN
+FIXED：T0047 `96fc3ad8`。`no_runner` 時顯示「用量歷史」提示行（claude / codex），有 runner 時不顯示；實機兩種情境 PASS。文案在 400px 面板被截斷 → T0048 附帶改短（D079）。
