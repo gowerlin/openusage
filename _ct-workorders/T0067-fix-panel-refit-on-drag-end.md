@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0067
 title: Refit panel only after the drag ends (WM_EXITSIZEMOVE) + redact trace log path
-status: IN_PROGRESS
+status: DONE
 priority: High
 type: bugfix
 bug_id: BUG-016, BUG-018
 plan_id: PLAN-006
 created_at: "2026-10-15T17:51:22+08:00"
-updated_at: "2026-10-15T17:52:35+08:00"
+updated_at: "2026-10-15T18:15:12+08:00"
 started_at: "2026-10-15T17:52:35+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T18:15:12+08:00"
+commit: 4331f8de
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -141,7 +141,7 @@ DONE — 寫於 2026-10-15T18:14:31+08:00。commit 見 frontmatter `commit`（�
 - 首頁基準高度 734 而非工單寫的 620：高度隨內容（目前資料）而定。判定改用「拖回後 H = 同位置拖曳前的 H」，6/6 相符。
 - 除 `panel:drag-ended` 外另加 `panel:drag-started`：前端靠它在拖曳中擋掉 ResizeObserver 觸發的 setSize（「拖曳中零 setSize」）。
 - 遮蔽用 `redact_log_message`（pub(crate)，內部呼叫 `redact_paths`），沒改 `host_api.rs` 可見性（不在 affects_files）。
-- `panel_hit_test.rs`（~1030 行）超過 ~400 LOC 準則，本單前已 903 行；未拆分（高風險區，不在範圍）。
+- `panel_hit_test.rs`（1015 行）超過 ~400 LOC 準則，本單前已 903 行；未拆分（高風險區，不在範圍）。
 - BUG-016 / BUG-018 單據狀態未改（不在 affects_files），交塔台。
 
 ### Follow-up
