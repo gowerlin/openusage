@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ChangelogDialog } from "./changelog-dialog";
+import { GITHUB_REPO } from "@/hooks/use-changelog";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/hooks/use-i18n";
 
@@ -116,18 +117,14 @@ export function AboutDialog({ version, onClose }: AboutDialogProps) {
           </p>
           <p>
             {t("about.openSourceOn")}{" "}
-            <ExternalLink href="https://github.com/robinebers/openusage">
+            <ExternalLink href={`https://github.com/${GITHUB_REPO}`}>
               GitHub
             </ExternalLink>
           </p>
           <p className="text-xs pt-1">
             {t("about.maintainers")}{" "}
-            <ExternalLink href="https://github.com/validatedev">
-              validatedev
-            </ExternalLink>
-            ,{" "}
-            <ExternalLink href="https://github.com/davidarny">
-              davidarny
+            <ExternalLink href="https://github.com/gowerlin">
+              gowerlin
             </ExternalLink>
           </p>
         </div>

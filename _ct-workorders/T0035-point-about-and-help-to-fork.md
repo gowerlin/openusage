@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0035
 title: Point about dialog credits and help link to fork
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: bugfix
 bug_id: BUG-005
 plan_id: null
 created_at: "2026-10-15T11:50:06+08:00"
-updated_at: "2026-10-15T11:50:06+08:00"
-started_at: null
+updated_at: "2026-10-15T11:51:17+08:00"
+started_at: "2026-10-15T11:51:17+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -83,4 +83,53 @@ Final gate：下次發行後使用者 App 內實測（使用者決定本次不�
 
 ## 回報區
 
-（Worker 填寫：狀態、commit SHA、改動檔案、驗證證據、截圖路徑、阻塞）
+### 結果：DONE
+
+- 開始：2026-10-15T11:51:17+08:00（Worker，`CT_MODE=yolo`）
+- Commit：見 frontmatter `commit`（message `fix: point about dialog and help link to fork (T0035)`），未 push。
+
+### Landing check：WARN
+
+- C-0：`repo` 欄位 absent → WARN（repo identity unavailable）；`basename(REPO_ROOT)` = `openusage`
+- C-1：PASS（工單在 `D:/ForgejoGit/@GitHub_Clone/openusage` 下）
+- C-3：PASS（5 個 `affects_files` 皆存在）
+- C-2：無 `branch` 欄位；HEAD = `main`
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅記錄）
+
+### 改動
+
+- `src/lib/i18n.ts`：`about.builtBy` en `"Built by"` → `"Originally by"`；zh-TW `"作者"` → `"原作者"`。key 不改；`about.maintainers` 不動。
+- `src/components/about-dialog.tsx`：import `GITHUB_REPO`；GitHub 連結改 `` `https://github.com/${GITHUB_REPO}` ``；維護者改單一 `gowerlin`（`https://github.com/gowerlin`），移除 validatedev / davidarny。原作者 Robin Ebers 與 `https://itsbyrob.in/x` 保留。
+- `src/components/side-nav.tsx`：import `GITHUB_REPO`；Help 改開 `` `https://github.com/${GITHUB_REPO}/issues` ``。
+- `src/components/about-dialog.test.tsx`：mock 改 `importOriginal`（保留真實 `GITHUB_REPO`）；斷言 "Originally by"、Robin Ebers、`gowerlin`，且無 validatedev / davidarny；點擊 GitHub → `https://github.com/gowerlin/openusage`、gowerlin → `https://github.com/gowerlin`、Robin Ebers → `https://itsbyrob.in/x`。
+- `src/components/side-nav.test.tsx`：Help 斷言改 `https://github.com/gowerlin/openusage/issues`。
+- `src/App.test.tsx`（不在 `affects_files`，見偏差）：about 開關測試的文字 `"Built by"` → `"Originally by"`。
+- `_ct-workorders/assets/T0035/*.png`：before / after 截圖。
+
+### 驗證
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| targeted tests | PASS | `about-dialog.test.tsx` + `side-nav.test.tsx`：2 files / 13 tests passed |
+| `bun run test --run` | PASS | 64 files / 1139 tests passed（修 `App.test.tsx` 前為 1 failed：`App > covers about open/close callbacks` 找不到 "Built by"） |
+| `bun run build` | PASS | exit 0；只有既有的 chunk > 500 kB 警告 |
+| grep `robinebers\|validatedev\|davidarny`（src *.ts/*.tsx） | PASS | 只剩 2 筆，皆為 `about-dialog.test.tsx:35-36` 的「不存在」斷言（`queryByRole(...).not.toBeInTheDocument()`）；非測試碼 0 筆 |
+| i18n 字典完整性 | PASS | 含在全套測試內；只改值未改 key |
+| `git diff --check` | PASS | 無 whitespace 警告（只有既有 LF→CRLF 提示） |
+| 視覺 before / after | PASS | browser dev（`bun run dev`，Vite :5199，非 Tauri，版本顯示 `v...` 屬正常）。在設定頁開 About 讓面板夠高、卡片置中後截圖 |
+| Final gate | 待驗 | 下次發版後使用者 App 內實測（本次不發版） |
+
+截圖路徑：
+
+- `_ct-workorders/assets/T0035/before-en.png`（Built by / validatedev, davidarny）
+- `_ct-workorders/assets/T0035/after-en.png`（Originally by / gowerlin）
+- `_ct-workorders/assets/T0035/before-zh-TW.png`（作者 / validatedev, davidarny）
+- `_ct-workorders/assets/T0035/after-zh-TW.png`（原作者 / gowerlin）
+
+before 截圖做法：暫時 `git stash` `about-dialog.tsx` + `i18n.ts`，HMR 後截圖，再 `stash pop`；pop 後與備份逐 byte 比對一致。
+
+### 偏差 / 阻塞
+
+- 無阻塞。
+- 偏差：改了 `src/App.test.tsx`（不在 `affects_files`）2 行文案斷言。原因：步驟 1 改 `about.builtBy` 文案直接讓這個既有測試失敗，全套 gate 要求 PASS；只改字串，沒動測試邏輯。
+- 排除項（changelog 檔案、`LICENSE`、`README.md`、`src-tauri/**`、plugin / provider URL）未動。未發版、未 tag、未 push。
