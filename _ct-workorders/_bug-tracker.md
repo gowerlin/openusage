@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T16:38:39+08:00"
+generated_at: "2026-10-15T17:20:06+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 13
+total: 14
 breakdown:
-  OPEN: 0
+  OPEN: 1
   FIXING: 0
   FIXED: 1
   VERIFY: 0
@@ -25,12 +25,13 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 0 | Fixing: 0 | Fixed: 1 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 13**
+- Open: 1 | Fixing: 0 | Fixed: 1 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 14**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-017 | Copilot cannot read the gh token on Windows | 🟡 Medium | 2026-10-15T17:20:06+08:00 | [BUG-017-copilot-windows-gh-token.md](BUG-017-copilot-windows-gh-token.md) |
 
 ## Fixing
 

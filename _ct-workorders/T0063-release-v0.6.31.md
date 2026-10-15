@@ -48,7 +48,7 @@ PLAN-006 最後一步。流程同 T0054。
 4. Commit `chore: bump version to 0.6.31`；`git push origin main`；`git tag -a v0.6.31 -m v0.6.31 <bump>`；`git push origin v0.6.31`。
 5. `gh run watch -R gowerlin/openusage <id>`；**確認無 Node 20 deprecated annotation**（T0056）；若 workflow 因 T0056 的 action 升級失敗 → 回報 BLOCKED，不自行改 workflow、不重推 tag。
 6. 驗證 release（`-R gowerlin/openusage`）：非 draft / 非 pre、3 assets、`latest.json` 0.6.31 指向 fork、Latest、fork tag 只多 v0.6.31。
-7. 發行重點說明（繁中，格式同 v0.6.30）：BUG-016、上游 v0.7.x 移植項（逐項，附上游來源）、README / CI。`gh release edit` + API 確認 body。
+7. 發行重點說明（繁中，格式同 v0.6.30；已知問題段列 BUG-017：Windows 上 Copilot 讀不到 gh token）：BUG-016、上游 v0.7.x 移植項（逐項，附上游來源）、README / CI。`gh release edit` + API 確認 body。
 
 ## 驗證 Gate
 
