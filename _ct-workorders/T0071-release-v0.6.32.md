@@ -37,11 +37,11 @@ PLAN-007 最後一步，流程同 T0063（含 push 前隱私掃描、只推單�
 
 ## 前置條件（不符即 BLOCKED）
 
-- T0069 `DONE`、T0070 `DONE`（smoke 全 PASS）；`git status` 乾淨；main 只 ahead；`v0.6.32` tag 不存在。
+- T0069、T0072 `DONE`、T0070 `DONE`（smoke 全 PASS）；`git status` 乾淨；main 只 ahead；`v0.6.32` tag 不存在。
 
 ## 任務指令
 
-同 T0063 步驟 1–6（版號 → 0.6.32）。發行重點說明（繁中）：本版重點 = 側邊欄新增「Token 戰情室」按鈕（背景啟動 [TokenUsageInsights](https://github.com/doggy8088/TokenUsageInsights) 並開啟看板，關閉 OpenUsage 時自動結束；需要 Node.js 18.18+ 或已安裝的 token-usage-insights）。已知問題沿用 BUG-017。
+同 T0063 步驟 1–6（版號 → 0.6.32）。發行重點說明（繁中）：本版重點 = 側邊欄新增「Token 戰情室」按鈕（背景啟動 [TokenUsageInsights](https://github.com/doggy8088/TokenUsageInsights) 並開啟看板，關閉 OpenUsage 時自動結束；需要 Node.js 18.18+ 或已安裝的 token-usage-insights）。另列 BUG-019（tray 右鍵不再開關面板）。已知問題沿用 BUG-017。
 
 ## 驗證 Gate
 

@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T18:15:37+08:00"
+generated_at: "2026-10-15T19:14:33+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 15
+total: 16
 breakdown:
-  OPEN: 1
+  OPEN: 2
   FIXING: 0
   FIXED: 2
   VERIFY: 0
@@ -25,12 +25,13 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 1 | Fixing: 0 | Fixed: 2 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 15**
+- Open: 2 | Fixing: 0 | Fixed: 2 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 16**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-019 | Tray right-click also toggles the panel and can hide the context menu | 🟢 Low | 2026-10-15T19:14:33+08:00 | [BUG-019-tray-right-click-toggles-panel.md](BUG-019-tray-right-click-toggles-panel.md) |
 | BUG-017 | Copilot cannot read the gh token on Windows | 🟡 Medium | 2026-10-15T17:20:06+08:00 | [BUG-017-copilot-windows-gh-token.md](BUG-017-copilot-windows-gh-token.md) |
 
 ## Fixing
