@@ -477,7 +477,20 @@ pub fn run() {
     let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     let _guard = runtime.enter();
 
-    let builder = tauri::Builder::default()
+    let builder = tauri::Builder::default();
+
+    // Must be registered first: a second launch exits here and shows the existing panel.
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        log::info!("Second instance launched; showing existing panel");
+        // macOS calls this off the main thread; NSPanel needs the main thread.
+        let handle = app.clone();
+        if let Err(error) = app.run_on_main_thread(move || panel::show_panel(&handle)) {
+            log::error!("Failed to show panel for second instance: {}", error);
+        }
+    }));
+
+    let builder = builder
         .plugin(tauri_plugin_aptabase::Builder::new("A-US-6435241436").build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build());
