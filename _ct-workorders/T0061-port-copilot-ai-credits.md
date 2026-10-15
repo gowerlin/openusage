@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0061
 title: Port v0.7.x: Copilot AI Credits, extra usage and org usage
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T17:06:22+08:00"
+updated_at: "2026-10-15T17:15:11+08:00"
 started_at: "2026-10-15T17:06:22+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T17:15:11+08:00"
+commit: fcf07389
 agent: default
 intervention_type: fire-and-forget
 depends_on:
