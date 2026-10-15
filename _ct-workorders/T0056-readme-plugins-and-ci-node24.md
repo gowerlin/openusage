@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0056
 title: README missing plugins and publish workflow Node 20 deprecation
-status: PENDING
+status: IN_PROGRESS
 priority: Low
 type: chore
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:29:08+08:00"
-started_at: null
+updated_at: "2026-10-15T16:38:50+08:00"
+started_at: "2026-10-15T16:38:50+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -56,4 +56,50 @@ affects_files:
 
 ## 回報區
 
-（Worker 填寫：狀態、commit、改動、上游引用、驗證證據、偏差）
+- 狀態：DONE
+- Commit：見 frontmatter `commit`（只含 `README.md`、`.github/workflows/publish.yml`、本工單）。不 push、不 tag、不發行。
+
+### 落點檢查
+
+- 結果：WARN
+- C-0：frontmatter `repo` = absent；`basename(REPO_ROOT)` = `openusage` → WARN「repo identity unavailable」，改用 C-3 + C-1。
+- C-1：工單在 `REPO_ROOT`（`D:/ForgejoGit/@GitHub_Clone/openusage`）下 → PASS。
+- C-3：`README.md`、`.github/workflows/publish.yml` 皆存在 → PASS。
+- C-2：無 `branch` 欄位，略過（實際 `main`）。
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅記錄）。
+
+### 改動
+
+1. `README.md`：在 OpenCode Go 後加 2 行（照字母序；既有 Devin 行位置不動）：
+   - Perplexity：`API credits, queries, Deep Research, Labs, Agentic Research (macOS app only; not supported on Windows)`。依據：`plugins/perplexity/plugin.js:6-7,395-396` 在 `ctx.app.platform === "windows"` 時 throw `WINDOWS_UNSUPPORTED`；token 來源只有 macOS `~/Library/...Cache.db`。
+   - Synthetic：`5h rate limit, mana bar, subscription, free tool calls, search`（對應 `plugin.json` lines）。`plugin.js` 無平台分支；key 來源為 `~/.pi/agent/*.json`、`~/.factory/settings.json`、`~/.local/share/opencode/auth.json`、`SYNTHETIC_API_KEY`，不標 Windows 限制。**未在 Windows 實機驗證 Synthetic 取值**（無 key）。
+2. `.github/workflows/publish.yml`：
+   - `actions/checkout@v4` → `@v7`（v4 `action.yml` = `node20`；v5/v6/v7 = `node24`）。本 workflow 只在 tag push 觸發、只用 `ref` 輸入，v6 憑證另存檔、v7 擋 fork PR（`pull_request_target`/`workflow_run`）皆不影響。
+   - `ilammy/msvc-dev-cmd@v1` → inline pwsh step「Set up MSVC developer environment」：`vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64` 找 VS，跑 `VsDevCmd.bat -arch=x64 -host_arch=x64`，把與原 env 不同的變數寫進 `GITHUB_ENV`（與 msvc-dev-cmd 做法相同）。原因：最新 v1.13.0（2024-01-01）及 `master` 的 `action.yml` 仍 `node20`；Node 24 升級 issue #99 / PR #94 仍 open。
+   - 其他 action 檢查（`action.yml` `runs.using`）：`oven-sh/setup-bun@v2` = `node24`、`swatinem/rust-cache@v2` = `node24`、`dtolnay/rust-toolchain@stable` = `composite`、`tauri-apps/tauri-action@v0.6.2` = `node24` → 皆無 Node 20 警告，不改（tauri-action 依規定不動）。
+   - 觸發條件、矩陣、signing、updater 設定未改。
+
+### 上游引用
+
+- https://github.com/actions/checkout/releases/tag/v5.0.0 （Update to node 24；runner ≥ v2.327.1）
+- https://github.com/actions/checkout/releases/tag/v6.0.0 （Persist creds to a separate file）
+- https://github.com/actions/checkout/releases/tag/v7.0.0 （block fork PR for pull_request_target / workflow_run；ESM）
+- https://github.com/actions/checkout/releases/tag/v7.0.1 （最新）
+- https://github.com/ilammy/msvc-dev-cmd/releases/tag/v1.13.0 （最新，node20）
+- https://github.com/ilammy/msvc-dev-cmd/issues/99 、https://github.com/ilammy/msvc-dev-cmd/pull/94 （Node 24，open）
+- https://github.com/oven-sh/setup-bun/releases/tag/v2.2.0 、https://github.com/Swatinem/rust-cache/releases/tag/v2.9.2 、https://github.com/tauri-apps/tauri-action/releases/tag/action-v0.6.2
+
+### 驗證證據
+
+| Lane | Gate | 結果 | 證據 |
+|---|---|---|---|
+| source | workflow YAML 語法 | PASS | `actionlint v1.7.7`（`go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck= -pyflakes=`）exit 0；`Bun.YAML.parse` 步驟順序正確，`on` = `{"push":{"tags":["v*"]}}` |
+| source | MSVC step 本機模擬 | PASS | 抽出 step 腳本以假 `GITHUB_ENV` 執行：exit 0，找到 `C:\Program Files\Microsoft Visual Studio\18\Enterprise`，匯出 47 個變數，含 `INCLUDE`、`LIB`、`LIBPATH`、`PATH`、`VCToolsInstallDir`、`VSCMD_ARG_TGT_ARCH=x64`。有一行 VsDevCmd 內部雜訊 `'vswhere.exe' is not recognized`（本機 cmd PATH 無 Installer 目錄），不影響結果 |
+| build | `bun run build` | 略過 | 工單允許（README 無影響）；workflow 改動不影響前端 build |
+| CI | Publish run 無 Node 20 annotation | 未驗 | 交 T0063 |
+
+### 偏差 / 風險
+
+- 未用 `gh workflow view -R gowerlin/openusage publish.yml`：本地改動未 push，遠端內容是舊版，看不出差異；改用 actionlint。
+- 殘餘風險：inline MSVC step 尚未在 GitHub `windows-latest` 實跑；若失敗會 fail loud（`throw` 或 cmd exit code），T0063 發行時確認。退路：改回 `ilammy/msvc-dev-cmd@v1`（只多一則 Node 20 annotation）。
+- 編輯時 Python 把 `\v` 轉成控制字元，已修正並確認檔內無 `\x0b`。
