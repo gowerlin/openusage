@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0033
 title: Bump version and publish GitHub release v0.6.26
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: release
 bug_id: BUG-004
 plan_id: null
 created_at: "2026-10-15T10:55:01+08:00"
-updated_at: "2026-10-15T10:57:24+08:00"
+updated_at: "2026-10-15T11:32:54+08:00"
 started_at: "2026-10-15T10:57:24+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T11:32:54+08:00"
+commit: "30904bd"
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -102,10 +102,44 @@ affects_files:
 ### 驗證
 
 - PASS：`cargo fmt --check`
-- PASS：`cargo test --lib`：110 passed, 0 failed（VsDevCmd x64 + `LIBCLANG_PATH=...\VC\Tools\Llvmdin`；未設時 `rquickjs-sys` build 報 `Unable to find libclang`）
+- PASS：`cargo test --lib`：110 passed, 0 failed（VsDevCmd x64 + `LIBCLANG_PATH=...\VC\Tools\Llvm\x64\bin`；未設時 `rquickjs-sys` build 報 `Unable to find libclang`）
 - PASS：`bun run build`（僅 chunk > 500 kB 既有警告）
 
 ### Release
 
-（待 push / tag / Publish 後補）
+- 狀態：DONE
+- bump commit：`30904bd`（`chore: bump version to 0.6.26`），已 `git push origin main`（`6b93eda..30904bd`；push 時同時帶上 `2717631` / `e33e63e` / `45f20fe`）
+- tag：`v0.6.26` annotated（沿用 `v0.6.25` 慣例，message `v0.6.26`），tag object `20ab963` → `30904bd`，已 push
+- Publish run：`38675818087` → success（2026-10-15T03:31:49Z）
+- Release：https://github.com/gowerlin/openusage/releases/tag/v0.6.26 （draft=false、prerelease=false、published 2026-10-15T03:30:50Z）
+- Assets：
+  - `OpenUsage_0.6.26_x64-setup.exe`（5267769 bytes）
+  - `OpenUsage_0.6.26_x64-setup.exe.sig`（420 bytes）
+  - `latest.json`（1276 bytes）
+- `latest.json`：`version` = `0.6.26`；`windows-x86_64` / `windows-x86_64-nsis` URL = `https://github.com/gowerlin/openusage/releases/download/v0.6.26/OpenUsage_0.6.26_x64-setup.exe`
+- Release body：`gh release edit v0.6.26 -R gowerlin/openusage --notes-file ...` 寫入，`gh release view` 確認內容一致
+
+### 發行說明全文
+
+````markdown
+本版重點：OpenUsage 不再允許同時執行多個執行個體；再次啟動會直接叫出既有面板（BUG-004 / T0032）。
+
+### Bug Fixes
+- 只允許一個 OpenUsage 執行個體：已在執行時再次啟動不會開出第二個，而是直接叫出既有面板（BUG-004 / T0032，[2717631](https://github.com/gowerlin/openusage/commit/27176312a4fd82564e87f269c134aa23b3675c81)）
+
+### Chores
+- 版本號更新為 0.6.26（T0033，[30904bd](https://github.com/gowerlin/openusage/commit/30904bd4ef3390c990d6fda719203e5b099597c6)）
+
+**Full Changelog**: [v0.6.25...v0.6.26](https://github.com/gowerlin/openusage/compare/v0.6.25...v0.6.26)
+````
+
+範圍：`git log v0.6.25..v0.6.26` 共 5 commit；排除 `6b93eda`（timestamp / AGENTS.md 同步）、`e33e63e`、`45f20fe`（塔台狀態）。
+
+### 偏差 / 注意事項
+
+- 本機 `gh` 預設 repo 是上游 `robinebers/openusage`（remote `upstream`）。不加 `-R` 時 `gh run list` / `gh release view` 會查到上游資料（上游也有自己的 `v0.6.26` 等 release）。本單所有 release 操作都已加 `-R gowerlin/openusage`。建議塔台後續 release 工單明寫 `-R gowerlin/openusage`，或執行 `gh repo set-default gowerlin/openusage`。
+- 工單說區段標題「沿用 `v0.6.25` 格式」，但 fork 的 `v0.6.25` release body 是空的，該格式來自上游的 `v0.6.25`。本單照工單明列的標題寫。
+- `cargo test --lib` 需要 VsDevCmd x64 + `LIBCLANG_PATH`。從 Git Bash 用 `cmd //c` 呼叫時，cmd 會開成互動模式空等（約 20 分鐘無進度），改由 PowerShell `cmd.exe /c` 執行才正常。
+- 結案 commit 只含本工單；`_ct-workorders/_tower-state.md` 維持未 commit（塔台私有）。
+- 未 force-push，也未移動或刪除任何 tag / release。
 
