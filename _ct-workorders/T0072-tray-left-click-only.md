@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0072
 title: Toggle panel only on tray left-click
-status: IN_PROGRESS
+status: PARTIAL
 priority: Medium
 type: bugfix
 bug_id: BUG-019
 plan_id: PLAN-007
 created_at: "2026-10-15T19:14:33+08:00"
-updated_at: "2026-10-15T19:16:10+08:00"
+updated_at: "2026-10-15T19:22:04+08:00"
 started_at: "2026-10-15T19:16:10+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T19:22:04+08:00"
+commit: dcf6585f
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -101,7 +101,7 @@ macOS：左鍵 Up 仍 toggle、`show_menu_on_left_click(false)` 讓右鍵出選�
 
 ### 互動紀錄
 
-- 19:18 Q：實機需停使用者 OpenUsage 並點 tray，怎麼進行？A：「我用腳本控滑鼠 (Recommended)」。
+- （時間未取系統時間，略）Q：實機需停使用者 OpenUsage 並點 tray，怎麼進行？A：「我用腳本控滑鼠 (Recommended)」。
 
 ### 偏離
 
