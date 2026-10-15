@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0046
 title: ccusage Windows process tree kill, skip yarn classic, remove dead code
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-010
 plan_id: PLAN-004
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T13:48:39+08:00"
+updated_at: "2026-10-15T14:06:42+08:00"
 started_at: "2026-10-15T13:48:39+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T14:06:42+08:00"
+commit: 61698e68
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -133,4 +133,4 @@ DONE。所有 gate PASS。
 
 ### Commit
 
-見 frontmatter `commit`。
+`61698e68` fix(windows): ccusage process tree kill and runner cleanup (T0046)。未 push。
