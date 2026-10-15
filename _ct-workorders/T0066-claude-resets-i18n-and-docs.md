@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0066
 title: Translate Claude reset grants value and update Claude / Copilot / Grok docs
-status: IN_PROGRESS
+status: DONE
 priority: Low
 type: chore
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T17:01:31+08:00"
-updated_at: "2026-10-15T17:21:28+08:00"
+updated_at: "2026-10-15T17:26:20+08:00"
 started_at: "2026-10-15T17:21:28+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T17:26:20+08:00"
+commit: d50245c3
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -64,7 +64,7 @@ T0059（`7da18a17`）新增 Claude「速率限制重置」列，value 為動態�
 ### 結果
 
 - 狀態：DONE
-- Commit：見 frontmatter `commit`（`fix(i18n): translate reset grants value, document Claude resets and Fable (T0066)`），未 push / tag / 發行
+- Commit：`d50245c3`（`fix(i18n): translate reset grants value, document Claude resets and Fable (T0066)`），未 push / tag / 發行
 
 ### Landing Zone
 
