@@ -9,6 +9,9 @@
   const TOKEN_AUTH_HEADER = "xai-grok-cli"
   const AUTH_REFRESH_BUFFER_MS = 5 * 60 * 1000
   const LOGIN_HINT = "Grok auth expired. Run `grok login` again."
+  const CONNECTION_ERROR = "Grok billing request failed. Check your connection."
+  const CHANGED_ERROR = "Grok billing response changed."
+  const TEAM_ERROR = "Grok team accounts have no personal quota."
 
   function readJson(ctx, path) {
     if (!ctx.host.fs.exists(path)) return null
@@ -193,94 +196,140 @@
     return n
   }
 
-  function fetchBillingResponse(ctx, token) {
-    try {
-      return ctx.util.request({
-        method: "GET",
-        url: BILLING_URL,
-        headers: {
-          Authorization: "Bearer " + token,
-          "X-XAI-Token-Auth": TOKEN_AUTH_HEADER,
-          Accept: "application/json",
-          "User-Agent": "OpenUsage",
-        },
-        timeoutMs: 10000,
-      })
-    } catch {
-      throw "Grok billing request failed. Check your connection."
-    }
+  function httpError(status) {
+    return "Grok billing request failed (HTTP " + String(status) + "). Try again later."
   }
 
-  function parseBilling(ctx, resp) {
-    if (ctx.util.isAuthStatus(resp.status)) {
-      throw LOGIN_HINT
-    }
-    if (resp.status < 200 || resp.status >= 300) {
-      throw "Grok billing request failed (HTTP " + String(resp.status) + "). Try again later."
-    }
-
-    const data = ctx.util.tryParseJson(resp.bodyText)
-    if (!data) {
-      throw "Grok billing response changed."
-    }
-    return data
+  function requestBilling(ctx, url, token) {
+    return ctx.util.request({
+      method: "GET",
+      url,
+      headers: {
+        Authorization: "Bearer " + token,
+        "X-XAI-Token-Auth": TOKEN_AUTH_HEADER,
+        Accept: "application/json",
+        "User-Agent": "OpenUsage",
+      },
+      timeoutMs: 10000,
+    })
   }
 
-  // Weekly shared pool (unified billing). Same call the Grok CLI makes. proto-JSON drops
-  // zero values, so a missing creditUsagePercent means 0. Accounts not on a weekly period
-  // have no pool -> no line. Failures only drop this line; the monthly meter still renders.
-  function fetchWeeklyLine(ctx, token) {
-    let resp
+  // Primary call (same one the Grok CLI makes). Refreshes once on 401/403.
+  // Returns null on network failure so the legacy call can still answer.
+  function fetchCreditsResponse(ctx, auth) {
     try {
-      resp = ctx.util.request({
-        method: "GET",
-        url: CREDITS_URL,
-        headers: {
-          Authorization: "Bearer " + token,
-          "X-XAI-Token-Auth": TOKEN_AUTH_HEADER,
-          Accept: "application/json",
-          "User-Agent": "OpenUsage",
+      return ctx.util.retryOnceOnAuth({
+        request: (token) => requestBilling(ctx, CREDITS_URL, token || auth.token),
+        refresh: () => {
+          const refreshed = refreshAuth(ctx, auth.auth, auth.entryKey, auth.entry)
+          if (refreshed) auth.token = refreshed
+          return refreshed
         },
-        timeoutMs: 10000,
       })
     } catch (e) {
+      if (typeof e === "string") throw e
       ctx.host.log.warn("Grok credits request failed: " + String(e))
       return null
     }
-    if (resp.status < 200 || resp.status >= 300) {
-      ctx.host.log.warn("Grok credits request returned status: " + resp.status)
+  }
+
+  function fetchLegacyResponse(ctx, token) {
+    try {
+      return requestBilling(ctx, BILLING_URL, token)
+    } catch (e) {
+      ctx.host.log.warn("Grok legacy billing request failed: " + String(e))
       return null
     }
+  }
+
+  function payAsYouGoBadge(ctx, capUnits) {
+    return ctx.line.badge({
+      label: "Pay as you go",
+      text: capUnits > 0 ? String(capUnits) + " cap" : "Disabled",
+      color: capUnits > 0 ? "#22c55e" : "#a3a3a3",
+    })
+  }
+
+  // Team principals get 412 {"error":"No personal team"}: no personal quota on this surface.
+  function isTeamBillingUnavailable(ctx, resp) {
+    if (resp.status !== 412) return false
+    const body = ctx.util.tryParseJson(resp.bodyText)
+    const error = body && body.error
+    return typeof error === "string" && error.toLowerCase().indexOf("no personal team") !== -1
+  }
+
+  // Credits config (unified billing): Weekly pool + pay-as-you-go cap.
+  // proto-JSON drops zero values, so a missing creditUsagePercent / onDemandCap means 0.
+  // A non-weekly period (account not migrated) has no pool -> no Weekly line.
+  // Returns { weekly, badge } or { error }.
+  function readCredits(ctx, resp) {
+    if (!resp) return { error: CONNECTION_ERROR }
+    if (isTeamBillingUnavailable(ctx, resp)) return { error: TEAM_ERROR }
+    if (resp.status < 200 || resp.status >= 300) return { error: httpError(resp.status) }
 
     const data = ctx.util.tryParseJson(resp.bodyText)
     const config = data && data.config
     const period = config && config.currentPeriod
-    if (!period || typeof period !== "object") {
-      ctx.host.log.warn("Grok credits response changed: missing currentPeriod")
-      return null
-    }
-    if (period.type !== WEEKLY_PERIOD_TYPE) {
-      ctx.host.log.info("Grok credits period is not weekly: " + String(period.type))
-      return null
+    if (!period || typeof period !== "object" || typeof period.type !== "string") {
+      return { error: CHANGED_ERROR }
     }
 
     // toIso trims microsecond timestamps (".238389+00:00") so Date.parse accepts them.
     const startMs = ctx.util.parseDateMs(ctx.util.toIso(period.start))
     const endMs = ctx.util.parseDateMs(ctx.util.toIso(period.end))
     const percent = config.creditUsagePercent === undefined ? 0 : Number(config.creditUsagePercent)
-    if (startMs === null || endMs === null || endMs <= startMs || !Number.isFinite(percent)) {
-      ctx.host.log.warn("Grok credits response changed: invalid weekly period or percent")
-      return null
+    const cap = config.onDemandCap
+    const capUnits = cap === undefined || (cap && typeof cap === "object" && cap.val === undefined)
+      ? 0
+      : unitsValue(cap)
+    if (startMs === null || endMs === null || endMs <= startMs || !Number.isFinite(percent) || capUnits === null) {
+      return { error: CHANGED_ERROR }
     }
 
-    return ctx.line.progress({
-      label: "Weekly",
-      used: clampPercent(percent),
-      limit: 100,
-      format: { kind: "percent" },
-      resetsAt: new Date(endMs).toISOString(),
-      periodDurationMs: endMs - startMs,
-    })
+    let weekly = null
+    if (period.type === WEEKLY_PERIOD_TYPE) {
+      weekly = ctx.line.progress({
+        label: "Weekly",
+        used: clampPercent(percent),
+        limit: 100,
+        format: { kind: "percent" },
+        resetsAt: new Date(endMs).toISOString(),
+        periodDurationMs: endMs - startMs,
+      })
+    } else {
+      ctx.host.log.info("Grok credits period is not weekly: " + period.type)
+    }
+    return { weekly, badge: payAsYouGoBadge(ctx, capUnits) }
+  }
+
+  // Legacy monthly meter. Optional: unified-billing accounts may no longer return monthlyLimit.
+  // Returns { creditsUsed, badge } or { error }.
+  function readLegacyBilling(ctx, resp) {
+    if (!resp) return { error: CONNECTION_ERROR }
+    if (resp.status < 200 || resp.status >= 300) return { error: httpError(resp.status) }
+
+    const data = ctx.util.tryParseJson(resp.bodyText)
+    const config = data && data.config
+    if (!config || typeof config !== "object") return { error: CHANGED_ERROR }
+
+    const usedUnits = unitsValue(config.used)
+    const limitUnits = unitsValue(config.monthlyLimit)
+    const resetsAt = ctx.util.toIso(config.billingPeriodEnd)
+    if (usedUnits === null || limitUnits === null || limitUnits <= 0 || !resetsAt) {
+      return { error: "no monthlyLimit meter" }
+    }
+
+    const capUnits = unitsValue(config.onDemandCap)
+    return {
+      creditsUsed: ctx.line.progress({
+        label: "Credits used",
+        used: clampPercent((usedUnits / limitUnits) * 100),
+        limit: 100,
+        format: { kind: "percent" },
+        resetsAt,
+      }),
+      badge: payAsYouGoBadge(ctx, capUnits === null ? 0 : capUnits),
+    }
   }
 
   function fetchPlanName(ctx, token) {
@@ -307,50 +356,27 @@
 
   function probe(ctx) {
     const auth = loadAuth(ctx)
-    const billingResp = ctx.util.retryOnceOnAuth({
-      request: (token) => fetchBillingResponse(ctx, token || auth.token),
-      refresh: () => {
-        const refreshed = refreshAuth(ctx, auth.auth, auth.entryKey, auth.entry)
-        if (refreshed) auth.token = refreshed
-        return refreshed
-      },
-    })
-    const data = parseBilling(ctx, billingResp)
-    const config = data && data.config
-    if (!config || typeof config !== "object") {
-      throw "Grok billing response changed."
+    const creditsResp = fetchCreditsResponse(ctx, auth)
+    if (creditsResp && ctx.util.isAuthStatus(creditsResp.status)) {
+      throw LOGIN_HINT
     }
 
-    const usedUnits = unitsValue(config.used)
-    const limitUnits = unitsValue(config.monthlyLimit)
-    const onDemandCapUnits = unitsValue(config.onDemandCap)
-    if (usedUnits === null || limitUnits === null || limitUnits <= 0 || onDemandCapUnits === null) {
-      throw "Grok billing response changed."
+    const credits = readCredits(ctx, creditsResp)
+    const legacy = readLegacyBilling(ctx, fetchLegacyResponse(ctx, auth.token))
+    if (credits.error && legacy.error) {
+      ctx.host.log.error("Grok billing failed: credits=" + credits.error + " legacy=" + legacy.error)
+      throw credits.error
+    }
+    if (credits.error) {
+      ctx.host.log.warn("Grok credits unavailable, using legacy billing: " + credits.error)
+    } else if (legacy.error) {
+      ctx.host.log.info("Grok legacy billing skipped: " + legacy.error)
     }
 
-    const resetsAt = ctx.util.toIso(config.billingPeriodEnd)
-    if (!resetsAt) {
-      throw "Grok billing response changed."
-    }
-
-    const usedPercent = clampPercent((usedUnits / limitUnits) * 100)
     const lines = []
-    const weeklyLine = fetchWeeklyLine(ctx, auth.token)
-    if (weeklyLine) lines.push(weeklyLine)
-    lines.push(
-      ctx.line.progress({
-        label: "Credits used",
-        used: usedPercent,
-        limit: 100,
-        format: { kind: "percent" },
-        resetsAt,
-      }),
-      ctx.line.badge({
-        label: "Pay as you go",
-        text: onDemandCapUnits > 0 ? String(onDemandCapUnits) + " cap" : "Disabled",
-        color: onDemandCapUnits > 0 ? "#22c55e" : "#a3a3a3",
-      }),
-    )
+    if (credits.weekly) lines.push(credits.weekly)
+    if (legacy.creditsUsed) lines.push(legacy.creditsUsed)
+    lines.push(credits.error ? legacy.badge : credits.badge)
 
     return { plan: fetchPlanName(ctx, auth.token), lines }
   }

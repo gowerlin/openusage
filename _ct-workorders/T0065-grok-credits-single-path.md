@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0065
 title: Grok - follow upstream credits single path and show Weekly on overview
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:52:40+08:00"
-updated_at: "2026-10-15T16:52:40+08:00"
-started_at: null
+updated_at: "2026-10-15T17:16:02+08:00"
+started_at: "2026-10-15T17:16:02+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -60,4 +60,66 @@ T0058（`81c37218`）只加了 Weekly，保留 legacy `/v1/billing` monthly 路�
 
 ## 回報區
 
-（Worker 填寫：狀態、commit、改動、上游引用、驗證證據、偏差）
+### 狀態
+
+DONE（source / tests / bundle / build 全 PASS；Runtime 未實機 — 本機無 `~/.grok/auth.json`）
+
+### Landing Zone
+
+- C-0：WARN — frontmatter 無 `repo` 欄位（repo identity unavailable）；observed `basename(REPO_ROOT)` = `openusage`
+- C-1：PASS — 工單在 `D:/ForgejoGit/@GitHub_Clone/openusage/_ct-workorders/` 下
+- C-3：PASS — `affects_files` 3/3 存在
+- C-2：N/A（無 `branch` 欄位；HEAD = `main`）
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅記錄）；`CT_MODE=yolo`
+
+### Commit
+
+feature commit：`feat(grok): credits-first path and weekly overview line (T0065)`（hash 見 frontmatter `commit`）
+
+### 上游引用
+
+- `5fcb4312`：credits 單一請求 `GET /v1/billing?format=credits`，移除 legacy monthly meter；Pay as you go 改取 credits 的 `onDemandCap`
+- `37f9a219`：credits 412 + JSON `error` 含 "no personal team" = team principal（非登入失敗）
+- `upstream/main:Sources/OpenUsage/Providers/Grok/{GrokCreditsConfigDecoder,GrokUsageMapper,GrokProvider,GrokUsageClient}.swift`、`docs/providers/grok.md`、`Tests/OpenUsageTests/GrokCreditsConfigFixtures.swift`
+- credits 欄位：`creditUsagePercent`（proto-JSON 0 時省略 → 0）、`currentPeriod{type,start,end}`、`onDemandCap{val}`（省略 → 0 / Disabled）；另有 `onDemandUsed`、`prepaidBalance`、`isUnifiedBillingUser`、`billingPeriodStart/End`、`topUpMethod`（上游不 map，本單也不 map）
+- 上游 decoder：present 但非數值的 percent / cap、period 不前進 → invalidResponse（本單照做，視為 credits 失敗）
+
+### 改動
+
+- `plugins/grok/plugin.js`
+  - credits 為主：`fetchCreditsResponse` 走 `retryOnceOnAuth`（401/403 refresh 一次）；仍 401/403 → `Grok auth expired. Run \`grok login\` again.`
+  - `readCredits`：weekly period → `Weekly` progress（`resetsAt` = period end、`periodDurationMs`）；非 weekly → 無 Weekly（log.info）；`Pay as you go` badge 取 credits `onDemandCap`
+  - `readLegacyBilling`：選用；有 `monthlyLimit`(+`used`、`billingPeriodEnd`) 才出 `Credits used`；缺欄位回 `{ error }` 不 throw，credits 成功時 `log.info("Grok legacy billing skipped: no monthlyLimit meter")`
+  - credits 失敗、legacy 成功 → `Credits used` + legacy `onDemandCap` badge（log.warn）
+  - 兩者皆失敗 → `log.error` 兩邊原因 + throw credits 錯誤：`Grok billing request failed (HTTP N). Try again later.` / `Grok billing request failed. Check your connection.` / `Grok billing response changed.` / team 412 → `Grok team accounts have no personal quota.`
+  - 行序：Weekly → Credits used → Pay as you go
+- `plugins/grok/plugin.json`：加 `{ "type": "progress", "label": "Weekly", "scope": "overview", "period": "weekly", "primaryOrder": 1 }`；`Credits used` 改 `primaryOrder: 2`（tray 在無 Weekly 時 fallback 到 Credits used — `src/lib/tray-primary-progress.ts` 取第一個存在的 candidate；`period: weekly` 讓 weekly mode 選到 Weekly）
+- `plugins/grok/plugin.test.js`：依 credits-first 重寫，30 tests；用上游 captured fixture
+
+### 驗證證據
+
+| Lane | Gate | 結果 |
+|---|---|---|
+| tests | `bun run test --run plugins/grok` | PASS — 1 file / 30 tests |
+| tests（回歸） | 新測試對 HEAD 舊 `plugin.js` | 11 FAIL（含 "unified billing (no monthlyLimit) + credits OK: no throw, Weekly shown"）→ 證明測試抓得到原 bug；跑完已還原新檔 |
+| tests | `bun run test --run` | PASS — 70 files / 1250 tests |
+| bundle | `bun run bundle:plugins` | PASS — Bundled 18 plugins（含 grok）；無 tracked 檔變動 |
+| build | `bun run build`（`tsc && vite build`） | PASS（只有既有 >500 kB chunk 警告） |
+| runtime | 實機 | 未實機 — 無 Grok 憑證 |
+
+必要情境測試：unified billing（無 `monthlyLimit`）+ credits OK → 不 throw、有 Weekly ✅；legacy 兩者皆有 → Weekly + Credits used ✅；兩者皆失敗 → 明確錯誤 ✅（HTTP / 連線 / 格式 / team 四種）
+
+### Redaction 稽核
+
+無新欄位需加：endpoint（credits 自 T0058 已用、billing、settings、refresh）與 request header 皆未變；新讀回應欄位只有 `creditUsagePercent` / `currentPeriod` / `onDemandCap`（非敏感）；log 只含錯誤字串、`period.type`、HTTP status，不含 body / token。`host_api.rs` 清單不需改。
+
+### 偏差
+
+- team 412：工單未明列；依 `37f9a219` 處理為 credits 失敗 → 有 legacy meter 則 fallback，否則 throw `Grok team accounts have no personal quota.`（plugin 無 local spend tiles，無法照上游保留 snapshot + warning）
+- credits 內 present 但非數值的 percent / cap 或倒退 period：T0058 原本只省略 Weekly；改照上游 decoder 視為 credits 失敗（仍可 fallback legacy）
+- 未停使用者 OpenUsage、未動 registry / installer / 已安裝 exe；無滑鼠控制、無截圖
+
+### Follow-up（塔台）
+
+- `README.md:37` Grok 仍寫 "credits used, plan, pay-as-you-go cap"，fork `docs/providers/grok.md` 未提 Weekly — 不在本單 `affects_files`，建議併入 T0066 docs
+- 有 Grok 憑證時補實機 smoke（`:6736` API 看 Weekly / Credits used 行）
