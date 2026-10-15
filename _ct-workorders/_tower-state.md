@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 13:29 (UTC+8)
+> 最後更新：2026-10-15 13:41 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 已 YOLO 派發。前一張 DONE 才派下一張，非 DONE 停下問使用者。
+5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0044 re-smoke → T0041 發行；T0045 已 YOLO 派發。前一張 DONE 才派下一張，非 DONE 停下問使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -109,10 +109,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0044 |
-| BUG | BUG-008 |
+| 工單 | T0048 |
+| BUG | BUG-011 |
 | PLAN | PLAN-004 |
-| 決策 | D075 |
+| 決策 | D076 |
 
 ---
 
@@ -145,8 +145,12 @@
 | Devin Windows behavior | PLAN-004 / T0039 | ✅ DONE | 無 | 本機 main，未 push |
 | Windows smoke + NSIS 0.6.29 | PLAN-004 / T0040 | ⚠️ PARTIAL | Usage Trend FAIL（BUG-006） | 由 T0042–T0044 解決 |
 | ccusage runner Windows | BUG-006 / T0042 | ✅ DONE | 無 | BUG-006 FIXED |
-| Panel taskbar + blur hide | BUG-007/008 / T0043 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 📋 PENDING | depends_on T0042/T0043 | 自動串接 |
+| Panel taskbar + blur hide | BUG-007/008 / T0043 | ✅ DONE | 無 | BUG-007/008 FIXED |
+| Windows path redaction | BUG-009 / T0045 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| ccusage Windows robustness | BUG-010 / T0046 | 📋 PENDING | depends_on T0045 | 自動串接 |
+| no_runner hint + tooltip + devin docs | BUG-011 / T0047 | 📋 PENDING | depends_on T0046 | 自動串接 |
+| Split panel_blur.rs | T0048 | 📋 PENDING | depends_on T0047 | 自動串接 |
+| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 📋 PENDING | depends_on T0048 | 自動串接 |
 | Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0044 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
@@ -230,6 +234,7 @@
 - D073：接受 T0039 DONE（`21899655`）。方案 A：依官方 Devin docs，Windows 讀 `%APPDATA%/devin/credentials.toml`、跳過 sqlite，無憑證時顯示明確提示；redaction 稽核補 1 測試。未 runtime 驗證（本機無 Devin 憑證）。後續候選（不阻塞 PLAN-004）：`host_api.rs` 路徑 redaction 只遮 Unix `/Users/...`，Windows `C:/Users/...` 形式未遮（隱私，建議 v0.6.29 後開 BUG）；`docs/providers/devin.md` 補 Windows 路徑。依 D071 派發 T0040。
 - D074：T0040 PARTIAL：NSIS PASS、smoke 16/17 PASS；Usage Trend 在 Windows 不渲染（`ccusage_runner_candidates` 只列 Unix 名稱，v0.6.27 起既有）。依串接規則停下詢問；使用者決定先修再發，並一併修 T0040 觀察到的面板工作列按鈕與失焦不收起。建立 BUG-006/T0042、BUG-007+008/T0043、T0044 re-smoke，T0041 改 depends_on T0044。T0040 Worker 曾暫改 HKCU WebView2 policy 並停止 / 重啟使用者 0.6.27（皆已還原，遺留空的 `HKCU:/Software/Policies/Microsoft/Edge` key）；後續工單明令禁止改 registry。
 - D075：接受 T0042 DONE（`1a439dcc`）；BUG-006 FIXED。Windows 實機 Usage Trend 顯示、bun.exe 與 .cmd 路徑皆無 console。接受偏差：同檔 1 行 rustfmt 漂移修正。後續候選：(1) Windows timeout 時只殺 `cmd.exe`，`.cmd` 底下 node 孫程序不會被殺（需 Job Object / `taskkill /T`）；(2) `no_runner` 時 plugin 靜默省略 token 行（違反 fail loud 精神，低）；(3) yarn classic `yarn.cmd` 被判可用但 dlx 必失敗（既有，低）。依 D074 派發 T0043。
+- D076：接受 T0043 DONE（`05973976`）；BUG-007/008 FIXED。接受偏差：Worker 暫時覆蓋已安裝 exe 測 tray（已還原，hash 一致），後續工單禁止。使用者要求「記下來的小問題也排單再出 0.6.29」：建立 BUG-009/T0045（Windows 路徑 redaction）、BUG-010/T0046（ccusage 孫程序 / yarn classic / dead code）、BUG-011/T0047（no_runner 提示 + tray tooltip 語言 + devin docs）、T0048（panel_blur.rs 拆檔）；T0044 / T0041 改 depends_on 這四張。不排單：前景鎖導致不自動收起（未重現，記為已知限制）、設定頁高度被工作列遮住（T0040 觀察，使用者未列入）。
 
 ---
 
@@ -242,7 +247,7 @@
 - BUG-004：CLOSED；使用者安裝 `v0.6.26` 實測通過。
 - BUG-005：CLOSED；使用者 `v0.6.27` 實測通過。about-dialog / side-nav 由 T0035 處理。
 - 無 Windows release 阻塞待辦。
-- 後續候選（D073）：host_api Windows 路徑 redaction 缺口（BUG 候選）；`docs/providers/devin.md` Windows 路徑；tray tooltip 語言切換延遲（D072，低）；ccusage Windows timeout 孫程序殘留、`no_runner` 靜默隱藏（D075）。
+- 後續小問題已排單（D076）：T0045–T0048。
 - PLAN / BUG 追蹤已啟用；EXP 追蹤尚未啟用。
 
 ---

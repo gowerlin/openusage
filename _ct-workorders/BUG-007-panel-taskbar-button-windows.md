@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-007
 title: Panel window shows a taskbar button on Windows
-status: OPEN
+status: FIXED
 severity: Low
 created_at: "2026-10-15T13:18:05+08:00"
-updated_at: "2026-10-15T13:18:05+08:00"
+updated_at: "2026-10-15T13:41:38+08:00"
 related_workorder: T0043
 affects_files:
   - src-tauri/tauri.conf.json
@@ -30,4 +30,4 @@ T0040 觀察：Windows 面板視窗 exstyle `0x00040010`（含 `WS_EX_APPWINDOW`
 ## 回報區
 
 ### 修復狀態
-OPEN
+FIXED：T0043 `05973976`。`tauri.conf.json` `skipTaskbar: true`（tao `ITaskbarList::DeleteTab`）；實機工作列無按鈕；`panel_hit_test.rs` 未動。待 T0044 re-smoke 與使用者安裝實測。

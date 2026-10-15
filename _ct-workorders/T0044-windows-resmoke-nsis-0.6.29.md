@@ -9,7 +9,7 @@ type: verification
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T13:18:05+08:00"
-updated_at: "2026-10-15T13:18:05+08:00"
+updated_at: "2026-10-15T13:41:38+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -18,6 +18,10 @@ intervention_type: fire-and-forget
 depends_on:
   - T0042
   - T0043
+  - T0045
+  - T0046
+  - T0047
+  - T0048
 affects_files: []
 ---
 
@@ -25,7 +29,7 @@ affects_files: []
 
 ## 背景
 
-T0040 PARTIAL（Usage Trend FAIL）。T0042（ccusage runner）與 T0043（taskbar / blur hide）修正後，發行前重新驗證。方法沿用 T0040 回報區（release exe、cwd `%TEMP%`、UIA、trace log）。
+T0040 PARTIAL（Usage Trend FAIL）。T0042（ccusage runner）、T0043（taskbar / blur hide）、T0045–T0048（後續小問題，D076）完成後，發行前重新驗證。方法沿用 T0040 回報區（release exe、cwd `%TEMP%`、UIA、trace log）。
 
 ## 任務指令
 
@@ -33,7 +37,10 @@ T0040 PARTIAL（Usage Trend FAIL）。T0042（ccusage runner）與 T0043（taskb
 2. 重跑 T0040 smoke **全部 17 項**，並新增：
    - Usage Trend / Today / Yesterday / Last 30 Days 顯示（BUG-006）。
    - 工作列無按鈕（BUG-007）。
-   - 失焦自動收起 + tray 連點無閃爍 + 拖曳 / 下拉 / About 不誤收（BUG-008）。
+   - 失焦自動收起 + tray 連點無閃爍 + 拖曳 / 下拉 / About 不誤收（BUG-008；T0048 搬移後不退步）。
+   - Debug log 中 host_api 路徑不含實際使用者名稱（BUG-009）。
+   - 一般情況 ccusage 正常、無殘留 node（BUG-010）。
+   - 無 runner 時顯示「用量歷史」提示（BUG-011，可用只對測試 process 改 PATH 的方式）。
 3. 截圖存 `_ct-workorders/assets/T0044/`（**截圖前確認畫面沒有其他視窗的私人內容**）。
 4. FAIL 不修，回報 PARTIAL / FAILED。
 
@@ -41,6 +48,7 @@ T0040 PARTIAL（Usage Trend FAIL）。T0042（ccusage runner）與 T0043（taskb
 
 - 不改程式碼、不 push、不 tag。
 - **不改 registry**（T0040 曾暫改 WebView2 policy，本單禁止）。
+- 不覆蓋已安裝的 `%LOCALAPPDATA%/OpenUsage/openusage.exe`（T0043 曾暫時覆蓋）。
 - 若需停使用者的 OpenUsage：事後重新啟動並還原 `settings.json`（SHA256 比對）。
 
 ## 驗證 Gate
