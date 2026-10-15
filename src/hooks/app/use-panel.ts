@@ -9,6 +9,20 @@ const PANEL_WIDTH = 400
 const MAX_HEIGHT_FALLBACK_PX = 600
 const MAX_HEIGHT_FRACTION_OF_MONITOR = 0.8
 const WORK_AREA_MARGIN_PX = 8
+// Emitted by Rust only for user drags (not programmatic moves).
+const PANEL_USER_MOVED_EVENT = "panel:user-moved"
+const PANEL_MOVE_REFIT_DELAY_MS = 150
+
+export function debounce(fn: () => void, delayMs: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  return {
+    call: () => {
+      clearTimeout(timer)
+      timer = setTimeout(fn, delayMs)
+    },
+    cancel: () => clearTimeout(timer),
+  }
+}
 
 type MonitorArea = {
   size: { height: number }
@@ -281,7 +295,23 @@ export function usePanel({
     })
     observer.observe(container)
 
-    return () => observer.disconnect()
+    // Max height depends on the window top, so refit once a drag settles.
+    const refitAfterMove = debounce(() => void resizeWindow(), PANEL_MOVE_REFIT_DELAY_MS)
+    let disposed = false
+    let unlistenMoved: (() => void) | null = null
+    listen(PANEL_USER_MOVED_EVENT, refitAfterMove.call)
+      .then((unlisten) => {
+        if (disposed) unlisten()
+        else unlistenMoved = unlisten
+      })
+      .catch((error) => console.error("Failed to listen for panel moves:", error))
+
+    return () => {
+      disposed = true
+      refitAfterMove.cancel()
+      unlistenMoved?.()
+      observer.disconnect()
+    }
   }, [activeView, displayPlugins])
 
   useEffect(() => {

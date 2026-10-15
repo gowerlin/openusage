@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::{Manager, PhysicalPosition, Position};
+use tauri::{Emitter, Manager, PhysicalPosition, Position};
 use tauri_plugin_store::StoreExt;
 
 const MAIN_WINDOW_LABEL: &str = "main";
 const PANEL_POSITION_STORE_KEY: &str = "panelPosition";
+// Frontend refits the panel height to the work area after a user drag.
+const PANEL_USER_MOVED_EVENT: &str = "panel:user-moved";
 
 // Position set by `apply_stored_position`; its `Moved` event must not overwrite
 // the user's dragged position with a clamped one.
@@ -72,6 +74,9 @@ pub fn persist_panel_position_from_event(window: &tauri::Window, event: &tauri::
     }
 
     save_stored_position(window.app_handle(), position);
+    if let Err(error) = window.emit(PANEL_USER_MOVED_EVENT, ()) {
+        log::warn!("failed to emit panel moved event: {}", error);
+    }
 }
 
 fn take_programmatic_move(position: StoredPanelPosition) -> bool {

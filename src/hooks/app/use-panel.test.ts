@@ -41,7 +41,7 @@ vi.mock("@tauri-apps/api/window", () => ({
   },
 }))
 
-import { computeMaxPanelHeightPhysical, usePanel } from "@/hooks/app/use-panel"
+import { computeMaxPanelHeightPhysical, debounce, usePanel } from "@/hooks/app/use-panel"
 
 describe("computeMaxPanelHeightPhysical", () => {
   // 1920x1440 monitor, 72px taskbar at the bottom -> work area bottom 1368.
@@ -71,6 +71,28 @@ describe("computeMaxPanelHeightPhysical", () => {
 
   it("never returns less than 1px", () => {
     expect(computeMaxPanelHeightPhysical(monitor, 1400, 1)).toBe(1)
+  })
+})
+
+describe("debounce", () => {
+  it("runs once after calls settle and can be cancelled", () => {
+    vi.useFakeTimers()
+    const fn = vi.fn()
+    const d = debounce(fn, 150)
+
+    d.call()
+    vi.advanceTimersByTime(100)
+    d.call()
+    vi.advanceTimersByTime(149)
+    expect(fn).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(fn).toHaveBeenCalledTimes(1)
+
+    d.call()
+    d.cancel()
+    vi.advanceTimersByTime(500)
+    expect(fn).toHaveBeenCalledTimes(1)
+    vi.useRealTimers()
   })
 })
 
@@ -501,5 +523,60 @@ describe("usePanel", () => {
     })
 
     expect(startDraggingMock).not.toHaveBeenCalled()
+  })
+
+  it("refits height to the work area after a user drag", async () => {
+    const callbacks = new Map<string, () => void>()
+    listenMock.mockImplementation(async (event: string, callback: () => void) => {
+      callbacks.set(event, callback)
+      return vi.fn()
+    })
+    const setSize = vi.fn().mockResolvedValue(undefined)
+    let top = 100
+    getCurrentWindowMock.mockReturnValue({
+      setSize,
+      startDragging: startDraggingMock,
+      outerPosition: vi.fn(async () => ({ x: 0, y: top })),
+    })
+    currentMonitorMock.mockResolvedValue({
+      size: { height: 1440 },
+      workArea: { position: { y: 0 }, size: { height: 1400 } },
+    })
+
+    function Harness() {
+      const { containerRef } = usePanel({
+        activeView: "home",
+        setActiveView: vi.fn(),
+        showAbout: false,
+        setShowAbout: vi.fn(),
+        displayPlugins: [],
+      })
+      return createElement("div", {
+        ref: (el: HTMLDivElement | null) => {
+          if (el) Object.defineProperty(el, "scrollHeight", { configurable: true, value: 620 })
+          containerRef.current = el
+        },
+      })
+    }
+
+    render(createElement(Harness))
+
+    await waitFor(() => {
+      expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 620 }))
+      expect(callbacks.has("panel:user-moved")).toBe(true)
+    })
+
+    // Dragged low: 1400 - 1003 - 8
+    top = 1003
+    act(() => callbacks.get("panel:user-moved")?.())
+    await waitFor(() => {
+      expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 389 }))
+    })
+
+    top = 100
+    act(() => callbacks.get("panel:user-moved")?.())
+    await waitFor(() => {
+      expect(setSize).toHaveBeenLastCalledWith(expect.objectContaining({ height: 620 }))
+    })
   })
 })
