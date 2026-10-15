@@ -8,7 +8,7 @@ import { calculateDeficit, calculatePaceStatus, type PaceStatus } from "@/lib/pa
 import { buildPaceDetailText, formatDeficitText, formatRunsOutText, getPaceStatusText } from "@/lib/pace-tooltip"
 import { formatResetAbsoluteLabel, formatResetRelativeLabel, formatResetTooltipText } from "@/lib/reset-tooltip"
 import { clamp01, formatCountNumber, formatFixedPrecisionNumber } from "@/lib/utils"
-import { t as translate, translateDisplayLabel, type Locale } from "@/lib/i18n"
+import { t as translate, translateDisplayLabel, translateDisplayValue, type Locale } from "@/lib/i18n"
 
 const PACE_VISUALS: Record<PaceStatus, { dotClass: string }> = {
   ahead: { dotClass: "bg-green-500" },
@@ -78,6 +78,7 @@ export function MetricLineRenderer({
   const label = translateDisplayLabel(locale, line.label)
 
   if (line.type === "text") {
+    const value = translateDisplayValue(locale, line.value)
     return (
       <div>
         <div className="flex justify-between items-center h-[18px] gap-2">
@@ -87,9 +88,9 @@ export function MetricLineRenderer({
           <span
             className="text-xs text-muted-foreground truncate flex-shrink-0 max-w-[45%] text-right"
             style={line.color ? { color: line.color } : undefined}
-            title={line.value}
+            title={value}
           >
-            {line.value}
+            {value}
           </span>
         </div>
         {line.subtitle && (

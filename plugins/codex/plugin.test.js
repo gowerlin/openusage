@@ -379,6 +379,11 @@ describe("codex plugin", () => {
     expect(result.lines.find((l) => l.label === "Yesterday")).toBeUndefined()
     expect(result.lines.find((l) => l.label === "Last 30 Days")).toBeUndefined()
     expect(result.lines.find((l) => l.label === "Session")).toBeTruthy()
+    expect(result.lines.find((l) => l.label === "Usage history")).toEqual({
+      type: "text",
+      label: "Usage history",
+      value: "Install Node.js (npx) or Bun to enable",
+    })
   })
 
   it("adds token lines from codex ccusage format and passes codex provider", async () => {
@@ -433,6 +438,7 @@ describe("codex plugin", () => {
       const sinceMonth = String(since.getMonth() + 1).padStart(2, "0")
       const sinceDay = String(since.getDate()).padStart(2, "0")
       expect(firstCall.since).toBe(sinceYear + sinceMonth + sinceDay)
+      expect(result.lines.find((l) => l.label === "Usage history")).toBeUndefined()
     } finally {
       vi.useRealTimers()
     }

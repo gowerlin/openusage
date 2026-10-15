@@ -1523,6 +1523,11 @@ describe("claude plugin", () => {
       expect(result.lines.find((l) => l.label === "Today")).toBeUndefined()
       expect(result.lines.find((l) => l.label === "Yesterday")).toBeUndefined()
       expect(result.lines.find((l) => l.label === "Last 30 Days")).toBeUndefined()
+      expect(result.lines.find((l) => l.label === "Usage history")).toEqual({
+        type: "text",
+        label: "Usage history",
+        value: "Install Node.js (npx) or Bun to enable",
+      })
     })
 
     it("rate-limit lines still appear when ccusage reports runner_failed", async () => {
@@ -1532,6 +1537,7 @@ describe("claude plugin", () => {
       expect(result.lines.find((l) => l.label === "Session")).toBeTruthy()
       expect(result.lines.find((l) => l.label === "Today")).toBeUndefined()
       expect(result.lines.find((l) => l.label === "Yesterday")).toBeUndefined()
+      expect(result.lines.find((l) => l.label === "Usage history")).toBeUndefined()
     })
 
     it("adds Today line when ccusage returns today's data", async () => {
@@ -1548,6 +1554,7 @@ describe("claude plugin", () => {
       expect(todayLine.type).toBe("text")
       expect(todayLine.value).toContain("150 tokens")
       expect(todayLine.value).toContain("$0.75")
+      expect(result.lines.find((l) => l.label === "Usage history")).toBeUndefined()
     })
 
     it("adds Yesterday line when ccusage returns yesterday's data", async () => {

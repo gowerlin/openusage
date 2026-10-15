@@ -984,6 +984,8 @@
 
       pushUsageChartLine(lines, ctx, usage.daily)
       pushModelUsageLines(lines, ctx, usage.daily)
+    } else if (usageResult.status === "no_runner") {
+      lines.push(ctx.line.text({ label: "Usage history", value: "Install Node.js (npx) or Bun to enable" }))
     }
 
     if (rateLimited) {

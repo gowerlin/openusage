@@ -1,5 +1,6 @@
 import {
   DISPLAY_LABEL_KEYS,
+  DISPLAY_VALUE_KEYS,
   pluginLabelEn,
   pluginLabelZhTW,
 } from "./i18n-plugin-labels"
@@ -313,4 +314,9 @@ export function t(locale: Locale, key: I18nKey): string {
 export function translateDisplayLabel(locale: Locale, label: string): string {
   const key = DISPLAY_LABEL_KEYS[label as keyof typeof DISPLAY_LABEL_KEYS]
   return key ? t(locale, key) : label
+}
+
+export function translateDisplayValue(locale: Locale, value: string): string {
+  const key = DISPLAY_VALUE_KEYS[value as keyof typeof DISPLAY_VALUE_KEYS]
+  return key ? t(locale, key) : value
 }

@@ -65,6 +65,7 @@ export function useTrayIcon({
   activeView,
 }: UseTrayIconArgs) {
   const keepDesktopTrayIcon = shouldKeepDesktopTrayIcon()
+  const language = useAppPreferencesStore((state) => state.language)
   const trayRef = useRef<TrayIcon | null>(null)
   const trayGaugeIconPathRef = useRef<string | null>(null)
   const trayUpdateTimerRef = useRef<number | null>(null)
@@ -384,7 +385,7 @@ export function useTrayIcon({
   useEffect(() => {
     if (!trayReady) return
     scheduleTrayIconUpdate("settings", 0)
-  }, [activeView, menubarIconStyle, menubarMetric, scheduleTrayIconUpdate, trayReady])
+  }, [activeView, language, menubarIconStyle, menubarMetric, scheduleTrayIconUpdate, trayReady])
 
   useEffect(() => {
     return () => {

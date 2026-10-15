@@ -33,6 +33,7 @@ export const pluginLabelEn = {
   "pluginLabel.geminiFlash": "Gemini Flash",
   "pluginLabel.geminiPro": "Gemini Pro",
   "pluginLabel.hugeNumbers": "Huge numbers",
+  "pluginLabel.installRunnerHint": "Install Node.js (npx) or Bun to enable",
   "pluginLabel.labs": "Labs",
   "pluginLabel.last30Days": "Last 30 Days",
   "pluginLabel.manaBar": "Mana Bar",
@@ -67,6 +68,7 @@ export const pluginLabelEn = {
   "pluginLabel.totalUsage": "Total usage",
   "pluginLabel.usage": "Usage",
   "pluginLabel.usageDashboard": "Usage dashboard",
+  "pluginLabel.usageHistory": "Usage history",
   "pluginLabel.usageTrend": "Usage Trend",
   "pluginLabel.used": "Used",
   "pluginLabel.veryLongValue": "Very long value",
@@ -113,6 +115,7 @@ export const pluginLabelZhTW: Record<PluginLabelKey, string> = {
   "pluginLabel.geminiFlash": "Gemini Flash",
   "pluginLabel.geminiPro": "Gemini Pro",
   "pluginLabel.hugeNumbers": "巨大數字",
+  "pluginLabel.installRunnerHint": "安裝 Node.js（npx）或 Bun 以啟用",
   "pluginLabel.labs": "Labs",
   "pluginLabel.last30Days": "過去 30 天",
   "pluginLabel.manaBar": "Mana Bar",
@@ -147,6 +150,7 @@ export const pluginLabelZhTW: Record<PluginLabelKey, string> = {
   "pluginLabel.totalUsage": "總用量",
   "pluginLabel.usage": "用量",
   "pluginLabel.usageDashboard": "用量儀表板",
+  "pluginLabel.usageHistory": "用量歷史",
   "pluginLabel.usageTrend": "用量趨勢",
   "pluginLabel.used": "已用",
   "pluginLabel.veryLongValue": "很長的值",
@@ -225,6 +229,7 @@ export const DISPLAY_LABEL_KEYS = {
   "Total usage": "pluginLabel.totalUsage",
   Usage: "pluginLabel.usage",
   "Usage dashboard": "pluginLabel.usageDashboard",
+  "Usage history": "pluginLabel.usageHistory",
   "Usage Trend": "pluginLabel.usageTrend",
   Used: "pluginLabel.used",
   "Very long value": "pluginLabel.veryLongValue",
@@ -232,4 +237,8 @@ export const DISPLAY_LABEL_KEYS = {
   Weekly: "pluginLabel.weekly",
   "Weekly quota": "pluginLabel.weeklyQuota",
   Yesterday: "pluginLabel.yesterday",
+} as const satisfies Record<string, PluginLabelKey>
+
+export const DISPLAY_VALUE_KEYS = {
+  "Install Node.js (npx) or Bun to enable": "pluginLabel.installRunnerHint",
 } as const satisfies Record<string, PluginLabelKey>

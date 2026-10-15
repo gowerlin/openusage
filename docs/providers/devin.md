@@ -10,7 +10,7 @@
 - **Auth:** local Devin session token (`devin-session-token$...`)
 - **Quota:** weekly quota percentage
 - **Extra:** overage balance in micros
-- **Requires:** `devin auth login` or a signed-in Devin app
+- **Requires:** `devin auth login` or a signed-in Devin app (Windows: `devin auth login` only)
 
 OpenUsage does not use `api.devin.ai` for this provider. Devin's public API usage and consumption endpoints are enterprise/admin APIs and do not expose the same local account quota shown in the app.
 
@@ -20,8 +20,10 @@ The plugin checks auth in this order:
 
 | Order | Source | Path / key |
 |---|---|---|
-| 1 | Devin CLI | `~/.local/share/devin/credentials.toml` |
+| 1 | Devin CLI | `~/.local/share/devin/credentials.toml` (Windows: `%APPDATA%\devin\credentials.toml`) |
 | 2 | Devin app | `~/Library/Application Support/Devin/User/globalStorage/state.vscdb` / `windsurfAuthStatus` |
+
+Windows: only Devin CLI login is supported. The Devin app SQLite source is skipped (no host SQLite on Windows). Without CLI credentials, the plugin shows: `Run devin auth login and try again. On Windows only Devin CLI credentials are supported.`
 
 CLI credentials:
 

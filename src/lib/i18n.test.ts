@@ -5,6 +5,7 @@ import {
   SUPPORTED_LOCALES,
   t,
   translateDisplayLabel,
+  translateDisplayValue,
   type I18nKey,
   type Locale,
 } from "@/lib/i18n"
@@ -50,6 +51,17 @@ describe("i18n", () => {
     expect(translateDisplayLabel("zh-TW", "Extra usage balance")).toBe("額外用量餘額")
     expect(t("zh-TW", "settings.menubarMetric.title")).toBe("指標")
     expect(t("zh-TW", "settings.menubarMetric.option.weekly")).toBe("每週")
+  })
+
+  it("translates the usage history runner hint and preserves other values", () => {
+    expect(translateDisplayLabel("zh-TW", "Usage history")).toBe("用量歷史")
+    expect(translateDisplayValue("en", "Install Node.js (npx) or Bun to enable")).toBe(
+      "Install Node.js (npx) or Bun to enable"
+    )
+    expect(translateDisplayValue("zh-TW", "Install Node.js (npx) or Bun to enable")).toBe(
+      "安裝 Node.js（npx）或 Bun 以啟用"
+    )
+    expect(translateDisplayValue("zh-TW", "Free")).toBe("Free")
   })
 
   it("fails loud for unsupported locales or missing keys", () => {
