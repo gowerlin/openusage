@@ -9,7 +9,7 @@ type: bugfix
 bug_id: BUG-010
 plan_id: PLAN-004
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T13:41:38+08:00"
+updated_at: "2026-10-15T13:48:15+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -21,6 +21,7 @@ affects_files:
   - src-tauri/src/plugin_engine/host_api.rs
   - src-tauri/Cargo.toml
   - src-tauri/Cargo.lock
+  - src-tauri/src/config.rs
 ---
 
 # T0046 ccusage Windows process tree kill, skip yarn classic, remove dead code
@@ -37,7 +38,10 @@ BUG-010（T0042 回報）三項。
    - 先查 Microsoft 文件，回報引用與選擇理由。確保 reader thread 不會因孫程序持有 pipe 而卡住。非 Windows 行為不變。
 2. **yarn classic**：yarn 主版號 < 2 時不視為 dlx runner；偵測結果放進既有 availability cache，不得明顯增加 probe 延遲。
 3. **Dead code**：移除未使用的 `run_ccusage_with_runner`（確認無呼叫端與測試依賴）。
-4. 補測試（純函式部分；Job Object 以 Windows-only 測試或實機證據）。
+4. **BUG-009 剩餘（D077）**：
+   - `src-tauri/src/config.rs:62` 的 `log::debug!` 直接寫出完整 config 路徑（含使用者名稱）→ 改走 `redact_log_message`，或只 log `~/.openusage/config.json`。
+   - `redact_paths()` 的 Windows / Unix 規則遇空白就停，`C:\Users\John Smith\...` 只遮到 `John`。讓使用者名稱這一段可含空白（例如名稱段比對到下一個路徑分隔符為止），Unix `/Users/<name>`、`/home/<name>` 同樣處理；`Users: 3 at 10:30` 這類一般文字不得誤遮。補測試。
+5. 補測試（純函式部分；Job Object 以 Windows-only 測試或實機證據）。
 
 ## 驗證 Gate
 
