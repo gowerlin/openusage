@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0063
 title: Bump version and publish GitHub release v0.6.31
-status: PENDING
+status: IN_PROGRESS
 priority: High
 type: release
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:47:34+08:00"
-started_at: null
+updated_at: "2026-10-15T18:41:45+08:00"
+started_at: "2026-10-15T18:41:45+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -69,4 +69,51 @@ PLAN-006 最後一步。流程同 T0054。
 
 ## 回報區
 
-（Worker 填寫：狀態、commit、改動、上游引用、驗證證據、偏差）
+### 狀態
+
+進行中。「Landing check」到「步驟 3」寫於 push 前（2026-10-15T18:42:50+08:00），含在 bump commit 內。
+
+### Landing check
+
+- 結果：WARN（只有 C-0）。
+- C-0：frontmatter `repo` = absent → WARN「repo identity unavailable」；`basename(REPO_ROOT)` = `openusage`。
+- C-1：PASS（`D:/ForgejoGit/@GitHub_Clone/openusage/_ct-workorders/T0063-release-v0.6.31.md`）。
+- C-3：PASS（4 個 `affects_files` 皆存在）。C-2：無 `branch` 欄位（HEAD = `main`）。
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅紀錄）；`CT_MODE=yolo`，`CT_INTERACTIVE` 未設。
+
+### 前置條件
+
+| 項目 | 結果 |
+|---|---|
+| T0055–T0061、T0064–T0068 | 全部 `status: DONE` |
+| T0062 | `PARTIAL`（工單註明已由 T0067 / T0068 解決；T0068 `DONE`） |
+| `git status` | 開工時乾淨 |
+| `git fetch origin` 後 | `origin/main..HEAD` = 2、`HEAD..origin/main` = 0（只 ahead） |
+| `v0.6.31` tag | 本機與 `git ls-remote --tags origin v0.6.31` 皆空 |
+| push URL | `https://github.com/gowerlin/openusage.git` |
+
+- 開工後塔台並行寫入 `_backlog.md`、`_tower-state.md`、`PLAN-007`、`T0069`–`T0071`；本單 commit 只精準 stage 版本四檔 + 本工單，不帶這些檔。
+
+### 步驟 1：版號 + README
+
+- `package.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml` → `0.6.31`；`cargo update -p openusage --offline` → `Cargo.lock` `openusage v0.6.30 -> v0.6.31`（只動這一行）。
+- README plugin 清單：`plugins/` 18 個 provider（排除 `mock`）全部列在 `## Supported Providers`（T0056 已補 Perplexity / Synthetic；T0058 / T0059 / T0060 / T0061 / T0065 已更新 Grok / Claude / OpenCode Go / Copilot 描述）→ PASS。
+
+### 步驟 2：Push 前隱私掃描（D081）
+
+PASS。範圍：`git diff origin/main` 新增行（含工作區、排除 `*.png` / lock，62 行），另加大範圍 `git diff v0.6.30`（4322 行）交叉檢查。
+- Token（`sk-`、`ghp_`、`gho_`、`github_pat_`、JWT `eyJ…`、`xox?-`、`AKIA`、private key）：兩個範圍皆 0 筆。
+- 帳號 ID（`org-…`）：0 筆。
+- Email：push 範圍 0 筆；`v0.6.30` 範圍只有測試假資料 `user@example.com`、`active@example.com`。
+- UUID 命中只有 `BAT_WORKSPACE_ID`（本機終端工作區 ID，非帳號；先例同 T0054）。
+- 路徑：push 範圍 0 筆；`v0.6.30` 範圍只有測試假路徑 `C:\Users\John`、`C:\Users\winuser`。`gower` 命中只有 repo 名 `gowerlin`。
+- 截圖：push 範圍沒有新 PNG（`v0.6.30` 之後的 17 張截圖已在 `origin/main`，由各單驗收時掃描）。
+
+### 步驟 3：驗證
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| `cargo fmt --check` | PASS | exit 0 |
+| `bun run test --run` | PASS | 70 files / 1254 tests passed |
+| `bun run build` | PASS | exit 0（只有 chunk > 500 kB 既有警告） |
+| `cargo test --locked` | PASS | VsDevCmd x64（`Visual Studio\18\Enterprise`）+ `LIBCLANG_PATH` + `CI=false`：`158 passed; 0 failed` |
