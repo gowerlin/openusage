@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0045
 title: Mask Windows user paths in host API redaction
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-009
 plan_id: PLAN-004
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T13:43:56+08:00"
+updated_at: "2026-10-15T13:47:42+08:00"
 started_at: "2026-10-15T13:43:56+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T13:47:42+08:00"
+commit: 2f357ac0
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -53,7 +53,7 @@ BUG-009（T0039 稽核）：路徑 redaction 只遮 Unix 路徑。
 
 ### 狀態
 
-DONE — 全部 gate PASS。
+DONE — 全部 gate PASS。Commit `2f357ac0`（未 push）。
 
 ### Landing Zone Check
 
