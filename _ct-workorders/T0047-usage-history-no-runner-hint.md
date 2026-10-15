@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0047
 title: Show a hint when usage history needs Node.js or Bun
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-011
 plan_id: PLAN-004
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T14:08:13+08:00"
+updated_at: "2026-10-15T14:18:01+08:00"
 started_at: "2026-10-15T14:08:13+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T14:18:01+08:00"
+commit: 96fc3ad8
 agent: default
 intervention_type: fire-and-forget
 depends_on:
