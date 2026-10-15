@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0056
 title: README missing plugins and publish workflow Node 20 deprecation
-status: IN_PROGRESS
+status: DONE
 priority: Low
 type: chore
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:38:50+08:00"
+updated_at: "2026-10-15T16:41:57+08:00"
 started_at: "2026-10-15T16:38:50+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T16:41:57+08:00"
+commit: b3788b08
 agent: default
 intervention_type: fire-and-forget
 depends_on:
