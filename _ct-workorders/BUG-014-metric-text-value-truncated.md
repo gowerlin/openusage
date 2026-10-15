@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-014
 title: Long text metric values are truncated in provider detail
-status: OPEN
+status: FIXED
 severity: Low
 created_at: "2026-10-15T14:53:32+08:00"
-updated_at: "2026-10-15T15:22:35+08:00"
+updated_at: "2026-10-15T15:26:47+08:00"
 related_workorder: T0050
 target_version: "0.6.30"
 affects_files:
@@ -22,10 +22,10 @@ Claude 詳細頁「昨天 $213.36 · 597M toke…」被截斷：text line value 
 
 ## 驗收條件
 
-- [ ] 一般金額 / token 值在 400px 面板完整顯示（放寬寬度、label 讓位或換行）。
-- [ ] 不影響其他 line 排版。
+- [x] 一般金額 / token 值在 400px 面板完整顯示（放寬寬度、label 讓位或換行）。
+- [x] 不影響其他 line 排版。
 
 ## 回報區
 
 ### 修復狀態
-OPEN（排入 v0.6.30，D083）
+FIXED：T0050 `439a9d81`。text value `max-w-[45%]` → `max-w-[70%]`；browser dev 量測典型值皆完整。待 T0053 實機與使用者實測。
