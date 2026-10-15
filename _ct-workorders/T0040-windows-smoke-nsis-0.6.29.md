@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0040
 title: Windows runtime smoke + local NSIS package for 0.6.29
-status: IN_PROGRESS
+status: PARTIAL
 priority: High
 type: verification
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:39:32+08:00"
-updated_at: "2026-10-15T12:53:28+08:00"
+updated_at: "2026-10-15T13:07:38+08:00"
 started_at: "2026-10-15T12:53:28+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T13:07:38+08:00"
+commit: 26d9d2c3
 agent: default
 intervention_type: fire-and-forget
 depends_on:
