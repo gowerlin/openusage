@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 17:26 (UTC+8)
+> 最後更新：2026-10-15 17:51 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
@@ -10,7 +10,7 @@
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
-7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 DONE（`1f2a2812`）；T0066 DONE（`d50245c3`）；T0062 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
+7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke（PARTIAL）→ T0067 → T0068 → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 DONE（`1f2a2812`）；T0066 DONE（`d50245c3`）；T0062 PARTIAL（BUG-016 停頓放開 FAIL + 拖回截短回歸）→ 插入 T0067 修正 + T0068 re-smoke（D105）；T0067 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -111,10 +111,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0066 |
-| BUG | BUG-017 |
+| 工單 | T0068 |
+| BUG | BUG-018 |
 | PLAN | PLAN-006 |
-| 決策 | D104 |
+| 決策 | D105 |
 
 ---
 
@@ -169,8 +169,10 @@
 | Port: Copilot AI Credits | T0061 | ✅ DONE | 無 | Windows token → BUG-017 |
 | Grok credits single path | T0065 | ✅ DONE | 未實機（無憑證） | 上游 `5fcb4312`/`37f9a219` |
 | i18n + docs（Claude/Copilot/Grok/README） | T0066 | ✅ DONE | 無 | 實機「可用 1 次」 |
-| Windows smoke 0.6.31 | PLAN-006 / T0062 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| CI 驗證 pre-release | PLAN-006 / T0064 | 📋 PENDING | depends_on T0062 | 自動串接 |
+| Windows smoke 0.6.31 | PLAN-006 / T0062 | ⚠️ PARTIAL | BUG-016 FAIL | 由 T0067/T0068 解決 |
+| Refit on drag end + trace redact | BUG-016/018 / T0067 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| Windows re-smoke 0.6.31 | PLAN-006 / T0068 | 📋 PENDING | depends_on T0067 | 自動串接 |
+| CI 驗證 pre-release | PLAN-006 / T0064 | 📋 PENDING | depends_on T0068 | 自動串接 |
 | Release v0.6.31 | PLAN-006 / T0063 | 📋 PENDING | depends_on T0064 | 自動串接 |
 | Copilot Windows gh token | BUG-017 | 📋 OPEN | 無 | v0.6.31 後開單 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
@@ -284,6 +286,7 @@
 - D102：使用者決定 Copilot Windows gh token（Credential Manager）於 v0.6.31 發行後另開單 → 登記 BUG-017（Medium）；T0063 發行說明已知問題列 BUG-017。
 - D103：接受 T0065 DONE（`1f2a2812`）：Grok credits 為主、legacy billing 選用（缺 `monthlyLimit` 不 throw）、兩者皆失敗明確錯誤、team 412 訊息、overview Weekly line（primaryOrder 1）；新測試對舊碼 11 FAIL 證明抓到原 bug；未實機（無憑證）。Grok docs / README 併入 T0066。派發 T0066。
 - D104：接受 T0066 DONE（`d50245c3`）：`N available` → `可用 N 次`（Claude / Codex 實機）、Claude / Copilot（含 BUG-017 Windows 段）/ Grok docs、README 三列更新。不排單：`docs/local-http-api.md` 的 `rateLimitResets` key（fork 無對應表）。T0062 補 Claude Fable / resets、Grok、Copilot Windows 檢查項後派發。
+- D105：T0062 PARTIAL（`ee08bc26`）：NSIS 與移植項 / 13 項回歸全 PASS，但 BUG-016 放開前停頓 ≥150ms 時失效，且先拖低再拖回停頓放開會**截短可見面板**（T0055 引入的回歸）。依串接規則停下詢問；使用者選「先修再發」並一併修 trace log 使用者名稱。重開 BUG-016（FIXING），新增 BUG-018；建立 T0067（subclass 觀察 `WM_ENTERSIZEMOVE`/`WM_EXITSIZEMOVE`，拖曳中零 setSize、放開後 refit；不改既有 return）與 T0068（BUG-016 完整矩陣 + 受影響回歸）；T0064 改 depends_on T0068。觀察 2（Codex 無 Fable）為塔台工單用詞錯誤，不需處理。
 
 ---
 

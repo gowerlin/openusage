@@ -3,17 +3,17 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T17:20:06+08:00"
+generated_at: "2026-10-15T17:51:22+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 14
+total: 15
 breakdown:
-  OPEN: 1
-  FIXING: 0
-  FIXED: 1
+  OPEN: 2
+  FIXING: 1
+  FIXED: 0
   VERIFY: 0
   CLOSED: 12
   WONTFIX: 0
@@ -25,24 +25,25 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 1 | Fixing: 0 | Fixed: 1 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 14**
+- Open: 2 | Fixing: 1 | Fixed: 0 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 15**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-018 | panel-window-trace.log startup line contains the Windows user name | 🟢 Low | 2026-10-15T17:51:22+08:00 | [BUG-018-trace-log-user-path.md](BUG-018-trace-log-user-path.md) |
 | BUG-017 | Copilot cannot read the gh token on Windows | 🟡 Medium | 2026-10-15T17:20:06+08:00 | [BUG-017-copilot-windows-gh-token.md](BUG-017-copilot-windows-gh-token.md) |
 
 ## Fixing
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-016 | Panel can extend below the screen right after dragging low | 🟢 Low | 2026-10-15T16:38:39+08:00 | [BUG-016-panel-overflows-screen-after-drag.md](BUG-016-panel-overflows-screen-after-drag.md) |
 
 ## Fixed
 
 | ID | 標題 | 嚴重度 | 修復時間 | 連結 |
 |----|------|--------|---------|------|
-| BUG-016 | Panel can extend below the screen right after dragging low | 🟢 Low | 2026-10-15T16:38:39+08:00 | [BUG-016-panel-overflows-screen-after-drag.md](BUG-016-panel-overflows-screen-after-drag.md) |
 
 ## Verify
 

@@ -9,7 +9,7 @@ type: verification
 plan_id: PLAN-006
 bug_id: null
 created_at: "2026-10-15T16:47:34+08:00"
-updated_at: "2026-10-15T16:47:34+08:00"
+updated_at: "2026-10-15T17:51:22+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -17,6 +17,7 @@ agent: default
 intervention_type: fire-and-forget
 depends_on:
   - T0062
+  - T0068
 affects_files:
   - .github/workflows/pre-release.yml
 ---
@@ -36,7 +37,7 @@ T0056 把 `publish.yml` 的 `actions/checkout@v4` → `@v7`、`ilammy/msvc-dev-c
 
 ## 前置條件（不符即 BLOCKED）
 
-- T0055–T0061 `DONE`；T0062 `DONE`。`git status` 乾淨；main 只 ahead。
+- T0055–T0061、T0065–T0067 `DONE`；T0062 PARTIAL 已由 T0067 修正、**T0068 `DONE`**（D105）。`git status` 乾淨；main 只 ahead。
 - 先讀 `pre-release.yml` 全文，確認：版本解析規則（`MAJOR.MINOR.PATCH-pre.N`）、是否要求版本檔與 tag 一致（目前版本檔 = 0.6.30；若 workflow 會改寫版本或要求一致，回報並依 workflow 既有設計處理，不改 workflow 邏輯）、是否會產生 `latest.json` 以及會不會影響正式 updater。
 - `git ls-remote --tags origin v0.6.31-pre.1` 為空。
 
