@@ -7,7 +7,7 @@ status: IN_PROGRESS
 priority: Medium
 plan_type: feature
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:29:08+08:00"
+updated_at: "2026-10-15T16:47:34+08:00"
 completed_at: null
 affects_files: []
 depends_on:
@@ -25,7 +25,7 @@ depends_on:
 
 ## 工單串接（前一張 DONE 才派下一張；非 DONE 停下問使用者）
 
-T0055 BUG-016 → T0056 README + CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude reset grants + Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0062 smoke + NSIS → T0063 發行 v0.6.31
+T0055 BUG-016 → T0056 README + CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude reset grants + Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0062 smoke + NSIS → T0064 pre-release 驗證 CI（D096）→ T0063 發行 v0.6.31
 
 ## 進度
 

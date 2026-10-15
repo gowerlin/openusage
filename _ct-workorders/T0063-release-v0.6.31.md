@@ -9,7 +9,7 @@ type: release
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:29:08+08:00"
+updated_at: "2026-10-15T16:47:34+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -17,6 +17,7 @@ agent: default
 intervention_type: fire-and-forget
 depends_on:
   - T0062
+  - T0064
 affects_files:
   - package.json
   - src-tauri/Cargo.toml
@@ -37,7 +38,7 @@ PLAN-006 最後一步。流程同 T0054。
 
 ## 前置條件（不符即 BLOCKED）
 
-- T0055–T0061 `DONE`；T0062 `DONE`（smoke 全 PASS）。`git status` 乾淨；main 只 ahead；`v0.6.31` tag 不存在。
+- T0055–T0061 `DONE`；T0062 `DONE`（smoke 全 PASS）；**T0064 `DONE`（pre-release CI 驗證通過）**。`git status` 乾淨；main 只 ahead；`v0.6.31` tag 不存在。
 
 ## 任務指令
 
