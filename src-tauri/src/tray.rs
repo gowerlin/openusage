@@ -1,6 +1,6 @@
 use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
-use tauri::tray::{MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_store::StoreExt;
@@ -9,6 +9,11 @@ use crate::log_path;
 use crate::panel::{show_panel, toggle_panel_at_tray_icon};
 
 const LOG_LEVEL_STORE_KEY: &str = "logLevel";
+
+/// Right-click opens the tray menu, so only a left-button release toggles the panel.
+fn should_toggle_on_tray_click(button: MouseButton, button_state: MouseButtonState) -> bool {
+    button == MouseButton::Left && button_state == MouseButtonState::Up
+}
 
 fn get_stored_log_level(app_handle: &AppHandle) -> log::LevelFilter {
     let store = match app_handle.store("settings.json") {
@@ -211,10 +216,13 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
             let app_handle = tray.app_handle();
 
             if let TrayIconEvent::Click {
-                button_state, rect, ..
+                button,
+                button_state,
+                rect,
+                ..
             } = event
             {
-                if button_state == MouseButtonState::Up {
+                if should_toggle_on_tray_click(button, button_state) {
                     toggle_panel_at_tray_icon(app_handle, rect.position, rect.size);
                 }
             }
@@ -222,4 +230,34 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
         .build(app_handle)?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::should_toggle_on_tray_click;
+    use tauri::tray::{MouseButton, MouseButtonState};
+
+    #[test]
+    fn only_left_button_release_toggles_panel() {
+        assert!(should_toggle_on_tray_click(
+            MouseButton::Left,
+            MouseButtonState::Up
+        ));
+        assert!(!should_toggle_on_tray_click(
+            MouseButton::Left,
+            MouseButtonState::Down
+        ));
+        assert!(!should_toggle_on_tray_click(
+            MouseButton::Right,
+            MouseButtonState::Up
+        ));
+        assert!(!should_toggle_on_tray_click(
+            MouseButton::Right,
+            MouseButtonState::Down
+        ));
+        assert!(!should_toggle_on_tray_click(
+            MouseButton::Middle,
+            MouseButtonState::Up
+        ));
+    }
 }
