@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0033
 title: Bump version and publish GitHub release v0.6.26
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: release
 bug_id: BUG-004
 plan_id: null
 created_at: "2026-10-15T10:55:01+08:00"
-updated_at: "2026-10-15T10:56:18+08:00"
-started_at: null
+updated_at: "2026-10-15T10:57:24+08:00"
+started_at: "2026-10-15T10:57:24+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -77,4 +77,35 @@ affects_files:
 
 ## 回報區
 
-（Worker 填寫：狀態、bump commit SHA、tag、Publish run ID / 結果、release URL、assets 清單、發行說明全文、阻塞）
+### 落點檢查
+
+- 結果：WARN（C-0 不可用）
+- C-0：frontmatter `repo` = absent；`basename(REPO_ROOT)` = `openusage` → WARN「repo identity unavailable」
+- C-1：PASS（工單位於 `D:/ForgejoGit/@GitHub_Clone/openusage/_ct-workorders/`）
+- C-3：PASS（4/4 `affects_files` 存在）
+- C-2：工單無 `branch` 欄位，不適用；HEAD = `main`
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅記錄）
+
+### 前置條件
+
+- PASS：T0032 `status: DONE`，commit `2717631` 在本地 `main`
+- PASS：`git status` 只有 `_ct-workorders/_tower-state.md`（塔台私有檔）
+- PASS：`git fetch origin` 後 `main...origin/main` = ahead 3 / behind 0
+- PASS：`git ls-remote --tags origin v0.6.26` 為空
+
+### 版本 bump
+
+- `package.json` / `src-tauri/Cargo.toml` / `src-tauri/tauri.conf.json`：`0.6.25` → `0.6.26`
+- `src-tauri/Cargo.lock`：`cargo update -p openusage --offline`（`openusage v0.6.25 -> v0.6.26`）
+- README：`git diff v0.6.25..HEAD` 無 `plugins/`、`README.md`、`plugin_engine` 改動 → 不需更新
+
+### 驗證
+
+- PASS：`cargo fmt --check`
+- PASS：`cargo test --lib`：110 passed, 0 failed（VsDevCmd x64 + `LIBCLANG_PATH=...\VC\Tools\Llvmdin`；未設時 `rquickjs-sys` build 報 `Unable to find libclang`）
+- PASS：`bun run build`（僅 chunk > 500 kB 既有警告）
+
+### Release
+
+（待 push / tag / Publish 後補）
+
