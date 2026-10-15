@@ -1,62 +1,50 @@
 # OpenCode Go
 
-> Uses local OpenCode history from SQLite to track observed OpenCode Go spend on this machine.
+> Reads OpenCode Go plan usage from OpenCode's official usage API (account-wide, same numbers as the OpenCode dashboard).
 
 ## Overview
 
-- **Source of truth:** `~/.local/share/opencode/opencode.db`
-- **Auth discovery:** `~/.local/share/opencode/auth.json`
+- **Source of truth:** `GET https://opencode.ai/zen/go/v1/usage`
+- **Auth:** `opencode-go` API key from `~/.local/share/opencode/auth.json`, sent as `Authorization: Bearer <key>`
+  - Windows: `%USERPROFILE%\.local\share\opencode\auth.json` (per [OpenCode troubleshooting docs](https://opencode.ai/docs/troubleshooting))
 - **Provider ID:** `opencode-go`
-- **Usage scope:** local observed assistant spend only
+- **Usage scope:** account-wide (includes usage from other machines)
 
 ## Detection
 
-The plugin enables when either condition is true:
+The plugin needs `auth.json` with an `opencode-go` entry holding a non-empty `key`. Without it the probe shows: `OpenCode Go not detected. Log in with OpenCode Go first.`
 
-- `~/.local/share/opencode/auth.json` contains an `opencode-go` entry with a non-empty `key`
-- local OpenCode history already contains `opencode-go` assistant messages with numeric `cost`
+## Response
 
-If neither signal exists, the plugin stays hidden.
-
-## Data Source
-
-OpenUsage reads the local OpenCode SQLite database directly:
-
-```sql
-SELECT
-  CAST(COALESCE(json_extract(data, '$.time.created'), time_created) AS INTEGER) AS createdMs,
-  CAST(json_extract(data, '$.cost') AS REAL) AS cost
-FROM message
-WHERE json_valid(data)
-  AND json_extract(data, '$.providerID') = 'opencode-go'
-  AND json_extract(data, '$.role') = 'assistant'
-  AND json_type(data, '$.cost') IN ('integer', 'real')
+```json
+{
+  "usage": {
+    "rolling": { "status": "ok", "percent": 12, "resetsAt": "2026-07-12T13:30:00.662Z" },
+    "weekly":  { "status": "ok", "percent": 8,  "resetsAt": "2026-07-13T00:00:00.662Z" },
+    "monthly": { "status": "rate-limited", "percent": 100, "resetsAt": "2026-08-04T11:18:32.662Z" }
+  }
+}
 ```
 
-Only assistant messages with numeric `cost` count. Missing remote or other-device usage is not estimated.
+| Line | Field | Period |
+|---|---|---|
+| Session | `usage.rolling` | rolling 5h |
+| Weekly | `usage.weekly` | 7 days |
+| Monthly | `usage.monthly` | billing cycle (~30 days) |
 
-## Limits
+`percent` is shown as a 0–100 percent bar; `resetsAt` drives the reset countdown.
 
-OpenUsage uses the current published OpenCode Go plan limits from the official docs:
+While the rolling window has no usage, the API answers `resetsAt = now + 5h` on every request. A 0% Session whose reset sits within 2s of exactly 5h from the response `Date` header (local clock if missing) is treated as that placeholder and shows no countdown.
 
-- `5h`: `$12`
-- `Weekly`: `$30`
-- `Monthly`: `$60`
+## Errors
 
-Bars show observed local spend as a percentage of those fixed limits and clamp at `100%`.
+- `401` → `OpenCode Go key was rejected. Log into OpenCode Go again.`
+- `403` with `error.type = "EntitlementError"` → `No OpenCode Go subscription on this key.`
+- other non-2xx → `Request failed (HTTP <status>). Try again later.`
+- unreadable / invalid `auth.json` → explicit error (not treated as logged out)
 
-## Window Rules
+## Not supported
 
-- `5h`: rolling last 5 hours from now
-- `Weekly`: UTC Monday `00:00` through the next UTC Monday `00:00`
-- `Monthly`: inferred subscription-style monthly window using the earliest local OpenCode Go usage timestamp as the anchor
-
-Monthly usage is inferred from local history, not read from OpenCode’s account API. OpenUsage reuses the earliest observed local OpenCode Go usage timestamp as the monthly anchor. If no local history exists yet, it falls back to UTC calendar month boundaries until the first Go usage is recorded.
-
-## Failure Behavior
-
-If auth or prior history already indicates OpenCode Go is in use, but SQLite becomes unreadable or malformed, the provider stays visible and shows a grey `Status: No usage data` badge instead of failing hard.
-
-## Future Compatibility
-
-The public provider identity stays `opencode-go`. If OpenCode later exposes account-truth usage by API key, OpenUsage can swap the backend without changing the provider ID or UI contract.
+- OpenCode 2 `credential` table in `opencode*.db` (key stored in SQLite instead of `auth.json`).
+- `OPENCODE_DATA_DIR` / `XDG_DATA_HOME` overrides (not in the host env whitelist).
+- Local spend tiles (Zen / Go dollars from SQLite logs).

@@ -39,7 +39,7 @@ OpenUsage lives in your menu bar and shows you how much of your AI coding subscr
 - [**Kiro**](docs/providers/kiro.md) / credits, bonus credits, overages
 - [**Kimi Code**](docs/providers/kimi.md) / session, weekly
 - [**MiniMax**](docs/providers/minimax.md) / coding plan session
-- [**OpenCode Go**](docs/providers/opencode-go.md) / 5h, weekly, monthly spend limits
+- [**OpenCode Go**](docs/providers/opencode-go.md) / session, weekly, monthly usage
 - [**Perplexity**](docs/providers/perplexity.md) / API credits, queries, Deep Research, Labs, Agentic Research (macOS app only; not supported on Windows)
 - [**Synthetic**](docs/providers/synthetic.md) / 5h rate limit, mana bar, subscription, free tool calls, search
 - [**Devin**](docs/providers/devin.md) / weekly quota, extra usage (Windows: Devin CLI login only)

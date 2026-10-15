@@ -3,6 +3,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeCtx } from "../test-helpers.js";
 
 const AUTH_PATH = "~/.local/share/opencode/auth.json";
+const USAGE_URL = "https://opencode.ai/zen/go/v1/usage";
+const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
+
+// Upstream fixture: Tests/OpenUsageTests/OpenCodeUsageMapperTests.swift (sampleBody).
+const SAMPLE_BODY = {
+  usage: {
+    rolling: {
+      status: "ok",
+      percent: 12,
+      resetsAt: "2026-07-12T13:30:00.662Z",
+    },
+    weekly: { status: "ok", percent: 8, resetsAt: "2026-07-13T00:00:00.662Z" },
+    monthly: {
+      status: "rate-limited",
+      percent: 100,
+      resetsAt: "2026-08-04T11:18:32.662Z",
+    },
+  },
+};
 
 const loadPlugin = async () => {
   await import("./plugin.js");
@@ -13,48 +32,37 @@ function setAuth(ctx, value = "go-key") {
   ctx.host.fs.writeText(
     AUTH_PATH,
     JSON.stringify({
-      "opencode-go": { type: "api-key", key: value },
+      openai: { type: "oauth", access: "other-provider" },
+      "opencode-go": { type: "api", key: value },
     }),
   );
 }
 
-function setHistoryQuery(ctx, rows, options = {}) {
-  const list = Array.isArray(rows) ? rows : [];
-  ctx.host.sqlite.query.mockImplementation((dbPath, sql) => {
-    expect(dbPath).toBe("~/.local/share/opencode/opencode.db");
-
-    if (String(sql).includes("SELECT 1 AS present")) {
-      if (options.assertFilters !== false) {
-        expect(String(sql)).toContain(
-          "json_extract(data, '$.providerID') = 'opencode-go'",
-        );
-        expect(String(sql)).toContain(
-          "json_extract(data, '$.role') = 'assistant'",
-        );
-        expect(String(sql)).toContain(
-          "json_type(data, '$.cost') IN ('integer', 'real')",
-        );
-      }
-      return JSON.stringify(list.length > 0 ? [{ present: 1 }] : []);
-    }
-
-    if (options.assertFilters !== false) {
-      expect(String(sql)).toContain(
-        "json_extract(data, '$.providerID') = 'opencode-go'",
-      );
-      expect(String(sql)).toContain(
-        "json_extract(data, '$.role') = 'assistant'",
-      );
-      expect(String(sql)).toContain(
-        "json_type(data, '$.cost') IN ('integer', 'real')",
-      );
-      expect(String(sql)).toContain(
-        "COALESCE(json_extract(data, '$.time.created'), time_created)",
-      );
-    }
-
-    return JSON.stringify(list);
+function setResponse(ctx, status, body, headers = {}) {
+  ctx.host.http.request.mockReturnValue({
+    status,
+    headers,
+    bodyText: typeof body === "string" ? body : JSON.stringify(body),
   });
+}
+
+function bodyAt(capturedMs, rollingPercent, rollingResetMs) {
+  return {
+    usage: {
+      rolling: {
+        percent: rollingPercent,
+        resetsAt: new Date(rollingResetMs).toISOString(),
+      },
+      weekly: {
+        percent: 1,
+        resetsAt: new Date(capturedMs + 3 * 86400000).toISOString(),
+      },
+      monthly: {
+        percent: 0,
+        resetsAt: new Date(capturedMs + 20 * 86400000).toISOString(),
+      },
+    },
+  };
 }
 
 describe("opencode-go plugin", () => {
@@ -87,180 +95,197 @@ describe("opencode-go plugin", () => {
     ]);
   });
 
-  it("throws when neither auth nor local history is present", async () => {
+  it("throws when auth.json is missing", async () => {
     const ctx = makeCtx();
-    setHistoryQuery(ctx, []);
+    const plugin = await loadPlugin();
+    expect(() => plugin.probe(ctx)).toThrow("OpenCode Go not detected");
+    expect(ctx.host.http.request).not.toHaveBeenCalled();
+  });
+
+  it("throws when auth.json has no opencode-go key", async () => {
+    const ctx = makeCtx();
+    ctx.host.fs.writeText(AUTH_PATH, JSON.stringify({ openai: { key: "x" } }));
+    const plugin = await loadPlugin();
+    expect(() => plugin.probe(ctx)).toThrow("OpenCode Go not detected");
+    expect(ctx.host.http.request).not.toHaveBeenCalled();
+  });
+
+  it("fails loud when auth.json is not valid json", async () => {
+    const ctx = makeCtx();
+    ctx.host.fs.writeText(AUTH_PATH, "{not json");
+    const plugin = await loadPlugin();
+    expect(() => plugin.probe(ctx)).toThrow("not valid JSON");
+  });
+
+  it("calls the official usage API with the Go key as bearer", async () => {
+    const ctx = makeCtx();
+    setAuth(ctx, "  go-secret-key  ");
+    setResponse(ctx, 200, SAMPLE_BODY);
 
     const plugin = await loadPlugin();
+    plugin.probe(ctx);
+
+    const req = ctx.host.http.request.mock.calls[0][0];
+    expect(req.method).toBe("GET");
+    expect(req.url).toBe(USAGE_URL);
+    expect(req.headers.Authorization).toBe("Bearer go-secret-key");
+    expect(req.headers.Accept).toBe("application/json");
+  });
+
+  it("maps dashboard percents and resets to Session / Weekly / Monthly", async () => {
+    const ctx = makeCtx();
+    setAuth(ctx);
+    setResponse(ctx, 200, SAMPLE_BODY);
+
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+
+    expect(result.plan).toBe("Go");
+    expect(result.lines).toEqual([
+      {
+        type: "progress",
+        label: "Session",
+        used: 12,
+        limit: 100,
+        format: { kind: "percent" },
+        resetsAt: "2026-07-12T13:30:00.662Z",
+        periodDurationMs: FIVE_HOURS_MS,
+      },
+      {
+        type: "progress",
+        label: "Weekly",
+        used: 8,
+        limit: 100,
+        format: { kind: "percent" },
+        resetsAt: "2026-07-13T00:00:00.662Z",
+        periodDurationMs: 7 * 24 * 60 * 60 * 1000,
+      },
+      {
+        type: "progress",
+        label: "Monthly",
+        used: 100,
+        limit: 100,
+        format: { kind: "percent" },
+        resetsAt: "2026-08-04T11:18:32.662Z",
+        periodDurationMs: 30 * 24 * 60 * 60 * 1000,
+      },
+    ]);
+  });
+
+  it("clamps percents to 0..100", async () => {
+    const ctx = makeCtx();
+    setAuth(ctx);
+    const body = JSON.parse(JSON.stringify(SAMPLE_BODY));
+    body.usage.rolling.percent = 140;
+    body.usage.weekly.percent = -5;
+    setResponse(ctx, 200, body);
+
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+    expect(result.lines[0].used).toBe(100);
+    expect(result.lines[1].used).toBe(0);
+  });
+
+  it("drops the untouched rolling window placeholder reset", async () => {
+    const capturedMs = Date.parse("2027-01-15T08:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(capturedMs);
+    const ctx = makeCtx();
+    setAuth(ctx);
+    setResponse(ctx, 200, bodyAt(capturedMs, 0, capturedMs + FIVE_HOURS_MS + 800));
+
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+    expect(result.lines[0].used).toBe(0);
+    expect(result.lines[0].resetsAt).toBeUndefined();
+    expect(result.lines[1].resetsAt).toBeDefined();
+  });
+
+  it("keeps the reset for a sub-1% session that already started", async () => {
+    const capturedMs = Date.parse("2027-01-15T08:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(capturedMs);
+    const ctx = makeCtx();
+    setAuth(ctx);
+    const anchored = capturedMs + FIVE_HOURS_MS - 30000;
+    setResponse(ctx, 200, bodyAt(capturedMs, 0, anchored));
+
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+    expect(result.lines[0].resetsAt).toBe(new Date(anchored).toISOString());
+  });
+
+  it("uses the HTTP Date header over a skewed local clock", async () => {
+    const serverMs = Date.parse("2027-01-15T08:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(serverMs + 2 * 60 * 1000);
+    const ctx = makeCtx();
+    setAuth(ctx);
+    setResponse(ctx, 200, bodyAt(serverMs, 0, serverMs + FIVE_HOURS_MS + 500), {
+      date: "Fri, 15 Jan 2027 08:00:00 GMT",
+    });
+
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+    expect(result.lines[0].resetsAt).toBeUndefined();
+  });
+
+  it("reports a rejected key on 401", async () => {
+    const ctx = makeCtx();
+    setAuth(ctx);
+    setResponse(ctx, 401, {
+      type: "error",
+      error: { type: "AuthError", message: "bad key" },
+    });
+    const plugin = await loadPlugin();
+    expect(() => plugin.probe(ctx)).toThrow("OpenCode Go key was rejected");
+  });
+
+  it("reports no subscription on 403 EntitlementError", async () => {
+    const ctx = makeCtx();
+    setAuth(ctx);
+    setResponse(ctx, 403, {
+      type: "error",
+      error: { type: "EntitlementError", message: "no go" },
+    });
+    const plugin = await loadPlugin();
     expect(() => plugin.probe(ctx)).toThrow(
-      "OpenCode Go not detected. Log in with OpenCode Go or use it locally first.",
+      "No OpenCode Go subscription on this key.",
     );
   });
 
-  it("enables with auth only and returns zeroed bars", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
+  it("reports HTTP status on other failures", async () => {
     const ctx = makeCtx();
     setAuth(ctx);
-    setHistoryQuery(ctx, []);
-
+    setResponse(ctx, 403, "<html>cloudflare</html>");
     const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-
-    expect(result.plan).toBe("Go");
-    expect(result.lines.map((line) => line.label)).toEqual([
-      "Session",
-      "Weekly",
-      "Monthly",
-    ]);
-    expect(result.lines.every((line) => line.used === 0)).toBe(true);
-    expect(result.lines[0].resetsAt).toBe("2026-03-06T17:00:00.000Z");
-    expect(result.lines[1].resetsAt).toBe("2026-03-09T00:00:00.000Z");
-    expect(result.lines[2].resetsAt).toBe("2026-04-01T00:00:00.000Z");
+    expect(() => plugin.probe(ctx)).toThrow("Request failed (HTTP 403)");
   });
 
-  it("enables with history only when auth is absent", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
-    const ctx = makeCtx();
-    setHistoryQuery(ctx, [
-      { createdMs: Date.parse("2026-03-06T11:00:00.000Z"), cost: 3 },
-    ]);
-
-    const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-
-    expect(result.plan).toBe("Go");
-    expect(result.lines[0].used).toBe(25);
-  });
-
-  it("uses row timestamp fallback when JSON timestamp is missing", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
-    const ctx = makeCtx();
-    setHistoryQuery(ctx, [
-      { createdMs: Date.parse("2026-03-06T09:30:00.000Z"), cost: 1.2 },
-    ]);
-
-    const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-
-    expect(result.lines[0].used).toBe(10);
-    expect(result.lines[0].resetsAt).toBe("2026-03-06T14:30:00.000Z");
-  });
-
-  it("counts only the rolling 5h window", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
-    const ctx = makeCtx();
-    setHistoryQuery(ctx, [
-      { createdMs: Date.parse("2026-03-06T06:30:00.000Z"), cost: 9 },
-      { createdMs: Date.parse("2026-03-06T08:00:00.000Z"), cost: 2.4 },
-      { createdMs: Date.parse("2026-03-06T10:00:00.000Z"), cost: 1.2 },
-    ]);
-
-    const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-
-    expect(result.lines[0].used).toBe(30);
-    expect(result.lines[0].resetsAt).toBe("2026-03-06T13:00:00.000Z");
-  });
-
-  it("uses UTC Monday boundaries for weekly aggregation", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
-    const ctx = makeCtx();
-    setHistoryQuery(ctx, [
-      { createdMs: Date.parse("2026-03-01T23:59:59.000Z"), cost: 10 },
-      { createdMs: Date.parse("2026-03-02T00:00:00.000Z"), cost: 6 },
-      { createdMs: Date.parse("2026-03-05T09:00:00.000Z"), cost: 3 },
-    ]);
-
-    const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-    const weeklyLine = result.lines.find((line) => line.label === "Weekly");
-
-    expect(weeklyLine.used).toBe(30);
-    expect(weeklyLine.resetsAt).toBe("2026-03-09T00:00:00.000Z");
-  });
-
-  it("uses the earliest local usage timestamp as the monthly anchor", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
-    const ctx = makeCtx();
-    setHistoryQuery(ctx, [
-      { createdMs: Date.parse("2026-02-25T07:53:16.000Z"), cost: 2.181 },
-      { createdMs: Date.parse("2026-03-01T00:00:00.000Z"), cost: 0.2 },
-      { createdMs: Date.parse("2026-03-04T12:00:00.000Z"), cost: 0.2904 },
-    ]);
-
-    const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-    const monthlyLine = result.lines.find((line) => line.label === "Monthly");
-
-    expect(monthlyLine.used).toBe(4.5);
-    expect(monthlyLine.resetsAt).toBe("2026-03-25T07:53:16.000Z");
-    expect(monthlyLine.periodDurationMs).toBe(28 * 24 * 60 * 60 * 1000);
-  });
-
-  it("clamps percentages at 100", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-06T12:00:00.000Z"));
-
-    const ctx = makeCtx();
-    setHistoryQuery(ctx, [
-      { createdMs: Date.parse("2026-03-06T11:00:00.000Z"), cost: 40 },
-    ]);
-
-    const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-
-    expect(result.lines[0].used).toBe(100);
-  });
-
-  it("returns a soft empty state when sqlite is unreadable but auth exists", async () => {
+  it("reports connection failures", async () => {
     const ctx = makeCtx();
     setAuth(ctx);
-    ctx.host.sqlite.query.mockImplementation(() => {
-      throw new Error("disk I/O error");
+    ctx.host.http.request.mockImplementation(() => {
+      throw new Error("network down");
     });
-
     const plugin = await loadPlugin();
-    expect(plugin.probe(ctx)).toEqual({
-      plan: "Go",
-      lines: [
-        {
-          type: "badge",
-          label: "Status",
-          text: "No usage data",
-          color: "#a3a3a3",
-        },
-      ],
-    });
+    expect(() => plugin.probe(ctx)).toThrow("Request failed. Check your connection.");
   });
 
-  it("returns a soft empty state when sqlite returns malformed JSON and auth exists", async () => {
+  it("throws on a malformed usage body", async () => {
     const ctx = makeCtx();
     setAuth(ctx);
-    ctx.host.sqlite.query.mockReturnValue("not-json");
-
+    setResponse(ctx, 200, { usage: { rolling: { percent: 1 } } });
     const plugin = await loadPlugin();
-    expect(plugin.probe(ctx)).toEqual({
-      plan: "Go",
-      lines: [
-        {
-          type: "badge",
-          label: "Status",
-          text: "No usage data",
-          color: "#a3a3a3",
-        },
-      ],
-    });
+    expect(() => plugin.probe(ctx)).toThrow("Could not parse usage data.");
+  });
+
+  it("no longer reads local sqlite history", async () => {
+    const ctx = makeCtx();
+    setAuth(ctx);
+    setResponse(ctx, 200, SAMPLE_BODY);
+    const plugin = await loadPlugin();
+    plugin.probe(ctx);
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled();
   });
 });
