@@ -286,6 +286,14 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("radio", { name: "Weekly" })).toBeInTheDocument()
   })
 
+  it("renders the menubar metric control in Traditional Chinese", () => {
+    render(<SettingsPage {...defaultProps} language="zh-TW" />)
+    expect(screen.getByText("指標")).toBeInTheDocument()
+    expect(screen.getByRole("radiogroup", { name: "選單列指標" })).toBeInTheDocument()
+    expect(screen.getByRole("radio", { name: "預設" })).toBeInTheDocument()
+    expect(screen.getByRole("radio", { name: "每週" })).toBeInTheDocument()
+  })
+
   it("clicking Weekly triggers onMenubarMetricChange(\"weekly\")", async () => {
     const onMenubarMetricChange = vi.fn()
     render(

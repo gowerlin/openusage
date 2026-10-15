@@ -76,6 +76,11 @@ const TIME_FORMAT_LABEL_KEYS = {
   "24h": "settings.timeFormat.option.24h",
 } as const satisfies Record<TimeFormatMode, I18nKey>;
 
+const MENUBAR_METRIC_LABEL_KEYS = {
+  default: "settings.menubarMetric.option.default",
+  weekly: "settings.menubarMetric.option.weekly",
+} as const satisfies Record<MenubarMetric, I18nKey>;
+
 const MENUBAR_ICON_LABEL_KEYS = {
   provider: "settings.menubarIcon.option.provider",
   donut: "settings.menubarIcon.option.donut",
@@ -537,9 +542,9 @@ export function SettingsPage({
             })}
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-3 mb-2">Metric</p>
+        <p className="text-sm text-muted-foreground mt-3 mb-2">{t("settings.menubarMetric.title")}</p>
         <div className="bg-muted/50 rounded-lg p-1">
-          <div className="flex gap-1" role="radiogroup" aria-label="Menubar metric">
+          <div className="flex gap-1" role="radiogroup" aria-label={t("settings.menubarMetric.ariaLabel")}>
             {MENUBAR_METRIC_OPTIONS.map((option) => {
               const isActive = option.value === menubarMetric;
               return (
@@ -547,14 +552,14 @@ export function SettingsPage({
                   key={option.value}
                   type="button"
                   role="radio"
-                  aria-label={option.label}
+                  aria-label={t(MENUBAR_METRIC_LABEL_KEYS[option.value])}
                   aria-checked={isActive}
                   variant={isActive ? "default" : "outline"}
                   size="sm"
                   className="flex-1"
                   onClick={() => onMenubarMetricChange(option.value)}
                 >
-                  {option.label}
+                  {t(MENUBAR_METRIC_LABEL_KEYS[option.value])}
                 </Button>
               );
             })}

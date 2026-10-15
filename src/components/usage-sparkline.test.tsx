@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import userEvent from "@testing-library/user-event"
 import { ProviderCard } from "@/components/provider-card"
 import { UsageSparkline } from "@/components/usage-sparkline"
+import { useAppPreferencesStore } from "@/stores/app-preferences-store"
 
 const POINTS = [
   { label: "5/16", value: 100, valueLabel: "100 tokens" },
@@ -47,6 +48,26 @@ describe("UsageSparkline", () => {
 
     fireEvent.blur(dayBar)
     expect(await screen.findByText("peak 500 tokens")).toBeInTheDocument()
+  })
+
+  it("translates the label and summary for Traditional Chinese", async () => {
+    useAppPreferencesStore.setState({ language: "zh-TW" })
+    try {
+      const user = userEvent.setup()
+      render(
+        <ProviderCard
+          name="Chart"
+          displayMode="used"
+          lines={[{ type: "barChart", label: "Usage Trend", points: POINTS }]}
+        />
+      )
+      const sparkline = screen.getByRole("button", { name: /用量趨勢/ })
+      expect(sparkline).toHaveAccessibleName("用量趨勢：3 天，最近 50 tokens（6/2），峰值 500 tokens。")
+      await user.hover(sparkline)
+      expect(await screen.findByText("峰值 500 tokens")).toBeInTheDocument()
+    } finally {
+      useAppPreferencesStore.setState({ language: "en" })
+    }
   })
 
   it("returns nothing when there are no valid points", () => {

@@ -42,6 +42,16 @@ describe("i18n", () => {
     expect(translateDisplayLabel("zh-TW", "Provider-specific label")).toBe("Provider-specific label")
   })
 
+  it("translates labels and settings merged from upstream tauri-legacy", () => {
+    expect(translateDisplayLabel("zh-TW", "Usage Trend")).toBe("用量趨勢")
+    expect(translateDisplayLabel("zh-TW", "Rate Limit Resets")).toBe("速率限制重置")
+    expect(translateDisplayLabel("zh-TW", "Weekly quota")).toBe("每週配額")
+    expect(translateDisplayLabel("zh-TW", "Daily quota")).toBe("每日配額")
+    expect(translateDisplayLabel("zh-TW", "Extra usage balance")).toBe("額外用量餘額")
+    expect(t("zh-TW", "settings.menubarMetric.title")).toBe("指標")
+    expect(t("zh-TW", "settings.menubarMetric.option.weekly")).toBe("每週")
+  })
+
   it("fails loud for unsupported locales or missing keys", () => {
     expect(() => t("fr" as Locale, "settings.language.title")).toThrow(
       "Unsupported locale: fr"

@@ -8,6 +8,7 @@ import { getTrayIconSizePx, renderTrayBarsIcon } from "@/lib/tray-bars-icon"
 import { getTrayPrimaryBars, type TrayPrimaryBar } from "@/lib/tray-primary-progress"
 import { formatTrayPercentText, formatTrayTooltip } from "@/lib/tray-tooltip"
 import type { PluginState } from "@/hooks/app/types"
+import { useAppPreferencesStore } from "@/stores/app-preferences-store"
 
 type TrayUpdateReason = "probe" | "settings" | "init"
 
@@ -264,7 +265,12 @@ export function useTrayIcon({
         displayMode: displayModeRef.current,
         preferWeekly,
       })
-      const tooltip = formatTrayTooltip(tooltipBars, pluginsMetaRef.current, preferWeekly)
+      const tooltip = formatTrayTooltip(
+        tooltipBars,
+        pluginsMetaRef.current,
+        preferWeekly,
+        useAppPreferencesStore.getState().language
+      )
       const updateTooltip = () => setTrayTooltip(tooltip)
 
       if (style === "bars") {

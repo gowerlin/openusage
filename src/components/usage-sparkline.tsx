@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useI18n } from "@/hooks/use-i18n"
 import { cn, clamp01, formatCountNumber } from "@/lib/utils"
 import type { BarChartPoint } from "@/lib/plugin-types"
 
@@ -12,22 +13,34 @@ type UsageSparklineProps = {
 
 const pointLabel = (point: BarChartPoint) => point.valueLabel ?? formatCountNumber(point.value)
 
+const fill = (template: string, values: Record<string, string | number>) =>
+  template.replace(/\{(\w+)\}/g, (match, key: string) => String(values[key] ?? match))
+
 // Inline, glanceable usage history that matches the card's row rhythm.
 // Hover/focus reveals a larger, readable graph (detail-on-demand); hovering a
 // day's bar in that graph shows exactly how much was used that day.
 export function UsageSparkline({ label, points, note, color }: UsageSparklineProps) {
   const valid = points.filter((point) => Number.isFinite(point.value) && point.value >= 0)
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const { t } = useI18n()
   if (valid.length === 0) return null
 
   const maxValue = Math.max(1, ...valid.map((point) => point.value))
   const peak = valid.reduce((a, b) => (b.value > a.value ? b : a))
   const last = valid[valid.length - 1]
-  const summary = `${label}: ${valid.length} days, latest ${pointLabel(last)} on ${last.label}, peak ${pointLabel(peak)}.${note ? ` ${note}` : ""}`
+  const summary = `${fill(t("usageSparkline.summary"), {
+    label,
+    days: valid.length,
+    latest: pointLabel(last),
+    date: last.label,
+    peak: pointLabel(peak),
+  })}${note ? ` ${note}` : ""}`
 
   // Default readout = peak; hovering a bar shows that specific day.
   const active = activeIndex != null ? valid[activeIndex] : null
-  const readout = active ? `${active.label} · ${pointLabel(active)}` : `peak ${pointLabel(peak)}`
+  const readout = active
+    ? `${active.label} · ${pointLabel(active)}`
+    : fill(t("usageSparkline.peak"), { value: pointLabel(peak) })
 
   const barStyle = (point: BarChartPoint, minPercent: number): CSSProperties => {
     const ratio = clamp01(point.value / maxValue)

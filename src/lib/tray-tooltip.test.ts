@@ -81,6 +81,17 @@ describe("tray-tooltip", () => {
       expect(tooltip).toBe("OpenUsage\nPlugin 1: 42% · Weekly\nPlugin 2: 30% · Premium")
     })
 
+    it("translates weekly tags for the given locale", () => {
+      const bars: TrayPrimaryBar[] = [
+        { id: "p1", fraction: 0.42, label: "Weekly", weekly: true },
+        { id: "p2", fraction: 0.3, label: "Provider-specific label" },
+      ]
+      const tooltip = formatTrayTooltip(bars, mockMeta, true, "zh-TW")
+      expect(tooltip).toBe(
+        "OpenUsage\nPlugin 1: 42% · 每週\nPlugin 2: 30% · Provider-specific label"
+      )
+    })
+
     it("does not tag lines when weekly mode is off", () => {
       const bars: TrayPrimaryBar[] = [
         { id: "p1", fraction: 0.42, label: "Weekly", weekly: true },

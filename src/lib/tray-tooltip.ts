@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, translateDisplayLabel, type Locale } from "@/lib/i18n"
 import type { PluginMeta } from "@/lib/plugin-types"
 import type { TrayPrimaryBar } from "@/lib/tray-primary-progress"
 
@@ -21,7 +22,8 @@ export function formatTrayPercentText(fraction: number | undefined): string {
 export function formatTrayTooltip(
   bars: TrayPrimaryBar[],
   pluginsMeta: PluginMeta[],
-  weeklyMode = false
+  weeklyMode = false,
+  locale: Locale = DEFAULT_LOCALE
 ): string {
   const lines = ["OpenUsage"]
   if (bars.length === 0) return lines[0]!
@@ -36,7 +38,7 @@ export function formatTrayTooltip(
     if (!meta) continue
     const percent = formatTrayPercentText(bar.fraction)
     if (showTags && bar.label) {
-      lines.push(`${meta.name}: ${percent} · ${bar.label}`)
+      lines.push(`${meta.name}: ${percent} · ${translateDisplayLabel(locale, bar.label)}`)
     } else {
       lines.push(`${meta.name}: ${percent}`)
     }
