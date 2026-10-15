@@ -7,7 +7,7 @@ status: IN_PROGRESS
 priority: High
 plan_type: maintenance
 created_at: "2026-10-15T12:10:18+08:00"
-updated_at: "2026-10-15T12:37:10+08:00"
+updated_at: "2026-10-15T12:39:32+08:00"
 completed_at: null
 affects_files: []
 depends_on: []
@@ -43,4 +43,6 @@ depends_on: []
 ## 進度
 
 - T0037：DONE（`ec2d6491`）。報告 `_report-T0037-upstream-sync.md`：推薦方案 A；使用者決定保留 Gemini、版號 `0.6.29`。
+- 使用者核准方案 A（D071）：T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`；v0.7.x 移植延後。
+- Tag 防護：`remote.upstream.tagOpt --no-tags`；本機上游專屬 tag 已刪（63 個）。
 - 註：上方預查衝突清單漏列 `src/lib/settings.test.ts`，以報告 §2 為準。
