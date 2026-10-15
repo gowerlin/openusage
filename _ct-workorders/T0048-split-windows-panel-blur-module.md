@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0048
 title: Refactor - move Windows panel blur logic out of panel.rs
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: refactor
 bug_id: null
 plan_id: PLAN-004
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T14:19:04+08:00"
+updated_at: "2026-10-15T14:22:33+08:00"
 started_at: "2026-10-15T14:19:04+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T14:22:33+08:00"
+commit: 02a94c74
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -84,7 +84,7 @@ DONE。Windows blur-hide 邏輯搬到 `src-tauri/src/panel_blur.rs`，純搬移�
 | commit | 內容 |
 |---|---|
 | `84a814e8` | `fix: shorten usage history runner hint (T0048)` |
-| （本 commit） | `refactor(windows): move panel blur logic to panel_blur.rs (T0048)` |
+| `02a94c74` | `refactor(windows): move panel blur logic to panel_blur.rs (T0048)` |
 
 ### 改動
 
