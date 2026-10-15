@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 11:41 (UTC+8)
+> 最後更新：2026-10-15 11:44 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.26` 已發行（Publish run `38675818087` success，tag `v0.6.26` → `30904bd`）；NSIS installer、`.sig`、`latest.json`（version `0.6.26`，URL 指向 fork）與繁中發行重點說明已驗證。
@@ -112,7 +112,7 @@
 | 工單 | T0033 |
 | BUG | BUG-004 |
 | PLAN | PLAN-003 |
-| 決策 | D059 |
+| 決策 | D060 |
 
 ---
 
@@ -203,6 +203,7 @@
 - D057：接受 T0032 DONE（`2717631`）；接受依賴鎖 `~2.4.5` 的偏離（避免 tauri 2.12 連帶升級）；BUG-004 FIXED，macOS/Linux runtime 未驗；依 D056 派發 T0033。
 - D058：接受 T0033 DONE；`v0.6.26` 發行經塔台以 `gh -R gowerlin/openusage` 獨立複驗。教訓：本機 `gh` 預設 repo 為上游 `robinebers/openusage`，release 相關指令一律加 `-R gowerlin/openusage`（塔台先前誤把上游 `v0.6.25` notes 當成 fork 格式）。
 - D059：使用者安裝 `v0.6.26` 實測確認 single-instance 正常；BUG-004 CLOSED。
+- D060：執行 `*archive`（archive_days 預設 7）；T0001–T0031、BUG-001~003、PLAN-001~003 共 37 張 `git mv` 到 `_archive/`。進度快照中的歷史列視為紀錄而非活躍引用，不套用豁免；T0032/T0033/BUG-004 未滿 7 天保留熱區。
 
 ---
 
@@ -237,7 +238,7 @@
 | ct-insights | ✅ | 已安裝 |
 | ct-fieldguide | ✅ | 已安裝 |
 | ct-help | ✅ | 已安裝 |
-| _archive/ | 📋 | 未建立；熱區 31 張 DONE 工單，建議 `*archive` |
+| _archive/ | ✅ | 2026-10-15 歸檔 37 張（workorders 31 / bugs 3 / plans 3）；熱區剩 T0032、T0033、BUG-004 |
 | _playbooks/ | 📋 | 未建立 |
 | _decision-log | 🆕 | 可建立 |
 | 跨專案參照 | 📋 | 無關聯 |
