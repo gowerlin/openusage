@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-005
 title: In-app changelog reads upstream releases instead of fork
-status: FIXED
+status: CLOSED
 severity: Medium
 created_at: "2026-10-15T11:48:01+08:00"
-updated_at: "2026-10-15T12:04:57+08:00"
+updated_at: "2026-10-15T12:24:49+08:00"
 related_workorder: T0034, T0035
 affects_files:
   - src/hooks/use-changelog.ts
@@ -42,9 +42,9 @@ depends_on: []
 - [x] Changelog dialog 的 PR / commit / Releases 連結指向 `gowerlin/openusage`。（T0034）
 - [x] About dialog 署名 / GitHub 連結、side-nav Help 連結改指向 fork（T0035 `353c412`）。
 - [x] Tests 更新並 PASS。（全套 64 files / 1139 tests）
-- [ ] 下次發行後使用者在 App 內確認看到 fork 的發行說明（使用者決定本次不發版）。
+- [x] 使用者安裝 `v0.6.27` 後在 App 內確認（變更紀錄 / 關於 / ❓）。
 
 ## 回報區
 
 ### 修復狀態
-FIXED（2026-10-15T12:04:57+08:00）：T0034 `a6c52aa`（changelog）+ T0035 `353c412`（About 署名 / GitHub、Help issues）。非測試碼已無 `robinebers` / validatedev / davidarny。截圖：`_ct-workorders/assets/T0035/`。待下次發行後使用者 App 內實測再 CLOSED。
+CLOSED（2026-10-15T12:24:49+08:00）：使用者安裝 `v0.6.27` 實測通過。T0034 `a6c52aa` + T0035 `353c412`，發行 T0036 `016db27`。
