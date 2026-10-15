@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0036
 title: Bump version and publish GitHub release v0.6.27
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: release
 bug_id: BUG-005
 plan_id: null
 created_at: "2026-10-15T12:05:34+08:00"
-updated_at: "2026-10-15T12:05:34+08:00"
-started_at: null
+updated_at: "2026-10-15T12:06:23+08:00"
+started_at: "2026-10-15T12:06:23+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -85,3 +85,31 @@ affects_files:
 ## 回報區
 
 （Worker 填寫：狀態、bump commit SHA、tag、Publish run ID / 結果、release URL、assets 清單、發行說明全文、阻塞）
+
+### 落點檢查
+
+- C-0：WARN — frontmatter 無 `repo` 欄位；`basename(REPO_ROOT)` = `openusage`（`D:/ForgejoGit/@GitHub_Clone/openusage`）
+- C-1：PASS — 工單位於 REPO_ROOT 下
+- C-3：PASS — `package.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock`、`src-tauri/tauri.conf.json` 皆存在
+- C-2：N/A（無 `branch` 欄位）；目前 `main`
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅記錄）
+
+### 前置條件
+
+- T0034 / T0035 `status: DONE`；`a6c52aa`、`353c412` 在 `main` ✅
+- `git status` clean ✅
+- `git fetch origin` 後 `origin/main...main` = `0 6`（只 ahead）✅
+- `git ls-remote --tags origin v0.6.27` 空 ✅
+
+### 版本 bump
+
+- `package.json` / `src-tauri/Cargo.toml` / `src-tauri/tauri.conf.json` / `src-tauri/Cargo.lock`（`cargo update -p openusage --offline`）：`0.6.26` → `0.6.27` ✅
+- `README.md`：`git diff v0.6.26..HEAD -- plugins/ README.md` 無變更，plugin 清單免改 ✅
+
+### 驗證
+
+- `cargo fmt --check`：PASS
+- `cargo test --lib`（VsDevCmd x64 + `LIBCLANG_PATH`）：PASS — 110 passed; 0 failed
+- `bun run test --run`：PASS — 64 files / 1139 tests passed
+- `bun run build`：PASS（僅 chunk size >500 kB 既有警告）
+
