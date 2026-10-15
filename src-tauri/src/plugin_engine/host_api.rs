@@ -320,8 +320,21 @@ fn redact_value(value: &str) -> String {
     }
 }
 
+/// Mask GitHub org slugs in `/orgs/{org}` paths (Copilot org billing lookup).
+fn redact_github_org_paths(text: &str) -> String {
+    match regex_lite::Regex::new(r#"/orgs/([^/\s"'?#&]+)"#) {
+        Ok(re) => re
+            .replace_all(text, |caps: &regex_lite::Captures| {
+                format!("/orgs/{}", redact_value(&caps[1]))
+            })
+            .to_string(),
+        Err(_) => text.to_string(),
+    }
+}
+
 /// Redact sensitive query parameters in URL
 fn redact_url(url: &str) -> String {
+    let url = &redact_github_org_paths(url);
     let sensitive_params = [
         "key",
         "api_key",
@@ -441,6 +454,7 @@ fn redact_body(body: &str) -> String {
         "email",
         "login",
         "analytics_tracking_id",
+        "organization",
     ];
     for key in sensitive_keys {
         // Match "key": "value" or "key":"value"
@@ -455,6 +469,7 @@ fn redact_body(body: &str) -> String {
         }
     }
 
+    result = redact_github_org_paths(&result);
     result = redact_paths(&result);
 
     result
@@ -3803,6 +3818,41 @@ mod tests {
             "non-sensitive params should be preserved, got: {}",
             redacted
         );
+    }
+
+    #[test]
+    fn redact_url_redacts_github_org_slug_in_path() {
+        let url = "https://api.github.com/orgs/acme-secret-org/settings/billing/usage/summary";
+        let redacted = redact_url(url);
+        assert!(
+            !redacted.contains("acme-secret-org"),
+            "org slug should be redacted, got: {}",
+            redacted
+        );
+        assert!(redacted.contains("/settings/billing/usage/summary"));
+        assert_eq!(
+            redact_url("https://api.github.com/user/orgs?per_page=100"),
+            "https://api.github.com/user/orgs?per_page=100"
+        );
+    }
+
+    #[test]
+    fn redact_body_redacts_github_org_list_and_billing_summary() {
+        let orgs = r#"[{"login":"acme-secret-org","id":1,"url":"https://api.github.com/orgs/acme-secret-org","repos_url":"https://api.github.com/orgs/acme-secret-org/repos"}]"#;
+        let redacted = redact_body(orgs);
+        assert!(
+            !redacted.contains("acme-secret-org"),
+            "org slug should be redacted, got: {}",
+            redacted
+        );
+        let summary = r#"{"organization":"acme-secret-org","usageItems":[{"product":"Copilot","unitType":"ai-units","grossQuantity":298.7}]}"#;
+        let redacted = redact_body(summary);
+        assert!(
+            !redacted.contains("acme-secret-org"),
+            "organization should be redacted, got: {}",
+            redacted
+        );
+        assert!(redacted.contains("\"grossQuantity\":298.7"));
     }
 
     #[test]

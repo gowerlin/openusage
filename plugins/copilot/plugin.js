@@ -2,6 +2,11 @@
   const KEYCHAIN_SERVICE = "OpenUsage-copilot";
   const GH_KEYCHAIN_SERVICE = "gh:github.com";
   const USAGE_URL = "https://api.github.com/copilot_internal/user";
+  const USER_ORGS_URL = "https://api.github.com/user/orgs?per_page=100";
+  const ORG_USAGE_URL = (org) =>
+    "https://api.github.com/orgs/" +
+    encodeURIComponent(org) +
+    "/settings/billing/usage/summary";
 
   function readJson(ctx, path) {
     try {
@@ -114,33 +119,189 @@
     });
   }
 
-  function makeProgressLine(ctx, label, snapshot, resetDate) {
-    if (!snapshot || typeof snapshot.percent_remaining !== "number")
-      return null;
-    const usedPercent = Math.min(100, Math.max(0, 100 - snapshot.percent_remaining));
+  const PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
+
+  function num(value) {
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+  }
+
+  function formatCount(n) {
+    return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  }
+
+  function percentLine(ctx, label, usedPercent, resetDate) {
     return ctx.line.progress({
       label: label,
-      used: usedPercent,
+      used: Math.min(100, Math.max(0, usedPercent)),
       limit: 100,
       format: { kind: "percent" },
       resetsAt: ctx.util.toIso(resetDate),
-      periodDurationMs: 30 * 24 * 60 * 60 * 1000,
+      periodDurationMs: PERIOD_MS,
     });
   }
 
-  function makeLimitedProgressLine(ctx, label, remaining, total, resetDate) {
-    if (typeof remaining !== "number" || typeof total !== "number" || total <= 0)
-      return null;
-    const used = total - remaining;
-    const usedPercent = Math.min(100, Math.max(0, Math.round((used / total) * 100)));
-    return ctx.line.progress({
-      label: label,
-      used: usedPercent,
-      limit: 100,
-      format: { kind: "percent" },
-      resetsAt: ctx.util.toIso(resetDate),
-      periodDurationMs: 30 * 24 * 60 * 60 * 1000,
+  // quota_snapshots bucket -> percent-used meter, or null. Suppressed: missing bucket,
+  // unlimited (flag or -1 sentinel; paid chat/completions), zero entitlement (placeholder).
+  function snapshotLine(ctx, label, snapshot, resetDate) {
+    if (!snapshot || typeof snapshot !== "object") return null;
+    const entitlement = num(snapshot.entitlement);
+    const remaining = num(snapshot.remaining);
+    if (snapshot.unlimited === true || entitlement === -1 || remaining === -1) return null;
+    if (entitlement === 0) return null;
+    const percentRemaining = num(snapshot.percent_remaining);
+    if (percentRemaining !== null) {
+      return percentLine(ctx, label, 100 - percentRemaining, resetDate);
+    }
+    if (entitlement !== null && entitlement > 0 && remaining !== null) {
+      return percentLine(ctx, label, 100 - (remaining / entitlement) * 100, resetDate);
+    }
+    return null;
+  }
+
+  // Overage beyond the included Credits pool, only once extra spend is enabled. Real 0 is shown.
+  function extraUsageLine(ctx, premium) {
+    if (!premium || premium.overage_permitted !== true) return null;
+    const overage = Math.max(0, num(premium.overage_count) || 0);
+    return ctx.line.text({ label: "Extra Usage", value: formatCount(overage) });
+  }
+
+  // Legacy free tier (predates quota_snapshots): remaining vs monthly limit.
+  function limitedLine(ctx, label, remaining, total, resetDate) {
+    if (num(remaining) === null || num(total) === null || total <= 0) return null;
+    const used = Math.max(0, total - remaining);
+    return percentLine(ctx, label, Math.round((used / total) * 100), resetDate);
+  }
+
+  // Org-managed seat placeholder can still carry the user's own credits_used (no allotment).
+  function personalCreditsLine(ctx, premium) {
+    const used = premium ? num(premium.credits_used) : null;
+    if (used === null || used <= 0) return null;
+    return ctx.line.text({ label: "Credits", value: formatCount(used) });
+  }
+
+  function githubGet(ctx, url, token) {
+    return ctx.util.request({
+      method: "GET",
+      url: url,
+      headers: {
+        Authorization: "token " + token,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "OpenUsage",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      timeoutMs: 15000,
     });
+  }
+
+  // Billing summary -> Org Credits / Org Spend, or null when no Copilot AI-credit items.
+  function orgUsageLines(ctx, body) {
+    const items = body && Array.isArray(body.usageItems) ? body.usageItems : null;
+    if (!items) return null;
+    const creditItems = items.filter(function (item) {
+      if (!item || typeof item.product !== "string" || typeof item.unitType !== "string")
+        return false;
+      const unit = item.unitType.trim().toLowerCase();
+      return (
+        item.product.trim().toLowerCase() === "copilot" &&
+        (unit === "ai-units" || unit === "ai-credits")
+      );
+    });
+    if (creditItems.length === 0) return null;
+    let credits = 0;
+    let spend = 0;
+    for (const item of creditItems) {
+      credits += Math.max(0, num(item.grossQuantity) || 0);
+      spend += Math.max(0, num(item.netAmount) || 0);
+    }
+    return [
+      ctx.line.text({ label: "Org Credits", value: formatCount(credits) + " credits" }),
+      ctx.line.text({ label: "Org Spend", value: "$" + spend.toFixed(2) }),
+    ];
+  }
+
+  // One org's summary -> lines, null (no access / no Copilot credits), or "transient" (429/5xx/network).
+  function fetchOrgUsage(ctx, org, token) {
+    let resp;
+    try {
+      resp = githubGet(ctx, ORG_USAGE_URL(org), token);
+    } catch (e) {
+      ctx.host.log.warn("org billing summary request failed: " + String(e));
+      return "transient";
+    }
+    if (resp.status !== 200) {
+      ctx.host.log.info("org billing summary for one org: HTTP " + resp.status);
+      return resp.status === 429 || resp.status >= 500 ? "transient" : null;
+    }
+    return orgUsageLines(ctx, ctx.util.tryParseJson(resp.bodyText));
+  }
+
+  // Org-managed seat: usage lives in org billing (owner / billing manager only; 403 is expected).
+  function orgBillingLines(ctx, token) {
+    const cachePath = ctx.app.pluginDataDir + "/billing-org.json";
+    const cached = readJson(ctx, cachePath);
+    if (cached && typeof cached.org === "string" && cached.org) {
+      const result = fetchOrgUsage(ctx, cached.org, token);
+      if (result === "transient") return [];
+      if (result) return result;
+      writeJson(ctx, cachePath, null);
+    }
+
+    let resp;
+    try {
+      resp = githubGet(ctx, USER_ORGS_URL, token);
+    } catch (e) {
+      ctx.host.log.warn("org list request failed: " + String(e));
+      return [];
+    }
+    if (resp.status !== 200) {
+      ctx.host.log.info("org list HTTP " + resp.status + "; skipping org billing lookup");
+      return [];
+    }
+    const orgs = ctx.util.tryParseJson(resp.bodyText);
+    if (!Array.isArray(orgs)) return [];
+    for (const entry of orgs) {
+      const org = entry && typeof entry.login === "string" ? entry.login.trim() : "";
+      if (!org) continue;
+      const result = fetchOrgUsage(ctx, org, token);
+      if (result && result !== "transient") {
+        writeJson(ctx, cachePath, { org: org });
+        return result;
+      }
+    }
+    return [];
+  }
+
+  function mapUsage(ctx, data, token) {
+    const resetDate = data.quota_reset_date || data.limited_user_reset_date;
+    const snapshots = data.quota_snapshots || {};
+    const premium = snapshots.premium_interactions;
+    const lines = [];
+    const push = (line) => line && lines.push(line);
+
+    const creditsLine = snapshotLine(ctx, "Credits", premium, resetDate);
+    push(creditsLine);
+    if (creditsLine) push(extraUsageLine(ctx, premium));
+    push(snapshotLine(ctx, "Chat", snapshots.chat, resetDate));
+    push(snapshotLine(ctx, "Completions", snapshots.completions, resetDate));
+
+    if (lines.length === 0 && data.limited_user_quotas && data.monthly_quotas) {
+      const lq = data.limited_user_quotas;
+      const mq = data.monthly_quotas;
+      push(limitedLine(ctx, "Chat", lq.chat, mq.chat, resetDate));
+      push(limitedLine(ctx, "Completions", lq.completions, mq.completions, resetDate));
+    }
+    if (lines.length > 0) return lines;
+
+    if (data.token_based_billing !== true) {
+      throw "Usage data unavailable for this account.";
+    }
+    // Org-managed seat: personal credits_used plus org billing (best-effort).
+    push(personalCreditsLine(ctx, premium));
+    for (const line of orgBillingLines(ctx, token)) lines.push(line);
+    if (lines.length === 0) {
+      lines.push(ctx.line.badge({ label: "Status", text: "No usage data", color: "#a3a3a3" }));
+    }
+    return lines;
   }
 
   function probe(ctx) {
@@ -208,56 +369,12 @@
 
     ctx.host.log.info("usage fetch succeeded");
 
-    const lines = [];
     let plan = null;
     if (data.copilot_plan) {
       plan = ctx.fmt.planLabel(data.copilot_plan);
     }
 
-    // Paid tier: quota_snapshots
-    const snapshots = data.quota_snapshots;
-    if (snapshots) {
-      const premiumLine = makeProgressLine(
-        ctx,
-        "Premium",
-        snapshots.premium_interactions,
-        data.quota_reset_date,
-      );
-      if (premiumLine) lines.push(premiumLine);
-
-      const chatLine = makeProgressLine(
-        ctx,
-        "Chat",
-        snapshots.chat,
-        data.quota_reset_date,
-      );
-      if (chatLine) lines.push(chatLine);
-    }
-
-    // Free tier: limited_user_quotas
-    if (data.limited_user_quotas && data.monthly_quotas) {
-      const lq = data.limited_user_quotas;
-      const mq = data.monthly_quotas;
-      const resetDate = data.limited_user_reset_date;
-
-      const chatLine = makeLimitedProgressLine(ctx, "Chat", lq.chat, mq.chat, resetDate);
-      if (chatLine) lines.push(chatLine);
-
-      const completionsLine = makeLimitedProgressLine(ctx, "Completions", lq.completions, mq.completions, resetDate);
-      if (completionsLine) lines.push(completionsLine);
-    }
-
-    if (lines.length === 0) {
-      lines.push(
-        ctx.line.badge({
-          label: "Status",
-          text: "No usage data",
-          color: "#a3a3a3",
-        }),
-      );
-    }
-
-    return { plan: plan, lines: lines };
+    return { plan: plan, lines: mapUsage(ctx, data, token) };
   }
 
   globalThis.__openusage_plugin = { id: "copilot", probe };

@@ -74,7 +74,7 @@ describe("copilot plugin", () => {
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
     const call = ctx.host.http.request.mock.calls[0][0];
     expect(call.headers.Authorization).toBe("token ghu_keychain");
   });
@@ -85,7 +85,7 @@ describe("copilot plugin", () => {
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
     const call = ctx.host.http.request.mock.calls[0][0];
     expect(call.headers.Authorization).toBe("token gho_plain_token");
   });
@@ -97,7 +97,7 @@ describe("copilot plugin", () => {
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
     const call = ctx.host.http.request.mock.calls[0][0];
     expect(call.headers.Authorization).toBe("token gho_encoded_token");
   });
@@ -108,7 +108,7 @@ describe("copilot plugin", () => {
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
     const call = ctx.host.http.request.mock.calls[0][0];
     expect(call.headers.Authorization).toBe("token ghu_state");
   });
@@ -164,22 +164,22 @@ describe("copilot plugin", () => {
     expect(ctx.host.keychain.writeGenericPassword).not.toHaveBeenCalled();
   });
 
-  it("renders both Premium and Chat lines for paid tier", async () => {
+  it("renders both Credits and Chat lines for paid tier", async () => {
     const ctx = makePluginTestContext();
     setKeychainToken(ctx, "tok");
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    const premium = result.lines.find((l) => l.label === "Premium");
+    const credits = result.lines.find((l) => l.label === "Credits");
     const chat = result.lines.find((l) => l.label === "Chat");
-    expect(premium).toBeTruthy();
-    expect(premium.used).toBe(20); // 100 - 80
-    expect(premium.limit).toBe(100);
+    expect(credits).toBeTruthy();
+    expect(credits.used).toBe(20); // 100 - 80
+    expect(credits.limit).toBe(100);
     expect(chat).toBeTruthy();
     expect(chat.used).toBe(5); // 100 - 95
   });
 
-  it("renders only Premium when Chat is missing", async () => {
+  it("renders only Credits when Chat is missing", async () => {
     const ctx = makePluginTestContext();
     setKeychainToken(ctx, "tok");
     ctx.host.http.request.mockReturnValue({
@@ -199,11 +199,11 @@ describe("copilot plugin", () => {
     });
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
     expect(result.lines.find((l) => l.label === "Chat")).toBeFalsy();
   });
 
-  it("shows 'No usage data' when both snapshots missing", async () => {
+  it("throws when no quota data and not token-based billing", async () => {
     const ctx = makePluginTestContext();
     setKeychainToken(ctx, "tok");
     ctx.host.http.request.mockReturnValue({
@@ -211,8 +211,7 @@ describe("copilot plugin", () => {
       bodyText: JSON.stringify({ copilot_plan: "free" }),
     });
     const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-    expect(result.lines[0].text).toBe("No usage data");
+    expect(() => plugin.probe(ctx)).toThrow("Usage data unavailable for this account.");
   });
 
   it("returns plan label from copilot_plan", async () => {
@@ -244,8 +243,8 @@ describe("copilot plugin", () => {
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    const premium = result.lines.find((l) => l.label === "Premium");
-    expect(premium.resetsAt).toBe("2099-01-15T00:00:00.000Z");
+    const credits = result.lines.find((l) => l.label === "Credits");
+    expect(credits.resetsAt).toBe("2099-01-15T00:00:00.000Z");
   });
 
   it("clamps usedPercent to 0 when percent_remaining > 100", async () => {
@@ -268,7 +267,7 @@ describe("copilot plugin", () => {
     });
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium").used).toBe(0);
+    expect(result.lines.find((l) => l.label === "Credits").used).toBe(0);
   });
 
   it("throws on 401", async () => {
@@ -351,9 +350,9 @@ describe("copilot plugin", () => {
     mockUsageOk(ctx);
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    const premium = result.lines.find((l) => l.label === "Premium");
+    const credits = result.lines.find((l) => l.label === "Credits");
     const chat = result.lines.find((l) => l.label === "Chat");
-    expect(premium.periodDurationMs).toBe(30 * 24 * 60 * 60 * 1000);
+    expect(credits.periodDurationMs).toBe(30 * 24 * 60 * 60 * 1000);
     expect(chat.periodDurationMs).toBe(30 * 24 * 60 * 60 * 1000);
   });
 
@@ -473,7 +472,7 @@ describe("copilot plugin", () => {
     });
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
     expect(callCount).toBe(2);
     // Should have cleared the stale token
     expect(ctx.host.keychain.deleteGenericPassword).toHaveBeenCalledWith("OpenUsage-copilot");
@@ -506,10 +505,10 @@ describe("copilot plugin", () => {
     const plugin = await loadPlugin();
     const result = plugin.probe(ctx);
     expect(result.plan).toBeNull();
-    expect(result.lines.find((l) => l.label === "Premium")).toBeTruthy();
+    expect(result.lines.find((l) => l.label === "Credits")).toBeTruthy();
   });
 
-  it("shows status badge when free-tier quotas are present but invalid", async () => {
+  it("throws when free-tier quotas are present but invalid", async () => {
     const ctx = makePluginTestContext();
     setKeychainToken(ctx, "tok");
     ctx.host.http.request.mockReturnValue({
@@ -522,8 +521,305 @@ describe("copilot plugin", () => {
     });
 
     const plugin = await loadPlugin();
-    const result = plugin.probe(ctx);
-    expect(result.lines).toHaveLength(1);
-    expect(result.lines[0].text).toBe("No usage data");
+    expect(() => plugin.probe(ctx)).toThrow("Usage data unavailable for this account.");
+  });
+
+  describe("AI Credits (upstream v0.7.x)", () => {
+    const BILLING_ORG_PATH = "/billing-org.json";
+
+    function paidBody() {
+      return {
+        copilot_plan: "pro",
+        quota_reset_date: "2099-01-15T00:00:00Z",
+        quota_snapshots: {
+          premium_interactions: { entitlement: 300, remaining: 123, percent_remaining: 41, quota_id: "premium" },
+          chat: { entitlement: 1000, remaining: 950, percent_remaining: 95, quota_id: "chat" },
+        },
+      };
+    }
+
+    // Org-managed Business seat placeholder (upstream issue #839 / #1094 shape).
+    function businessPlaceholder(creditsUsed) {
+      const bucket = (overagePermitted) => ({
+        entitlement: 0,
+        remaining: 0,
+        unlimited: true,
+        overage_permitted: overagePermitted,
+        overage_count: 0,
+      });
+      const premium = bucket(true);
+      if (creditsUsed !== undefined) premium.credits_used = creditsUsed;
+      return {
+        copilot_plan: "business",
+        token_based_billing: true,
+        quota_snapshots: { chat: bucket(false), completions: bucket(false), premium_interactions: premium },
+      };
+    }
+
+    function orgSummary() {
+      return {
+        usageItems: [
+          { product: "Copilot", sku: "copilot_ai_unit", unitType: "ai-units", grossQuantity: 298.698546, netAmount: 0 },
+        ],
+      };
+    }
+
+    function route(ctx, routes) {
+      ctx.host.http.request.mockImplementation((opts) => {
+        const hit = routes.find(([sub]) => opts.url.includes(sub));
+        if (!hit) return { status: 404, bodyText: "" };
+        const res = hit[1];
+        return { status: res.status, bodyText: res.body === undefined ? "" : JSON.stringify(res.body) };
+      });
+    }
+
+    function urls(ctx) {
+      return ctx.host.http.request.mock.calls.map((c) => c[0].url);
+    }
+
+    function cachedOrg(ctx) {
+      const path = ctx.app.pluginDataDir + BILLING_ORG_PATH;
+      if (!ctx.host.fs.exists(path)) return null;
+      const data = JSON.parse(ctx.host.fs.readText(path));
+      return data ? data.org : null;
+    }
+
+    function setCachedOrg(ctx, org) {
+      ctx.host.fs.writeText(ctx.app.pluginDataDir + BILLING_ORG_PATH, JSON.stringify({ org }));
+    }
+
+    const line = (result, label) => result.lines.find((l) => l.label === label);
+
+    it("maps paid Credits and Chat as percent used", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      mockUsageOk(ctx, paidBody());
+      const result = (await loadPlugin()).probe(ctx);
+      expect(result.plan).toBe("Pro");
+      expect(line(result, "Credits").used).toBe(59);
+      expect(line(result, "Credits").resetsAt).toBe("2099-01-15T00:00:00.000Z");
+      expect(line(result, "Chat").used).toBe(5);
+      expect(line(result, "Extra Usage")).toBeUndefined();
+    });
+
+    it("suppresses unlimited and -1 sentinel buckets", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      const body = paidBody();
+      body.quota_snapshots.chat = { unlimited: true, entitlement: 0, remaining: 0 };
+      body.quota_snapshots.completions = { entitlement: -1, remaining: -1 };
+      mockUsageOk(ctx, body);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Chat")).toBeUndefined();
+      expect(line(result, "Completions")).toBeUndefined();
+      expect(line(result, "Credits").used).toBe(59);
+    });
+
+    it("shows Extra Usage when overage permitted, including real zero", async () => {
+      for (const overage of [36, 0]) {
+        const ctx = makePluginTestContext();
+        setKeychainToken(ctx, "tok");
+        const body = paidBody();
+        body.quota_snapshots.premium_interactions.overage_permitted = true;
+        body.quota_snapshots.premium_interactions.overage_count = overage;
+        mockUsageOk(ctx, body);
+        const result = (await loadPlugin()).probe(ctx);
+        expect(line(result, "Extra Usage")).toEqual({ type: "text", label: "Extra Usage", value: String(overage) });
+        expect(ctx.host.http.request).toHaveBeenCalledTimes(1);
+      }
+    });
+
+    it("ignores legacy limited quotas when snapshots are present", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      const body = paidBody();
+      body.quota_snapshots.chat = { entitlement: -1, remaining: -1 };
+      body.quota_snapshots.completions = { entitlement: -1, remaining: -1 };
+      body.limited_user_quotas = { chat: 100, completions: 1000 };
+      body.monthly_quotas = { chat: 500, completions: 4000 };
+      mockUsageOk(ctx, body);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Credits")).toBeTruthy();
+      expect(line(result, "Chat")).toBeUndefined();
+      expect(line(result, "Completions")).toBeUndefined();
+    });
+
+    it("suppresses zero-entitlement Credits placeholder", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      mockUsageOk(ctx, {
+        copilot_plan: "business",
+        quota_snapshots: {
+          premium_interactions: { entitlement: 0, remaining: 0, percent_remaining: 100 },
+          chat: { entitlement: 1000, remaining: 800, percent_remaining: 80 },
+        },
+      });
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Credits")).toBeUndefined();
+      expect(line(result, "Chat").used).toBe(20);
+    });
+
+    it("maps live free account snapshots", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      const b = (entitlement, remaining, pct) => ({
+        entitlement, remaining, percent_remaining: pct, overage_permitted: false, token_based_billing: true,
+      });
+      mockUsageOk(ctx, {
+        copilot_plan: "individual",
+        access_type_sku: "free_limited_copilot",
+        token_based_billing: true,
+        quota_reset_date: "2099-07-01",
+        quota_snapshots: { chat: b(200, 182, 91), completions: b(2000, 1989, 99.4), premium_interactions: b(0, 0, 0) },
+      });
+      const result = (await loadPlugin()).probe(ctx);
+      expect(result.plan).toBe("Individual");
+      expect(line(result, "Credits")).toBeUndefined();
+      expect(line(result, "Extra Usage")).toBeUndefined();
+      expect(line(result, "Chat").used).toBe(9);
+      expect(line(result, "Completions").used).toBeCloseTo(0.6, 4);
+      expect(ctx.host.http.request).toHaveBeenCalledTimes(1);
+    });
+
+    it("org member (403 billing) with no personal credits shows explicit No usage data", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/user/orgs", { status: 200, body: [{ login: "acme" }] }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 403 }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(result.plan).toBe("Business");
+      expect(result.lines).toHaveLength(1);
+      expect(result.lines[0].text).toBe("No usage data");
+      expect(cachedOrg(ctx)).toBeNull();
+    });
+
+    it("org member shows personal Credits count despite forbidden org billing", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder(2111) }],
+        ["/user/orgs", { status: 200, body: [{ login: "acme" }] }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 403 }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(result.lines).toEqual([{ type: "text", label: "Credits", value: "2111" }]);
+      expect(cachedOrg(ctx)).toBeNull();
+    });
+
+    it("org admin gets personal Credits plus Org Credits / Org Spend and caches org", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder(2111) }],
+        ["/user/orgs", { status: 200, body: [{ login: "acme" }] }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 200, body: orgSummary() }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Credits").value).toBe("2111");
+      expect(line(result, "Org Credits").value).toBe("298.7 credits");
+      expect(line(result, "Org Spend").value).toBe("$0.00");
+      expect(line(result, "Extra Usage")).toBeUndefined();
+      expect(cachedOrg(ctx)).toBe("acme");
+      const orgCall = ctx.host.http.request.mock.calls.find((c) => c[0].url.includes("/user/orgs"))[0];
+      expect(orgCall.headers.Authorization).toBe("token tok");
+      expect(orgCall.headers["X-GitHub-Api-Version"]).toBe("2022-11-28");
+    });
+
+    it("sums credit items and billed spend, ignoring non-credit units", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/user/orgs", { status: 200, body: [{ login: "acme" }] }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 200, body: { usageItems: [
+          { product: "Copilot", unitType: "ai-units", grossQuantity: 100.5, netAmount: 1.25 },
+          { product: "Copilot", unitType: "ai-credits", grossQuantity: 50, netAmount: 0.5 },
+          { product: "Actions", unitType: "minutes", grossQuantity: 120, netAmount: 0.96 },
+          { product: "Copilot", unitType: "user-months", grossQuantity: 10, netAmount: 190 },
+        ] } }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Org Credits").value).toBe("150.5 credits");
+      expect(line(result, "Org Spend").value).toBe("$1.75");
+    });
+
+    it("uses cached org without listing orgs", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      setCachedOrg(ctx, "acme");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 200, body: orgSummary() }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Org Credits")).toBeTruthy();
+      expect(urls(ctx).some((u) => u.includes("/user/orgs"))).toBe(false);
+    });
+
+    it("evicts stale cached org and re-discovers", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      setCachedOrg(ctx, "oldorg");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/orgs/oldorg/settings/billing/usage/summary", { status: 404 }],
+        ["/user/orgs", { status: 200, body: [{ login: "acme" }] }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 200, body: orgSummary() }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Org Credits")).toBeTruthy();
+      expect(cachedOrg(ctx)).toBe("acme");
+    });
+
+    it("keeps probing past an org whose billing has an outage", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/user/orgs", { status: 200, body: [{ login: "brokenorg" }, { login: "acme" }] }],
+        ["/orgs/brokenorg/settings/billing/usage/summary", { status: 503 }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 200, body: orgSummary() }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(line(result, "Org Credits")).toBeTruthy();
+      expect(cachedOrg(ctx)).toBe("acme");
+    });
+
+    it("keeps cached org on transient billing failure", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      setCachedOrg(ctx, "acme");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/orgs/acme/settings/billing/usage/summary", { status: 503 }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(result.lines[0].text).toBe("No usage data");
+      expect(cachedOrg(ctx)).toBe("acme");
+      expect(urls(ctx).some((u) => u.includes("/user/orgs"))).toBe(false);
+    });
+
+    it("org list failure degrades to explicit No usage data", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      route(ctx, [
+        ["/copilot_internal/user", { status: 200, body: businessPlaceholder() }],
+        ["/user/orgs", { status: 403 }],
+      ]);
+      const result = (await loadPlugin()).probe(ctx);
+      expect(result.plan).toBe("Business");
+      expect(result.lines[0].text).toBe("No usage data");
+    });
+
+    it("personal paid account makes no org calls", async () => {
+      const ctx = makePluginTestContext();
+      setKeychainToken(ctx, "tok");
+      mockUsageOk(ctx, paidBody());
+      (await loadPlugin()).probe(ctx);
+      expect(ctx.host.http.request).toHaveBeenCalledTimes(1);
+    });
   });
 });
