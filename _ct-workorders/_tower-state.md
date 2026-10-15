@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 12:24 (UTC+8)
+> 最後更新：2026-10-15 12:37 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
-4. 工單 T0001-T0036：全部 DONE；T0037 研究中。
-5. PLAN-004 / T0037：上游同步研究（tauri-legacy merge 分析 + v0.7.x 移植候選），唯讀，已派發到 BAT terminal `646f8f0a89a5787942d4ac8fa5998191`（D067）；有衝突先提示使用者。
+4. 工單 T0001-T0037：全部 DONE。
+5. PLAN-004：T0037 研究 DONE（報告 `_report-T0037-upstream-sync.md`，推薦方案 A merge `tauri-legacy` → `0.6.29`）；等使用者確認衝突解法與拆單。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -112,7 +112,7 @@
 | 工單 | T0037 |
 | BUG | BUG-005 |
 | PLAN | PLAN-004 |
-| 決策 | D069 |
+| 決策 | D070 |
 
 ---
 
@@ -140,7 +140,7 @@
 | Single app instance | BUG-004 / T0032 | ✅ CLOSED | 無 | 使用者安裝 `v0.6.26` 實測通過 |
 | About / Help links to fork | BUG-005 / T0035 | ✅ CLOSED | 無 | 使用者 `v0.6.27` 實測通過 |
 | In-app changelog source | BUG-005 / T0034 | ✅ CLOSED | 無 | 使用者 `v0.6.27` 實測通過 |
-| Upstream sync research | PLAN-004 / T0037 | 🔄 DISPATCHED | 無 | 等研究報告 → 使用者確認衝突解法 |
+| Upstream sync research | PLAN-004 / T0037 | ✅ DONE | 等使用者確認 | 衝突解法確認後開實作工單 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
@@ -217,6 +217,7 @@
 - D067：使用者要求同步上游 `v0.7.14`。塔台預查：上游 `main`/`v0.7.x` 為 native Swift（macOS only）重寫、與 fork 無共同祖先，無法 merge；Tauri 凍結線 `tauri-legacy`（`v0.6.28`）merge-base `f415ddd`，試合併 17 衝突。使用者選「兩者都研究」、退休通知橫幅不帶進 fork。建立 PLAN-004 + 研究工單 T0037（唯讀：merge-tree / 暫時 worktree，不動主工作區），與 T0036 無 affects_files 重疊，並行派發。
 - D068：接受 T0036 DONE；`v0.6.27` 經塔台以 `-R gowerlin/openusage` 獨立複驗（release / assets / `latest.json` / Publish run / GitHub API body）。BUG-005 待使用者 App 內實測。
 - D069：使用者安裝 `v0.6.27` 實測確認 changelog / About / Help 皆指向 fork；BUG-005 CLOSED。
+- D070：接受 T0037 DONE（`ec2d6491`）。結論：`tauri-legacy` 可 merge，17 衝突皆小 hunk，暫存 worktree 試合併全綠（cargo test 137 / vitest 1156）。使用者於 T0037 互動決定保留 Gemini、版號 `0.6.29`。PLAN-004 預查清單漏列 `src/lib/settings.test.ts`（塔台疏漏，已由報告更正）。重要風險：保留 Gemini 需手動還原 3 個被靜默刪除的檔；`AGENTS.md`/`CLAUDE.md` 需 `--ours`；本機有上游 `v0.6.28`/`v0.7.*` tag，`git push --tags` 會外洩並可能污染 fork Latest release。
 
 ---
 

@@ -3,11 +3,11 @@ schema_version: 1
 schema_kind: plan
 id: PLAN-004
 title: Sync upstream changes into fork
-status: PLANNED
+status: IN_PROGRESS
 priority: High
 plan_type: maintenance
 created_at: "2026-10-15T12:10:18+08:00"
-updated_at: "2026-10-15T12:10:18+08:00"
+updated_at: "2026-10-15T12:37:10+08:00"
 completed_at: null
 affects_files: []
 depends_on: []
@@ -42,4 +42,5 @@ depends_on: []
 
 ## 進度
 
-- T0037：建立並派發（2026-10-15）。
+- T0037：DONE（`ec2d6491`）。報告 `_report-T0037-upstream-sync.md`：推薦方案 A；使用者決定保留 Gemini、版號 `0.6.29`。
+- 註：上方預查衝突清單漏列 `src/lib/settings.test.ts`，以報告 §2 為準。
