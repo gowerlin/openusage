@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0053
 title: Windows smoke + NSIS for 0.6.30 candidate
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: verification
 bug_id: null
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:57:13+08:00"
+updated_at: "2026-10-15T16:08:10+08:00"
 started_at: "2026-10-15T15:57:13+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T16:08:10+08:00"
+commit: c6642617
 agent: default
 intervention_type: fire-and-forget
 depends_on:
