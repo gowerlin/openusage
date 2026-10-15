@@ -86,7 +86,7 @@ export function MetricLineRenderer({
             {label}
           </span>
           <span
-            className="text-xs text-muted-foreground truncate flex-shrink-0 max-w-[45%] text-right"
+            className="text-xs text-muted-foreground truncate flex-shrink-0 max-w-[70%] text-right"
             style={line.color ? { color: line.color } : undefined}
             title={value}
           >

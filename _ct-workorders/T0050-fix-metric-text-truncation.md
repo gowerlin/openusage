@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0050
 title: Show full text metric values in provider detail
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: bugfix
 bug_id: BUG-014
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:22:35+08:00"
-started_at: null
+updated_at: "2026-10-15T15:24:04+08:00"
+started_at: "2026-10-15T15:24:04+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -54,4 +54,41 @@ BUG-014：Claude 詳細頁「昨天 $213.36 · 597M toke…」被截斷。`provi
 
 ## 回報區
 
-（Worker 填寫：狀態、commit、改動、驗證證據、偏差）
+### 狀態
+
+DONE（2026-10-15T15:25:53+08:00）
+
+### 落點檢查
+
+WARN — C-0：frontmatter `repo` = absent，`basename(REPO_ROOT)` = `openusage`（repo identity unavailable）；C-1 PASS（工單在 `D:/ForgejoGit/@GitHub_Clone/openusage` 下）；C-3 PASS（`provider-card-metric-line.tsx` 存在，測試檔新建、父目錄存在）；C-2 不適用（無 `branch`，HEAD = `main`）。`BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅紀錄）。
+
+### Commit
+
+`fix(ui): show full text metric values (T0050)`（hash 見 frontmatter `commit`）。未 push / tag / 發行。
+
+### 改動
+
+| 檔案 | 改動 |
+|---|---|
+| `src/components/provider-card-metric-line.tsx` | text line value `max-w-[45%]` → `max-w-[70%]`。value 原本就 `flex-shrink-0 truncate` + `title`，label 原本就 `min-w-0 truncate` + `title`，所以 label 先讓位、value 超過 70% 才截斷。progress / badge / barChart 未動。 |
+| `src/components/provider-card-metric-line.test.tsx`（新） | 斷言 label `min-w-0 truncate` + `title`；value `flex-shrink-0 max-w-[70%] truncate`、無 `max-w-[45%]`、有 `title`。 |
+| `_ct-workorders/assets/T0050/metric-text-278px.png` | 寬度量測截圖（OLD/NEW 對照）。合成頁面，無 token / email / 帳號 ID。 |
+
+### 驗證
+
+| Gate | 指令 | 結果 | 證據 |
+|---|---|---|---|
+| test | `bun run test --run` | PASS | 70 files / 1200 tests passed（T0048 基準 69 / 1199 + 本單 1 檔 1 測試） |
+| build | `bun run build` | PASS | exit 0（只有既有 chunk size 警告） |
+| UI 寬度 | browser dev：Edge headless 載入 `dist/assets/index-CstkAU4v.css`，重建 text line 原 DOM/class，容器 278px | PASS | NEW（`max-w-[70%]` = 194.6px）：`$213.36 · 597M tokens` sw=cw=126、`$5165.74 · 13B tokens` 122、`Needs Node.js or Bun` 122、`需要 Node.js 或 Bun` 110，皆 `scrollWidth == clientWidth`。label `Yesterday` 54 / `昨天` 24 / `Last 30 Days` 70 / `過去 30 天` 56 / `Usage history` 77 / `用量歷史` 48，皆完整。對照 OLD（`max-w-[45%]` = 125px）：`$213.36 · 597M tokens` sw=126 cw=125 截斷，畫面「$213.36 · 597M toke…」與 BUG-014 一致，佐證量測準確。爆版測試：超長 value sw=282 → cw=195 截斷（70% 上限生效），label `過去 30 天` 仍完整。截圖 `_ct-workorders/assets/T0050/metric-text-278px.png`。 |
+| runtime | 實機 smoke | 未執行 | 工單未要求；未停使用者 OpenUsage、未控制滑鼠、未動剪貼簿 |
+
+### 偏差
+
+- 只改一個 class：label 原本就是 `min-w-0 truncate` + `title`，value 原本就 `flex-shrink-0` + `title`，排版本來就是 label 先讓位，問題只在 45% 上限。
+- 測試檔為工單指定的新檔 `provider-card-metric-line.test.tsx`（原本不存在）。
+- 寬度驗證用 browser dev（Edge headless + 實際 CSS），非實機 WebView2；工單 gate 允許此做法（比照 T0048）。
+
+### 阻礙
+
+無。
