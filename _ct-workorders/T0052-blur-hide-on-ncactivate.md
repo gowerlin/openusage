@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0052
 title: Hide panel on blur when only WM_NCACTIVATE(0) arrives
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-013
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:34:00+08:00"
+updated_at: "2026-10-15T15:56:13+08:00"
 started_at: "2026-10-15T15:34:00+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T15:56:13+08:00"
+commit: 585a34d1
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -65,7 +65,7 @@ BUG-013（T0044 觀察 1）：一次失焦未收起，trace 只有 `WM_NCACTIVAT
 
 ### 狀態
 
-DONE
+DONE（2026-10-15T15:56:13+08:00）
 
 ### 落點檢查
 
