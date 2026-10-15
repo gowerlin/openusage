@@ -16,6 +16,10 @@
   let rateLimitedUntilMs = 0  // epoch ms; 0 = not rate-limited
   let lastUsageFetchMs = 0    // epoch ms of the most-recent API attempt
   let cachedUsageData = null  // last successful API response body (parsed JSON)
+  // Anthropic throttles the reset-grants request hard when polled, so ask at most once an hour.
+  const RESET_GRANTS_CHECK_INTERVAL_MS = 60 * 60 * 1000
+  let resetGrantsCheckedAtMs = 0 // epoch ms of the last reset-grants attempt (success or failure)
+  let cachedResetGrants = null   // last answer: { count, expiriesMs } or null when not reported
 
   function utf8DecodeBytes(bytes) {
     // Prefer native TextDecoder when available (QuickJS may not expose it).
@@ -465,20 +469,100 @@
     }
   }
 
-  function fetchUsage(ctx, accessToken) {
+  function fetchUsage(ctx, accessToken, query) {
     const oauthConfig = getOauthConfig(ctx)
     return ctx.util.request({
       method: "GET",
-      url: oauthConfig.usageUrl,
+      url: oauthConfig.usageUrl + (query || ""),
       headers: {
         Authorization: "Bearer " + accessToken.trim(),
         Accept: "application/json",
         "Content-Type": "application/json",
         "anthropic-beta": "oauth-2025-04-20",
-        "User-Agent": "claude-code/2.1.69",
+        // Claude Code's real format; Anthropic gates reset grants by client surface.
+        "User-Agent": "claude-cli/2.1.294 (external, cli)",
       },
       timeoutMs: 10000,
     })
+  }
+
+  // `cedar_ember` is Anthropic's one-off usage-limit reset grants. null = block not reported.
+  function parseResetGrants(ctx, data, nowMs) {
+    const block = data && data.cedar_ember
+    if (!block || typeof block !== "object") return null
+    let count = 0
+    const expiriesMs = []
+    if (block.eligible === true && Array.isArray(block.grants)) {
+      for (const grant of block.grants) {
+        const left = grant ? Number(grant.resets_left) : NaN
+        if (!Number.isFinite(left) || left < 1) continue
+        const resets = Math.floor(left)
+        const endsIso = ctx.util.toIso(grant.ends_at)
+        const endsMs = endsIso ? Date.parse(endsIso) : NaN
+        if (Number.isFinite(endsMs) && endsMs <= nowMs) continue
+        count += resets
+        if (Number.isFinite(endsMs)) {
+          for (let i = 0; i < resets; i++) expiriesMs.push(endsMs)
+        }
+      }
+    }
+    return { count, expiriesMs: expiriesMs.sort((a, b) => a - b) }
+  }
+
+  // Ask at most hourly; a failure keeps the last answer and still counts as the hour's check.
+  function refreshResetGrants(ctx, accessToken, nowMs) {
+    if (nowMs - resetGrantsCheckedAtMs < RESET_GRANTS_CHECK_INTERVAL_MS) return
+    resetGrantsCheckedAtMs = nowMs
+    try {
+      const resp = fetchUsage(ctx, accessToken, "?cedar_ember=1&skip_spend=1")
+      if (resp.status < 200 || resp.status >= 300) {
+        ctx.host.log.warn("reset grants returned status=" + resp.status + "; retrying in an hour")
+        return
+      }
+      const data = ctx.util.tryParseJson(resp.bodyText)
+      if (data === null) {
+        ctx.host.log.warn("reset grants response invalid; retrying in an hour")
+        return
+      }
+      cachedResetGrants = parseResetGrants(ctx, data, nowMs)
+    } catch (e) {
+      ctx.host.log.warn("reset grants lookup failed; retrying in an hour: " + String(e))
+    }
+  }
+
+  function pushResetGrantsLine(lines, ctx, nowMs) {
+    if (!cachedResetGrants) return
+    // Drop resets whose deadline passed since the last check.
+    const expiriesMs = cachedResetGrants.expiriesMs.filter((ms) => ms > nowMs)
+    const elapsed = cachedResetGrants.expiriesMs.length - expiriesMs.length
+    const count = Math.max(0, cachedResetGrants.count - elapsed)
+    const opts = { label: "Rate Limit Resets", value: count + " available" }
+    if (count > 0 && expiriesMs.length > 0) {
+      const leftMs = expiriesMs[0] - nowMs
+      const dayMs = 24 * 60 * 60 * 1000
+      opts.color = leftMs <= 2 * dayMs ? "#ef4444" : leftMs <= 7 * dayMs ? "#f59e0b" : "#3b82f6"
+      opts.subtitle = dayKeyFromDate(new Date(expiriesMs[0])) // soonest deadline
+    }
+    lines.push(ctx.line.text(opts))
+  }
+
+  // Model-scoped weekly window from the `limits` array (e.g. Fable); `percent` is 0-100.
+  function pushScopedWeeklyLine(lines, ctx, limits, modelName) {
+    if (!Array.isArray(limits)) return
+    for (const entry of limits) {
+      const model = entry && entry.scope && entry.scope.model
+      if (!entry || entry.kind !== "weekly_scoped" || !model || model.display_name !== modelName) continue
+      if (typeof entry.percent !== "number") continue
+      lines.push(ctx.line.progress({
+        label: modelName,
+        used: entry.percent,
+        limit: 100,
+        format: { kind: "percent" },
+        resetsAt: ctx.util.toIso(entry.resets_at),
+        periodDurationMs: 7 * 24 * 60 * 60 * 1000 // 7 days
+      }))
+      return
+    }
   }
 
   function parseRetryAfterSeconds(headers) {
@@ -803,11 +887,13 @@
         lastUsageFetchMs = nowMs
         let resp
         let didRefresh = false
+        let usedToken = accessToken
         try {
           resp = ctx.util.retryOnceOnAuth({
             request: (token) => {
               try {
-                return fetchUsage(ctx, token || accessToken)
+                usedToken = token || accessToken
+                return fetchUsage(ctx, usedToken)
               } catch (e) {
                 ctx.host.log.error("usage request exception: " + String(e))
                 if (didRefresh) {
@@ -856,6 +942,8 @@
           }
           cachedUsageData = data
           rateLimitedUntilMs = 0
+          // After a successful usage fetch, so the token is known-good.
+          refreshResetGrants(ctx, usedToken, nowMs)
         }
         } // end fetch else-branch
       }
@@ -898,6 +986,7 @@
           periodDurationMs: 7 * 24 * 60 * 60 * 1000 // 7 days
         }))
       }
+      pushScopedWeeklyLine(lines, ctx, data.limits, "Fable")
       if (data.seven_day_sonnet && typeof data.seven_day_sonnet.utilization === "number") {
         lines.push(ctx.line.progress({
           label: "Sonnet",
@@ -933,6 +1022,7 @@
           lines.push(ctx.line.text({ label: "Extra usage spent", value: "$" + String(ctx.fmt.dollars(used)) }))
         }
       }
+      pushResetGrantsLine(lines, ctx, nowMs)
     }
 
     const usageResult = queryTokenUsage(ctx, homePath)
@@ -1013,6 +1103,8 @@
     rateLimitedUntilMs = 0
     lastUsageFetchMs = 0
     cachedUsageData = null
+    resetGrantsCheckedAtMs = 0
+    cachedResetGrants = null
   }
 
   globalThis.__openusage_plugin = { id: "claude", probe, _resetState }

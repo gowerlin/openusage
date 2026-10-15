@@ -1,5 +1,5 @@
 import crypto from "node:crypto"
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { makeCtx } from "../test-helpers.js"
 
 // Helpers for keychain hash regression tests.
@@ -21,6 +21,10 @@ beforeEach(() => {
 })
 
 const loadPlugin = async () => plugin
+
+// Plain usage requests only; the hourly reset-grants request (?cedar_ember=1) is counted separately.
+const usageRequestCount = (ctx) =>
+  ctx.host.http.request.mock.calls.filter(([opts]) => !String(opts.url).includes("cedar_ember")).length
 
 describe("claude plugin", () => {
   it("throws when no credentials", async () => {
@@ -1052,7 +1056,12 @@ describe("claude plugin", () => {
 
     let usageCalls = 0
     let firstUsageHeaders = null
+    let grantsHeaders = null
     ctx.host.http.request.mockImplementation((opts) => {
+      if (String(opts.url).includes("cedar_ember=1")) {
+        grantsHeaders = opts.headers
+        return { status: 200, bodyText: "{}" }
+      }
       if (String(opts.url).includes("/api/oauth/usage")) {
         usageCalls += 1
         if (!firstUsageHeaders) firstUsageHeaders = opts.headers
@@ -1076,7 +1085,9 @@ describe("claude plugin", () => {
     const plugin = await loadPlugin()
     const result = plugin.probe(ctx)
     expect(usageCalls).toBe(2)
-    expect(firstUsageHeaders["User-Agent"]).toBe("claude-code/2.1.69")
+    expect(firstUsageHeaders["User-Agent"]).toBe("claude-cli/2.1.294 (external, cli)")
+    // Reset grants reuse the token that just worked (the refreshed one).
+    expect(grantsHeaders.Authorization).toBe("Bearer token2")
     expect(result.lines.find((line) => line.label === "Session")).toBeTruthy()
   })
 
@@ -1934,12 +1945,12 @@ describe("claude plugin", () => {
 
         // First probe — gets 429, stores rateLimitedUntilMs
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1)
+        expect(usageRequestCount(ctx)).toBe(1)
 
         // Second probe 60 s later — still within window, must NOT call API
         vi.setSystemTime(new Date("2026-04-14T10:01:00.000Z"))
         const result2 = plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1) // no new request
+        expect(usageRequestCount(ctx)).toBe(1) // no new request
         const statusLine = result2.lines.find((l) => l.label === "Status")
         expect(statusLine).toBeTruthy()
         expect(statusLine.text).toMatch(/4m/) // ~4 minutes remaining
@@ -1963,12 +1974,12 @@ describe("claude plugin", () => {
 
         // First probe → 429
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1)
+        expect(usageRequestCount(ctx)).toBe(1)
 
         // 90 s later — window expired, should attempt API again
         vi.setSystemTime(new Date("2026-04-14T10:01:30.000Z"))
         const result2 = plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(2)
+        expect(usageRequestCount(ctx)).toBe(2)
         // No rate-limited badge after success (amber color = rate-limited)
         expect(result2.lines.find((l) => l.label === "Status" && l.color === "#f59e0b")).toBeUndefined()
       } finally {
@@ -1988,17 +1999,17 @@ describe("claude plugin", () => {
 
         // First probe — succeeds
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1)
+        expect(usageRequestCount(ctx)).toBe(1)
 
         // 30 s later — within MIN_USAGE_FETCH_INTERVAL_MS (5 min), no new request
         vi.setSystemTime(new Date("2026-04-14T10:00:30.000Z"))
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1)
+        expect(usageRequestCount(ctx)).toBe(1)
 
         // 5+ minutes later — interval elapsed, should fetch again
         vi.setSystemTime(new Date("2026-04-14T10:05:01.000Z"))
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(2)
+        expect(usageRequestCount(ctx)).toBe(2)
       } finally {
         vi.useRealTimers()
       }
@@ -2046,20 +2057,233 @@ describe("claude plugin", () => {
         const plugin = await loadPlugin()
 
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1)
+        expect(usageRequestCount(ctx)).toBe(1)
 
         // 4 min 59 s later — default 5 min backoff still active
         vi.setSystemTime(new Date("2026-04-14T10:04:59.000Z"))
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(1)
+        expect(usageRequestCount(ctx)).toBe(1)
 
         // 5 min 1 s later — backoff expired
         vi.setSystemTime(new Date("2026-04-14T10:05:01.000Z"))
         plugin.probe(ctx)
-        expect(ctx.host.http.request).toHaveBeenCalledTimes(2)
+        expect(usageRequestCount(ctx)).toBe(2)
       } finally {
         vi.useRealTimers()
       }
+    })
+  })
+
+  describe("Fable weekly limit", () => {
+    const fableLimit = (overrides) => ({
+      kind: "weekly_scoped",
+      group: "weekly",
+      percent: 7,
+      resets_at: "2099-01-08T00:00:00.000Z",
+      scope: { model: { display_name: "Fable", id: null }, surface: null },
+      ...overrides,
+    })
+    const probeWith = async (body) => {
+      const ctx = makeCtx()
+      ctx.host.fs.readText = () => JSON.stringify({ claudeAiOauth: { accessToken: "token" } })
+      ctx.host.fs.exists = () => true
+      ctx.host.http.request.mockReturnValue({ status: 200, bodyText: JSON.stringify(body) })
+      const plugin = await loadPlugin()
+      return plugin.probe(ctx)
+    }
+
+    it("renders Fable from the limits array directly below Weekly", async () => {
+      const result = await probeWith({
+        five_hour: { utilization: 10, resets_at: "2099-01-01T00:00:00.000Z" },
+        seven_day: { utilization: 20, resets_at: "2099-01-01T00:00:00.000Z" },
+        seven_day_sonnet: { utilization: 5, resets_at: "2099-01-01T00:00:00.000Z" },
+        limits: [fableLimit()],
+      })
+      const labels = result.lines.map((line) => line.label)
+      expect(labels.indexOf("Fable")).toBe(labels.indexOf("Weekly") + 1)
+      const fable = result.lines.find((line) => line.label === "Fable")
+      expect(fable.used).toBe(7)
+      expect(fable.limit).toBe(100)
+      expect(fable.format).toEqual({ kind: "percent" })
+      expect(fable.resetsAt).toBe("2099-01-08T00:00:00.000Z")
+      expect(fable.periodDurationMs).toBe(7 * 24 * 60 * 60 * 1000)
+    })
+
+    it("omits Fable when no weekly_scoped Fable limit is reported", async () => {
+      const cases = [
+        { seven_day: { utilization: 20 } },
+        { limits: null },
+        { limits: [fableLimit({ kind: "session_scoped" })] },
+        { limits: [fableLimit({ scope: { model: { display_name: "Opus" } } })] },
+        { limits: [fableLimit({ percent: "7" })] },
+        { limits: [fableLimit({ scope: null })] },
+      ]
+      for (const body of cases) {
+        plugin._resetState()
+        const result = await probeWith(body)
+        expect(result.lines.find((line) => line.label === "Fable")).toBeUndefined()
+      }
+    })
+  })
+
+  describe("rate limit resets (reset grants)", () => {
+    // 2026-09-21; shapes from upstream ClaudeResetGrantsTests (live Max 20x response).
+    const NOW = new Date(1_790_000_000 * 1000)
+    const usageBody = JSON.stringify({ five_hour: { utilization: 10, resets_at: "2099-01-01T00:00:00.000Z" } })
+    const setup = (grantsResponse) => {
+      const ctx = makeCtx()
+      ctx.host.fs.readText = () => JSON.stringify({ claudeAiOauth: { accessToken: "token" } })
+      ctx.host.fs.exists = () => true
+      ctx.host.http.request.mockImplementation((opts) => {
+        if (String(opts.url).includes("cedar_ember")) {
+          return typeof grantsResponse === "function" ? grantsResponse() : grantsResponse
+        }
+        return { status: 200, bodyText: usageBody }
+      })
+      return ctx
+    }
+    const grantsCalls = (ctx) =>
+      ctx.host.http.request.mock.calls.filter(([opts]) => String(opts.url).includes("cedar_ember"))
+    const resetsLine = (result) => result.lines.find((line) => line.label === "Rate Limit Resets")
+    const grantsBody = (block) => ({ status: 200, bodyText: JSON.stringify({ cedar_ember: block }) })
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      vi.setSystemTime(NOW)
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it("counts remaining resets and flags the soonest deadline", async () => {
+      const ctx = setup(grantsBody({
+        eligible: true, at_limit: false, exhausted: [],
+        grants: [
+          { id: "opus55-launch-promax-20260921", resets_total: 1, resets_left: 1,
+            starts_at: "2026-09-22T16:00:00+00:00", ends_at: "2026-10-22T16:00:00+00:00",
+            clears: ["five_hour", "seven_day"], paused: false, usable_now: true },
+          { id: "other", resets_total: 2, resets_left: 2, ends_at: "2026-10-01T00:00:00+00:00" },
+          { id: "spent", resets_total: 1, resets_left: 0, ends_at: "2026-10-05T00:00:00+00:00" },
+          { id: "lapsed", resets_total: 1, resets_left: 1, ends_at: "2026-09-01T00:00:00+00:00" },
+        ],
+        next_grant_id: "opus55-launch-promax-20260921",
+      }))
+      const plugin = await loadPlugin()
+      const result = plugin.probe(ctx)
+
+      const calls = grantsCalls(ctx)
+      expect(calls).toHaveLength(1)
+      expect(calls[0][0].url).toBe("https://api.anthropic.com/api/oauth/usage?cedar_ember=1&skip_spend=1")
+      expect(calls[0][0].headers["User-Agent"]).toBe("claude-cli/2.1.294 (external, cli)")
+      const line = resetsLine(result)
+      expect(line).toMatchObject({ type: "text", value: "3 available", color: "#3b82f6" })
+      expect(line.subtitle).toMatch(/^2026-(09-30|10-01)$/) // local date of 2026-10-01T00:00Z
+    })
+
+    it("colors the row yellow within a week and red within 48 hours", async () => {
+      const at = (hours) => new Date(NOW.getTime() + hours * 60 * 60 * 1000).toISOString()
+      for (const [hours, color] of [[6 * 24, "#f59e0b"], [47, "#ef4444"]]) {
+        plugin._resetState()
+        const ctx = setup(grantsBody({ eligible: true, grants: [{ resets_left: 1, ends_at: at(hours) }] }))
+        expect(resetsLine(plugin.probe(ctx)).color).toBe(color)
+      }
+    })
+
+    it("counts a grant without a deadline but shows no date", async () => {
+      const ctx = setup(grantsBody({ eligible: true, grants: [{ id: "g", resets_left: 1, ends_at: null }] }))
+      const line = resetsLine(plugin.probe(ctx))
+      expect(line.value).toBe("1 available")
+      expect(line.color).toBeUndefined()
+      expect(line.subtitle).toBeUndefined()
+    })
+
+    it("reads 0 available for an ineligible account", async () => {
+      const ctx = setup(grantsBody({ eligible: false, ineligible_reason: "tier", grants: [{ id: "g", resets_left: 1 }] }))
+      const line = resetsLine(plugin.probe(ctx))
+      expect(line.value).toBe("0 available")
+      expect(line.color).toBeUndefined()
+    })
+
+    it("emits no row when the cedar_ember block is missing or null", async () => {
+      for (const body of [{ cedar_ember: null }, { five_hour: { utilization: 3 } }]) {
+        plugin._resetState()
+        const ctx = setup({ status: 200, bodyText: JSON.stringify(body) })
+        expect(resetsLine(plugin.probe(ctx))).toBeUndefined()
+      }
+    })
+
+    it("checks at most once an hour and shows the held answer in between", async () => {
+      const ctx = setup(grantsBody({ eligible: true, grants: [{ resets_left: 1, ends_at: "2026-10-22T16:00:00Z" }] }))
+      plugin.probe(ctx)
+      expect(grantsCalls(ctx)).toHaveLength(1)
+
+      vi.setSystemTime(new Date(NOW.getTime() + 30 * 60 * 1000)) // usage refetched, grants held
+      const held = plugin.probe(ctx)
+      expect(usageRequestCount(ctx)).toBe(2)
+      expect(grantsCalls(ctx)).toHaveLength(1)
+      expect(resetsLine(held).value).toBe("1 available")
+
+      vi.setSystemTime(new Date(NOW.getTime() + 61 * 60 * 1000))
+      plugin.probe(ctx)
+      expect(grantsCalls(ctx)).toHaveLength(2)
+    })
+
+    it("keeps the previous answer when a check fails and retries an hour later", async () => {
+      let fail = false
+      const ok = grantsBody({ eligible: true, grants: [{ resets_left: 2, ends_at: "2026-10-22T16:00:00Z" }] })
+      const ctx = setup(() => {
+        if (fail) throw "network down"
+        return ok
+      })
+      plugin.probe(ctx)
+
+      fail = true
+      vi.setSystemTime(new Date(NOW.getTime() + 61 * 60 * 1000))
+      const afterThrow = plugin.probe(ctx)
+      expect(resetsLine(afterThrow).value).toBe("2 available")
+      expect(ctx.host.log.warn).toHaveBeenCalledWith(expect.stringContaining("reset grants lookup failed"))
+
+      vi.setSystemTime(new Date(NOW.getTime() + 90 * 60 * 1000)) // failed check counts as the hour's check
+      plugin.probe(ctx)
+      expect(grantsCalls(ctx)).toHaveLength(2)
+    })
+
+    it("keeps the previous answer when the check is rate limited", async () => {
+      let status = 200
+      const ctx = setup(() => status === 200
+        ? grantsBody({ eligible: true, grants: [{ resets_left: 1, ends_at: "2026-10-22T16:00:00Z" }] })
+        : { status, bodyText: "" })
+      plugin.probe(ctx)
+      status = 429
+      vi.setSystemTime(new Date(NOW.getTime() + 61 * 60 * 1000))
+      const result = plugin.probe(ctx)
+      expect(resetsLine(result).value).toBe("1 available")
+      expect(result.lines.find((line) => line.label === "Status")).toBeUndefined()
+    })
+
+    it("drops held resets whose deadline passed since the last check", async () => {
+      const soon = new Date(NOW.getTime() + 20 * 60 * 1000).toISOString()
+      const ctx = setup(grantsBody({
+        eligible: true,
+        grants: [{ resets_left: 1, ends_at: soon }, { resets_left: 1, ends_at: "2026-10-22T16:00:00Z" }],
+      }))
+      expect(resetsLine(plugin.probe(ctx)).value).toBe("2 available")
+
+      vi.setSystemTime(new Date(NOW.getTime() + 30 * 60 * 1000))
+      const line = resetsLine(plugin.probe(ctx))
+      expect(grantsCalls(ctx)).toHaveLength(1)
+      expect(line.value).toBe("1 available")
+      expect(line.color).toBe("#3b82f6")
+    })
+
+    it("does not ask for reset grants when the usage request is rate limited", async () => {
+      const ctx = makeCtx()
+      ctx.host.fs.readText = () => JSON.stringify({ claudeAiOauth: { accessToken: "token" } })
+      ctx.host.fs.exists = () => true
+      ctx.host.http.request.mockReturnValue({ status: 429, bodyText: "", headers: { "Retry-After": "60" } })
+      const result = plugin.probe(ctx)
+      expect(grantsCalls(ctx)).toHaveLength(0)
+      expect(resetsLine(result)).toBeUndefined()
     })
   })
 })
