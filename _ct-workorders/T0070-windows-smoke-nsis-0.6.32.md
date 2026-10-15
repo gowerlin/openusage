@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0070
 title: Windows smoke + NSIS for 0.6.32 (token dashboard button)
-status: IN_PROGRESS
+status: DONE
 priority: High
 type: verification
 plan_id: PLAN-007
 bug_id: null
 created_at: "2026-10-15T18:42:22+08:00"
-updated_at: "2026-10-15T19:23:57+08:00"
+updated_at: "2026-10-15T19:42:40+08:00"
 started_at: "2026-10-15T19:23:57+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T19:42:40+08:00"
+commit: 43bcd216
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -55,12 +55,11 @@ DONE — NSIS PASS；Token 戰情室 8 項實機全 PASS（D111 `@latest` 已套
 
 ### Installer
 
-- VS 18 Enterprise `VsDevCmd -arch=x64` + `LIBCLANG_PATH=<VS>\VC\Tools\Llvmdin` + `CI=false`，PowerShell `cmd.exe /c`：`bun tauri build --target x86_64-pc-windows-msvc --bundles nsis`（重建前端、`Bundled 18 plugins`）。
-- `src-tauri	arget_64-pc-windows-msvceleaseundle
-sis\OpenUsage_0.6.31_x64-setup.exe`（版號 0.6.31 屬預期）
+- VS 18 Enterprise `VsDevCmd -arch=x64` + `LIBCLANG_PATH=<VS>/VC/Tools/Llvm/x64/bin` + `CI=false`，PowerShell `cmd.exe /c`：`bun tauri build --target x86_64-pc-windows-msvc --bundles nsis`（重建前端、`Bundled 18 plugins`）。
+- `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/OpenUsage_0.6.31_x64-setup.exe`（版號 0.6.31 屬預期）
 - Size 5,478,594 bytes；SHA256 `B7B4EA74CE72F51A44651C736D096942B78C5C38C9F08BC454C6EE77DF6577E0`；2026-10-15 19:24:51
 - CLI exit 1：`A public key has been found, but no private key…`（預期，只少 `.sig`）。
-- 7-Zip 解出 83 檔、`resourcesundled_plugins` 18 個；解出 exe ProductVersion 0.6.31，SHA256 `1BC5973D…5FE1`。未執行 installer。
+- 7-Zip 解出 83 檔、`resources/bundled_plugins` 18 個；解出 exe ProductVersion 0.6.31，SHA256 `1BC5973D…5FE1`。未執行 installer。
 - D111：`src-tauri/src/token_dashboard.rs:23` `PACKAGE_SPEC = "token-usage-insights@latest"`；實機程序樹 `cmd.exe /c npx.cmd --yes token-usage-insights@latest …`（同 T0069）。
 
 ### Smoke 方法
@@ -79,11 +78,11 @@ sis\OpenUsage_0.6.31_x64-setup.exe`（版號 0.6.31 屬預期）
 | Quit 清理（tray 右鍵 → Quit） | PASS | R1：Quit 後 app 結束，12 個子孫 PID 全不存在，3003 關閉 |
 | 強制結束清理 | PASS | `Stop-Process -Force` 2s 後子孫 0 存活，3003 關閉 |
 | 外部已開不關 | PASS ×2 | 預先手動啟動 npx 看板（Worker 自開，`PORT=3003 HOST=127.0.0.1`，cwd home）；app HelpText 已顯示執行中；按下後 app 子樹只有 msedgewebview2 ×6（未 spawn），Chrome 開 3003；tray Quit 後 app 結束，外部 6 程序全存活、3003 仍由外部 owner listen。之後由 Worker 結束外部看板 |
-| 無 npx 提示 | PASS | 只對測試 process 移除 PATH 中 `nodejs|nvm|npm` 項目：面板顯示「Token 戰情室需要 Node.js 18.18 以上（npx）或 TokenUsageInsights 安裝腳本。」+「安裝說明」「關閉」；app 子樹無 cmd/node，3003 未開（`token-no-npx.png`） |
+| 無 npx 提示 | PASS | 只對測試 process 移除 PATH 中含 `nodejs` / `nvm` / `npm` 的項目：面板顯示「Token 戰情室需要 Node.js 18.18 以上（npx）或 TokenUsageInsights 安裝腳本。」+「安裝說明」「關閉」；app 子樹無 cmd/node，3003 未開（`token-no-npx.png`） |
 | 無 console | PASS ×3 | 啟動期間每 100ms 取樣 30 次：新可見 top-level 視窗 0；子孫樹擁有的可見視窗 0 |
 | 無工作列按鈕 | PASS ×3 | TaskListButton 啟動前 11 / 就緒後 11，新增 0 |
 
-已安裝版（`%USERPROFILE%in	oken-usage-insights.cmd`）本機仍不存在，「已安裝版優先 / 自我更新後仍在 Job」未實機（同 T0069）。
+已安裝版（`%USERPROFILE%/bin/token-usage-insights.cmd`）本機仍不存在，「已安裝版優先 / 自我更新後仍在 Job」未實機（同 T0069）。
 
 ### BUG-019
 
