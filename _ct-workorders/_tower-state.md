@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 14:18 (UTC+8)
+> 最後更新：2026-10-15 14:22 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0049 cwd plugins 限 debug → T0044 re-smoke → T0041 發行；T0045 DONE（`2f357ac0`）；T0046 DONE（`61698e68`）；T0047 DONE（`96fc3ad8`）；T0048 已 YOLO 派發；T0048 後插入 T0049（BUG-012）。前一張 DONE 才派下一張，非 DONE 停下問使用者。
+5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0049 cwd plugins 限 debug → T0044 re-smoke → T0041 發行；T0045 DONE（`2f357ac0`）；T0046 DONE（`61698e68`）；T0047 DONE（`96fc3ad8`）；T0048 DONE（`84a814e8` 文案 / `02a94c74` 拆檔）；T0049 已 YOLO 派發；T0048 後插入 T0049（BUG-012）。前一張 DONE 才派下一張，非 DONE 停下問使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -112,7 +112,7 @@
 | 工單 | T0049 |
 | BUG | BUG-012 |
 | PLAN | PLAN-004 |
-| 決策 | D079 |
+| 決策 | D080 |
 
 ---
 
@@ -149,8 +149,8 @@
 | Windows path redaction | BUG-009 / T0045 | ✅ DONE | 無 | BUG-009 FIXED（剩餘併 T0046） |
 | ccusage Windows robustness | BUG-010 / T0046 | ✅ DONE | 無 | BUG-010 FIXED；BUG-009 剩餘完成 |
 | no_runner hint + tooltip + devin docs | BUG-011 / T0047 | ✅ DONE | 無 | BUG-011 FIXED（文案改短併 T0048） |
-| Split panel_blur.rs + 提示文案改短 | T0048 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| cwd plugins debug-only | BUG-012 / T0049 | 📋 PENDING | depends_on T0048 | 自動串接 |
+| Split panel_blur.rs + 提示文案改短 | T0048 | ✅ DONE | 無 | panel.rs 401 行 |
+| cwd plugins debug-only | BUG-012 / T0049 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 📋 PENDING | depends_on T0049 | 自動串接 |
 | Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0044 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
@@ -239,6 +239,7 @@
 - D077：接受 T0045 DONE（`2f357ac0`）；BUG-009 FIXED（host_api 共用 `redact_paths()`，實機 host_api log 無使用者名稱）。Worker 發現剩餘外洩：`config.rs:62` 直接 log 路徑、含空白使用者名稱只遮一半 → 依使用者「小問題也排單再出版」原則併入 T0046（同為 Rust、範圍小），不另開單。
 - D078：接受 T0046 DONE（`61698e68`）；BUG-010 FIXED、BUG-009 剩餘完成。方案 Job Object（引 Microsoft 文件）。接受偏差：程式無 availability cache → 改重用 `--version` 輸出；`config.rs:53` 一併改。Worker 觀察：正式版從含 `plugins/` 的 cwd 啟動會載入該目錄 plugin，塔台查證 `find_dev_plugins_dir()` 未限 debug build → 開 BUG-012（Medium，安全）/ T0049 插在 T0048 後；T0044 補 BUG-010/012 檢查與「安裝版以安裝目錄為 cwd 重啟」規則。
 - D079：接受 T0047 DONE（`96fc3ad8`）；BUG-011 FIXED。接受偏差：改 `provider-card-metric-line.tsx` 讓 text value 可翻譯（獨立 `DISPLAY_VALUE_KEYS`，不誤翻 plan 名）、新增 `use-tray-icon.test.ts`。Worker 觀察提示被截斷 → 塔台定案短文案 `Needs Node.js or Bun` / `需要 Node.js 或 Bun`，以獨立 commit 併入 T0048。tray tooltip 語言更新僅單元測試（Windows 本就不更新 tooltip）。
+- D080：接受 T0048 DONE；純搬移（119+/118-），`panel_hit_test.rs` 未動，cargo test 149 不減；文案改短後 browser dev 量測不截斷（en 餘裕約 3px，T0044 實機 WebView2 再確認）。依 D076 派發 T0049。
 
 ---
 

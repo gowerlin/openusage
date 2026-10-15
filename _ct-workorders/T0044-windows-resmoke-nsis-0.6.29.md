@@ -41,7 +41,7 @@ T0040 PARTIAL（Usage Trend FAIL）。T0042（ccusage runner）、T0043（taskba
    - 失焦自動收起 + tray 連點無閃爍 + 拖曳 / 下拉 / About 不誤收（BUG-008；T0048 搬移後不退步）。
    - Debug log 中 host_api 路徑不含實際使用者名稱（BUG-009）。
    - 一般情況 ccusage 正常、無殘留 node（BUG-010）。
-   - 無 runner 時顯示「用量歷史」提示（BUG-011，可用只對測試 process 改 PATH 的方式）。
+   - 無 runner 時顯示「用量歷史 / 需要 Node.js 或 Bun」提示且**不截斷**（en 也要檢查，T0048 量測餘裕僅約 3px）（BUG-011，可用只對測試 process 改 PATH 的方式）。
    - 安裝版從 repo 目錄啟動不載入 repo `plugins/`（BUG-012）。
    - ccusage 逾時後 process tree 清空（BUG-010；可沿用 T0046 的暫時 timeout build 做法，不 commit）。
 3. 截圖存 `_ct-workorders/assets/T0044/`（**截圖前確認畫面沒有其他視窗的私人內容**）。
