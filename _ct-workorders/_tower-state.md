@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 14:27 (UTC+8)
+> 最後更新：2026-10-15 14:53 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0049 cwd plugins 限 debug → T0044 re-smoke → T0041 發行；T0045 DONE（`2f357ac0`）；T0046 DONE（`61698e68`）；T0047 DONE（`96fc3ad8`）；T0048 DONE（`84a814e8` 文案 / `02a94c74` 拆檔）；T0049 DONE（`1f9dd835`）；T0044 已 YOLO 派發；T0048 後插入 T0049（BUG-012）。前一張 DONE 才派下一張，非 DONE 停下問使用者。
+5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0049 cwd plugins 限 debug → T0044 re-smoke → T0041 發行；T0045 DONE（`2f357ac0`）；T0046 DONE（`61698e68`）；T0047 DONE（`96fc3ad8`）；T0048 DONE（`84a814e8` 文案 / `02a94c74` 拆檔）；T0049 DONE（`1f9dd835`）；T0044 DONE（`73337e38`，NSIS + 26 項 smoke 全 PASS）；T0041 已 YOLO 派發；T0048 後插入 T0049（BUG-012）。前一張 DONE 才派下一張，非 DONE 停下問使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -110,9 +110,9 @@
 | 類型 | 最大編號 |
 |------|---------|
 | 工單 | T0049 |
-| BUG | BUG-012 |
+| BUG | BUG-015 |
 | PLAN | PLAN-004 |
-| 決策 | D082 |
+| 決策 | D083 |
 
 ---
 
@@ -151,8 +151,9 @@
 | no_runner hint + tooltip + devin docs | BUG-011 / T0047 | ✅ DONE | 無 | BUG-011 FIXED（文案改短併 T0048） |
 | Split panel_blur.rs + 提示文案改短 | T0048 | ✅ DONE | 無 | panel.rs 401 行 |
 | cwd plugins debug-only | BUG-012 / T0049 | ✅ DONE | 無 | BUG-012 FIXED |
-| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0044 | 自動串接 |
+| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | ✅ DONE | 無 | 26 項 PASS |
+| Release v0.6.29 | PLAN-004 / T0041 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| v0.6.30 候選 | BUG-013/014/015 | 📋 OPEN | 無 | v0.6.29 發行後排單 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
@@ -242,6 +243,7 @@
 - D080：接受 T0048 DONE；純搬移（119+/118-），`panel_hit_test.rs` 未動，cargo test 149 不減；文案改短後 browser dev 量測不截斷（en 餘裕約 3px，T0044 實機 WebView2 再確認）。依 D076 派發 T0049。
 - D081：使用者決定截圖含用量金額可公開，只要無 API token / 個資。塔台逐張檢視未推送截圖（T0040 ×5、T0042、T0047 ×2、T0048）：無 token、email、帳號 ID、完整使用者路徑；工單文字掃描無 token / email。Windows 使用者名稱 `Gower` 出現在 9 個工單路徑中（其中 7 個 5 月起已公開，且與 git author 名稱相同），不視為新增外洩。T0041 加入 push 前隱私掃描步驟。
 - D082：接受 T0049 DONE（`1f9dd835`）；BUG-012 FIXED。接受偏差：`settings.json` 被改寫是 0.6.29 windsurf 退役遷移（非 cwd），已還原 SHA 一致；`bun tauri dev` 只測試層覆蓋。BUG 全部非 Open（Fixed 7 / Closed 2）。依 D076 派發 T0044 re-smoke。
+- D083：接受 T0044 DONE（`73337e38`）：installer 內容（7-Zip 解出，未執行安裝避免寫 HKCU）smoke 26 項全 PASS。Worker 4 項觀察（blur 一次漏收不可重現、數值截斷、Settings 超出工作區、新 exe tray 在溢位區）皆非退步；使用者決定現在發 v0.6.29，①②③ 登記 BUG-013/014/015 排 v0.6.30，④ 為 Windows 行為不修。T0044 副作用：剪貼簿內容被 sentinel 覆蓋（不可還原）；使用者同意 Worker 控制滑鼠。派發 T0041。
 
 ---
 

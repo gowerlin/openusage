@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T14:27:43+08:00"
+generated_at: "2026-10-15T14:53:32+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 9
+total: 12
 breakdown:
-  OPEN: 0
+  OPEN: 3
   FIXING: 0
   FIXED: 7
   VERIFY: 0
@@ -25,12 +25,15 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 0 | Fixing: 0 | Fixed: 7 | Verify: 0 | Closed: 2 | Won't Fix: 0 | **Total: 9**
+- Open: 3 | Fixing: 0 | Fixed: 7 | Verify: 0 | Closed: 2 | Won't Fix: 0 | **Total: 12**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-013 | Panel occasionally stays open when blur arrives only as WM_NCACTIVATE | 🟢 Low | 2026-10-15T14:53:32+08:00 | [BUG-013-panel-blur-missed-without-focused-false.md](BUG-013-panel-blur-missed-without-focused-false.md) |
+| BUG-014 | Long text metric values are truncated in provider detail | 🟢 Low | 2026-10-15T14:53:32+08:00 | [BUG-014-metric-text-value-truncated.md](BUG-014-metric-text-value-truncated.md) |
+| BUG-015 | Settings panel taller than the Windows work area | 🟢 Low | 2026-10-15T14:53:32+08:00 | [BUG-015-settings-page-exceeds-work-area.md](BUG-015-settings-page-exceeds-work-area.md) |
 
 ## Fixing
 

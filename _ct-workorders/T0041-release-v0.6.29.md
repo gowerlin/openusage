@@ -9,7 +9,7 @@ type: release
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:39:32+08:00"
-updated_at: "2026-10-15T14:26:25+08:00"
+updated_at: "2026-10-15T14:53:32+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -71,6 +71,7 @@ PLAN-004 最後一步。版號 `0.6.29` 已由 T0038 在 merge commit 寫入四�
 
 - 不改功能程式碼、不改 `.github/workflows/**`。workflow 失敗 → 回報失敗步驟與 log 摘要。
 - 不 commit 塔台私有檔。
+- 已知未修（v0.6.30，D083）：BUG-013 / 014 / 015 —— 發行說明可列「已知問題」一段（可選）。
 
 ## 驗證 Gate
 
