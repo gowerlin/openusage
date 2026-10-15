@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 18:22 (UTC+8)
+> 最後更新：2026-10-15 18:41 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
@@ -10,7 +10,7 @@
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
-7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke（PARTIAL）→ T0067 → T0068 → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 DONE（`1f2a2812`）；T0066 DONE（`d50245c3`）；T0062 PARTIAL（BUG-016 停頓放開 FAIL + 拖回截短回歸）→ 插入 T0067 修正 + T0068 re-smoke（D105）；T0067 DONE（`4331f8de`）；T0068 DONE（`11b1b878`）；T0064 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
+7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke（PARTIAL）→ T0067 → T0068 → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 DONE（`1f2a2812`）；T0066 DONE（`d50245c3`）；T0062 PARTIAL（BUG-016 停頓放開 FAIL + 拖回截短回歸）→ 插入 T0067 修正 + T0068 re-smoke（D105）；T0067 DONE（`4331f8de`）；T0068 DONE（`11b1b878`）；T0064 DONE（`5f03a38d` 已 push，pre-release run `38719945226` success）；T0063 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -114,7 +114,7 @@
 | 工單 | T0068 |
 | BUG | BUG-018 |
 | PLAN | PLAN-006 |
-| 決策 | D107 |
+| 決策 | D108 |
 
 ---
 
@@ -172,8 +172,8 @@
 | Windows smoke 0.6.31 | PLAN-006 / T0062 | ⚠️ PARTIAL | BUG-016 FAIL | 由 T0067/T0068 解決 |
 | Refit on drag end + trace redact | BUG-016/018 / T0067 | ✅ DONE | 無 | BUG-016/018 FIXED |
 | Windows re-smoke 0.6.31 | PLAN-006 / T0068 | ✅ DONE | 無 | BUG-016 矩陣全 PASS |
-| CI 驗證 pre-release | PLAN-006 / T0064 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Release v0.6.31 | PLAN-006 / T0063 | 📋 PENDING | depends_on T0064 | 自動串接 |
+| CI 驗證 pre-release | PLAN-006 / T0064 | ✅ DONE | 無 | `v0.6.31-pre.1` pre-release |
+| Release v0.6.31 | PLAN-006 / T0063 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Copilot Windows gh token | BUG-017 | 📋 OPEN | 無 | v0.6.31 後開單 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
@@ -289,6 +289,7 @@
 - D105：T0062 PARTIAL（`ee08bc26`）：NSIS 與移植項 / 13 項回歸全 PASS，但 BUG-016 放開前停頓 ≥150ms 時失效，且先拖低再拖回停頓放開會**截短可見面板**（T0055 引入的回歸）。依串接規則停下詢問；使用者選「先修再發」並一併修 trace log 使用者名稱。重開 BUG-016（FIXING），新增 BUG-018；建立 T0067（subclass 觀察 `WM_ENTERSIZEMOVE`/`WM_EXITSIZEMOVE`，拖曳中零 setSize、放開後 refit；不改既有 return）與 T0068（BUG-016 完整矩陣 + 受影響回歸）；T0064 改 depends_on T0068。觀察 2（Codex 無 Fable）為塔台工單用詞錯誤，不需處理。
 - D106：接受 T0067 DONE（`4331f8de`）：subclass 只新增觀察 `WM_ENTERSIZEMOVE`/`WM_EXITSIZEMOVE`（引 MS 文件，照常 DefSubclassProc），前端拖曳中零 setSize、drag-ended 後 40ms refit；`trace_ready` 遮蔽。實機 BUG-016 矩陣全 PASS（heldH 不變、放開後約 60ms B=1356、拖回恢復），BUG-015 不退步，trace `has_chrome_bits=true` 0。BUG-016、BUG-018 FIXED。接受偏差：基準高度改「同位置拖曳前高度」、另加 `drag-started` 事件。派發 T0068。
 - D107：接受 T0068 DONE（`11b1b878`）：NSIS PASS；BUG-016 矩陣 5 情境全 PASS（含 T0062 兩個 FAIL 情境）、BUG-018 PASS、T0067 影響回歸 7 項與抽查 4 項全 PASS。觀察：放開瞬間約 60ms 仍為舊高度（設計內，非 FAIL）。依 D096 派發 T0064（push main + pre-release workflow）。
+- D108：接受 T0064 DONE：`pre-release.yml` 同步 Node 24 升級並 push（`49754c2f..5f03a38d`）；run `38719945226` success，inline MSVC step 正常、無 Node 20 annotation；`v0.6.31-pre.1` 為 pre-release，Latest 仍 v0.6.30、正式 `latest.json` 0.6.30；fork tag 只多 `v0.6.31-pre.1`。觀察：`ubuntu-latest` 10/19 遷移 Ubuntu 26（notice）。使用者另提新功能（Token 戰情室按鈕），決定 v0.6.31 先發、功能放 v0.6.32（PLAN-007）。派發 T0063。
 
 ---
 
