@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 16:38 (UTC+8)
+> 最後更新：2026-10-15 16:42 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
@@ -10,7 +10,7 @@
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
-7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0062 smoke → T0063 發行（D093）；T0055 DONE（`5ec8935b`）；T0056 已 YOLO 派發。
+7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0062 smoke → T0063 發行（D093）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 已 YOLO 派發。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -114,7 +114,7 @@
 | 工單 | T0063 |
 | BUG | BUG-016 |
 | PLAN | PLAN-006 |
-| 決策 | D094 |
+| 決策 | D095 |
 
 ---
 
@@ -161,8 +161,8 @@
 | Windows smoke 0.6.30 | PLAN-005 / T0053 | ✅ DONE | 無 | 全 PASS |
 | Release v0.6.30 | PLAN-005 / T0054 | ✅ DONE | 無 | run `38703798990`；Latest |
 | Panel refit after drag | BUG-016 / T0055 | ✅ DONE | 無 | BUG-016 FIXED |
-| README + CI Node 24 | T0056 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Port: Codex link | T0057 | 📋 PENDING | depends_on T0056 | 自動串接 |
+| README + CI Node 24 | T0056 | ✅ DONE | inline MSVC step 未在 GitHub runner 實跑 | 待使用者決定 CI 驗證方式 |
+| Port: Codex link | T0057 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Port: Grok weekly | T0058 | 📋 PENDING | depends_on T0057 | 自動串接 |
 | Port: Claude resets + Fable | T0059 | 📋 PENDING | depends_on T0058 | 自動串接 |
 | Port: OpenCode Go API | T0060 | 📋 PENDING | depends_on T0059 | 自動串接 |
@@ -270,6 +270,7 @@
 - D092：使用者回報「v0.6.30 通過」→ BUG-006 ~ BUG-015 全部 CLOSED。
 - D093：使用者要求剩餘四項（BUG-016、v0.7.x 移植、README、publish.yml）繼續開單處理。建立 PLAN-006 + T0055–T0063，串接到發行 v0.6.31（沿用「修完再發」）。v0.7.x 移植依 T0037 §7「移植」項，每個 provider 一張；上游 Swift 版只能 `git show upstream/main:`，不得 merge；無憑證的 provider 不可偽造 runtime 驗證。T0056 不升級 tauri-action（T0009 前車之鑑）。
 - D094：接受 T0055 DONE（`5ec8935b`）；BUG-016 FIXED。實機真實拖曳（互動紀錄有使用者同意）。接受偏差：非程式移動判斷放 Rust 端以 event 通知前端。派發 T0056。
+- D095：接受 T0056 DONE（`b3788b08`）：README 加 Perplexity（Windows 不支援）/ Synthetic；`checkout@v4`→`@v7`；`ilammy/msvc-dev-cmd@v1`（最新仍 node20）改 inline pwsh VsDevCmd step（actionlint + 本機模擬 PASS）。風險：inline step 未在 GitHub runner 實跑，若 T0063 推 tag 後才失敗會卡在已推 tag。`pre-release.yml`（workflow_dispatch，Windows NSIS）仍用 `checkout@v4` + ilammy，T0056 未涵蓋。向使用者詢問 CI 驗證方式；T0057 與 CI 無關，先派發。
 
 ---
 
