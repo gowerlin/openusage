@@ -3,17 +3,17 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-05-24T20:01:42+08:00"
+generated_at: "2026-10-15T10:56:35+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 3
+total: 4
 breakdown:
   OPEN: 0
   FIXING: 0
-  FIXED: 0
+  FIXED: 1
   VERIFY: 0
   CLOSED: 3
   WONTFIX: 0
@@ -24,7 +24,7 @@ breakdown:
 > 此文件由 `*sync` 自動生成，請勿手動編輯。
 
 ## 統計
-- Open: 0 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 3 | Won't Fix: 0 | **Total: 3**
+- Open: 0 | Fixing: 0 | Fixed: 1 | Verify: 0 | Closed: 3 | Won't Fix: 0 | **Total: 4**
 
 ## Open
 
@@ -40,6 +40,7 @@ breakdown:
 
 | ID | 標題 | 嚴重度 | 修復時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-004 | App allows multiple running instances | 🟡 Medium | 2026-10-15T10:56:35+08:00 | [BUG-004-multiple-instances-allowed.md](BUG-004-multiple-instances-allowed.md) |
 
 ## Verify
 

@@ -1,14 +1,16 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-05-24 20:01 (UTC+8)
+> 最後更新：2026-10-15 10:56 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.25` 正式 GitHub Release 已重新建立並通過 Publish run `26360375391`；`latest.json`、NSIS installer、`.sig` 已上傳。
 2. BUG-001 / BUG-002 / BUG-003：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
-4. 工單 T0001-T0031：全部 DONE；目前無 active workorder。
+4. 工單 T0001-T0032：全部 DONE。
 5. 專案基線工單尚未建立；待使用者確認是否需要。
+6. BUG-004 / T0032：T0032 DONE（commit `2717631`），BUG-004 FIXED；等 `v0.6.26` 發行後使用者安裝實測再 CLOSED。
+7. T0033 release `v0.6.26`：依 D056 派發中。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -101,7 +103,7 @@
 |------|------|
 | **專案** | openusage |
 | **目前里程碑** | 未設定 |
-| **塔台版本** | Control Tower v5.0.1 |
+| **塔台版本** | Control Tower v5.0.9 |
 
 ---
 
@@ -109,10 +111,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0031 |
-| BUG | BUG-003 |
+| 工單 | T0033 |
+| BUG | BUG-004 |
 | PLAN | PLAN-003 |
-| 決策 | D054 |
+| 決策 | D057 |
 
 ---
 
@@ -137,6 +139,8 @@
 | i18n support with Traditional Chinese locale | PLAN-002 / T0016 / T0017 | ✅ DONE | 無 | runtime persistence + user install test verified |
 | Macaron theme presets | PLAN-003 / T0020 / T0021 | ✅ DONE | 無 | visual smoke + runtime persistence + user install test verified |
 | Background shell window visibility | BUG-002 / T0013 | ✅ CLOSED | 無 | 使用者安裝測試確認背景 shell 不再顯示終端視窗 |
+| Single app instance | BUG-004 / T0032 | ✅ FIXED | 無 | `v0.6.26` 發行後使用者安裝實測 |
+| Release v0.6.26 | T0033 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 
 ---
 
@@ -196,6 +200,9 @@
 - D052：使用者安裝測試確認 T0031 解決 BUG-001 native title bar / deactive 問題；BUG-001 CLOSED。
 - D053：使用者回報 BUG-002 / BUG-003 也都驗收通過；BUG-002 由 FIXED 收斂為 CLOSED，BUG-003 維持 CLOSED 並更新驗收時間。
 - D054：正式 release `0.6.25` 必須從 `main` 的版本 bump commit 發出；清理錯誤 `0.6.25` / 舊 `v0.6.25` tag 後，重建 `v0.6.25` 指向 `f8e31e9`，Publish run `26360375391` 已成功並驗證 updater assets。
+- D055：使用者要求禁止多個執行個體；建立 BUG-004 / T0032，採 `tauri-plugin-single-instance` 全平台，第二次啟動結束新 instance 並以既有 `show_panel` 叫出面板。
+- D056：使用者授權 T0032 完成後改版號並 GitHub 發行；預建 T0033（`0.6.25`→`0.6.26`，push main + 新 tag `v0.6.26`，禁止 force / 移動既有 tag），並須以 `gh release edit` 寫入繁中發行重點說明（本版重點：single-instance）。T0032 DONE 後自動派發，派發前塔台先 `*sync` 並 commit 塔台私有檔。
+- D057：接受 T0032 DONE（`2717631`）；接受依賴鎖 `~2.4.5` 的偏離（避免 tauri 2.12 連帶升級）；BUG-004 FIXED，macOS/Linux runtime 未驗；依 D056 派發 T0033。
 
 ---
 
@@ -206,13 +213,14 @@
 - BUG-003：CLOSED；使用者安裝測試確認 System Tray icon 正確。
 - PLAN-003：DONE；T0021 Tauri runtime macaron theme persistence 已通過；T0020 使用者安裝測試已驗收。
 - PLAN-002：DONE；T0017 Tauri runtime language persistence 已通過；T0016 使用者安裝測試已驗收。
+- BUG-004：FIXED；待 `v0.6.26` 安裝實測。
 - 無 Windows release 阻塞待辦。
 - PLAN / BUG 追蹤已啟用；EXP 追蹤尚未啟用。
 
 ---
 
 ## 🔍 環境快照
-> 最後掃描：2026-05-23 17:35 (UTC+8)
+> 最後掃描：2026-10-15 10:37 (UTC+8)
 
 | 偵測項 | 狀態 | 備註 |
 |--------|------|------|
@@ -220,8 +228,8 @@
 | ECC 學習 | ✅ Level 1 | `~/.claude/homunculus/` 存在 |
 | bmad-guide skill | ✅ | 可用 |
 | mem0 REST | ✅ | `memsync status --json` 成功 |
-| 終端環境 | ❌ 未知 | 未偵測到 WT / TERM_PROGRAM |
-| BAT 終端 | 📋 非 BAT 環境 | `BAT_SESSION` 未設定 |
+| 終端環境 | ✅ BAT | `TERM_PROGRAM=better-agent-terminal` |
+| BAT 終端 | ✅ 可派發 | PowerShell 可見 `BAT_SESSION=1`、PORT/TOKEN/TERMINAL_ID/WORKSPACE_ID 齊全；helper `C:\Program Files\BetterAgentTerminal\resources\scripts` |
 | ct-exec | ✅ | 已安裝 |
 | ct-done | ✅ | 已安裝 |
 | ct-status | ✅ | 已安裝 |
@@ -229,7 +237,7 @@
 | ct-insights | ✅ | 已安裝 |
 | ct-fieldguide | ✅ | 已安裝 |
 | ct-help | ✅ | 已安裝 |
-| _archive/ | 📋 | 未建立 |
+| _archive/ | 📋 | 未建立；熱區 31 張 DONE 工單，建議 `*archive` |
 | _playbooks/ | 📋 | 未建立 |
 | _decision-log | 🆕 | 可建立 |
 | 跨專案參照 | 📋 | 無關聯 |
