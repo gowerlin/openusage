@@ -140,13 +140,19 @@ fn windows_panel_subclass_policy(message: u32, wparam: usize) -> Option<isize> {
     }
 }
 
+/// `WM_NCACTIVATE(FALSE)` means the panel is being deactivated. Sometimes it is the only
+/// blur signal (no `Focused(false)`), so it also triggers the delayed blur check.
+fn should_schedule_blur_check(message: u32, wparam: usize) -> bool {
+    message == WINDOWS_WM_NCACTIVATE && wparam == 0
+}
+
 #[cfg(windows)]
 mod platform {
     use super::{
         MAIN_WINDOW_LABEL, PANEL_RADIUS_LOGICAL_PX, PanelWindowMask, WINDOWS_WM_NCACTIVATE,
         WINDOWS_WM_NCCALCSIZE, WINDOWS_WM_NCPAINT, WINDOWS_WM_STYLECHANGED,
         WINDOWS_WM_STYLECHANGING, arrow_points_from_bounds, physical_bounds_from_logical,
-        strip_windows_panel_chrome, windows_panel_subclass_policy,
+        should_schedule_blur_check, strip_windows_panel_chrome, windows_panel_subclass_policy,
     };
     use std::fs::{OpenOptions, create_dir_all};
     use std::io::Write;
@@ -182,6 +188,7 @@ mod platform {
     static TRACE_FILE: OnceLock<Mutex<Option<PathBuf>>> = OnceLock::new();
     static SUBCLASSED_HWND: OnceLock<Mutex<Option<isize>>> = OnceLock::new();
     static STARTED: AtomicBool = AtomicBool::new(false);
+    static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
 
     fn mask_slot() -> &'static Mutex<Option<PanelWindowMask>> {
         MASK.get_or_init(|| Mutex::new(None))
@@ -221,6 +228,7 @@ mod platform {
 
     pub fn start_mask(app_handle: AppHandle) {
         init_trace_file(&app_handle);
+        let _ = APP_HANDLE.set(app_handle.clone());
         panel_trace("start_mask", "starting Windows panel mask monitor");
         if STARTED.swap(true, Ordering::SeqCst) {
             panel_trace("start_mask_skipped", "monitor already started");
@@ -350,6 +358,10 @@ mod platform {
             }
         }
 
+        if should_schedule_blur_check(message, wparam.0) {
+            schedule_native_blur_check(hwnd);
+        }
+
         if matches!(
             message,
             WINDOWS_WM_NCCALCSIZE
@@ -371,6 +383,18 @@ mod platform {
         }
 
         unsafe { DefSubclassProc(hwnd, message, wparam, lparam) }
+    }
+
+    /// Runs inside the wndproc: only spawns the delayed check, never blocks.
+    fn schedule_native_blur_check(hwnd: HWND) {
+        let Some(app_handle) = APP_HANDLE.get() else {
+            return;
+        };
+        panel_trace(
+            "blur_check_scheduled",
+            format!("hwnd=0x{:X} source=wm_ncactivate", hwnd.0 as usize),
+        );
+        crate::panel_blur::schedule_blur_check(app_handle.clone(), "wm_ncactivate");
     }
 
     fn enforce_hwnd_chrome(hwnd: HWND) -> Result<(), String> {
@@ -744,7 +768,7 @@ mod tests {
         PanelBounds, PanelWindowMask, PhysicalBounds, PhysicalPoint, WINDOWS_WM_NCACTIVATE,
         WINDOWS_WM_NCCALCSIZE, WINDOWS_WM_NCPAINT, WINDOWS_WM_STYLECHANGED,
         WINDOWS_WM_STYLECHANGING, arrow_points_from_bounds, physical_bounds_from_logical,
-        strip_windows_panel_chrome, windows_panel_subclass_policy,
+        should_schedule_blur_check, strip_windows_panel_chrome, windows_panel_subclass_policy,
     };
 
     const MASK: PanelWindowMask = PanelWindowMask {
@@ -855,6 +879,14 @@ mod tests {
             windows_panel_subclass_policy(WINDOWS_WM_NCPAINT, 0),
             Some(0)
         );
+    }
+
+    #[test]
+    fn schedules_blur_check_only_on_non_client_deactivation() {
+        assert!(should_schedule_blur_check(WINDOWS_WM_NCACTIVATE, 0));
+        assert!(!should_schedule_blur_check(WINDOWS_WM_NCACTIVATE, 1));
+        assert!(!should_schedule_blur_check(WINDOWS_WM_NCPAINT, 0));
+        assert!(!should_schedule_blur_check(WINDOWS_WM_NCCALCSIZE, 0));
     }
 
     #[test]

@@ -28,7 +28,13 @@ pub fn hide_on_blur(window: &tauri::Window, event: &tauri::WindowEvent) {
     if window.label() != "main" || !matches!(event, tauri::WindowEvent::Focused(false)) {
         return;
     }
-    let app_handle = window.app_handle().clone();
+    schedule_blur_check(window.app_handle().clone(), "focused_false");
+}
+
+/// Shared by `Focused(false)` and the native `WM_NCACTIVATE(FALSE)` path. Both can fire for
+/// one blur; the later check finds the panel already hidden and does nothing.
+#[cfg(windows)]
+pub fn schedule_blur_check(app_handle: tauri::AppHandle, source: &'static str) {
     std::thread::spawn(move || {
         std::thread::sleep(BLUR_CONFIRM_DELAY);
         let handle = app_handle.clone();
@@ -38,7 +44,7 @@ pub fn hide_on_blur(window: &tauri::Window, event: &tauri::WindowEvent) {
             };
             let visible = window.is_visible().unwrap_or(false);
             if should_hide_after_blur(visible, blur::panel_owns_foreground(&window)) {
-                log::debug!("panel lost focus; hiding");
+                log::debug!("panel lost focus ({source}); hiding");
                 blur::record_blur_hide();
                 crate::panel::hide_panel(&handle);
             }
