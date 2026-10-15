@@ -11,8 +11,8 @@ exclude_globs:
   - _ct-workorders/_archive/**
 total: 2
 breakdown:
-  OPEN: 1
-  FIXING: 0
+  OPEN: 0
+  FIXING: 1
   FIXED: 0
   VERIFY: 0
   CLOSED: 1
@@ -25,18 +25,18 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 1 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 1 | Won't Fix: 0 | **Total: 2**
+- Open: 0 | Fixing: 1 | Fixed: 0 | Verify: 0 | Closed: 1 | Won't Fix: 0 | **Total: 2**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
-| BUG-005 | In-app changelog reads upstream releases instead of fork | 🟡 Medium | 2026-10-15T11:48:01+08:00 | [BUG-005-changelog-reads-upstream-releases.md](BUG-005-changelog-reads-upstream-releases.md) |
 
 ## Fixing
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-005 | In-app changelog reads upstream releases instead of fork | 🟡 Medium | 2026-10-15T11:48:01+08:00 | [BUG-005-changelog-reads-upstream-releases.md](BUG-005-changelog-reads-upstream-releases.md) |
 
 ## Fixed
 

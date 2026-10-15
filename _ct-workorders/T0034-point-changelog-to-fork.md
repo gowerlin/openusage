@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0034
 title: Point in-app changelog to fork releases
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-005
 plan_id: null
 created_at: "2026-10-15T11:48:01+08:00"
-updated_at: "2026-10-15T11:48:51+08:00"
+updated_at: "2026-10-15T11:50:18+08:00"
 started_at: "2026-10-15T11:48:51+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T11:50:18+08:00"
+commit: a6c52aa
 agent: default
 intervention_type: fire-and-forget
 depends_on: []
