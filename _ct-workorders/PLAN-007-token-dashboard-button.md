@@ -3,12 +3,12 @@ schema_version: 1
 schema_kind: plan
 id: PLAN-007
 title: v0.6.32 - Token dashboard (TokenUsageInsights) launcher button
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 plan_type: feature
 created_at: "2026-10-15T18:42:22+08:00"
-updated_at: "2026-10-15T18:48:58+08:00"
-completed_at: null
+updated_at: "2026-10-15T19:51:51+08:00"
+completed_at: "2026-10-15T19:51:51+08:00"
 affects_files: []
 depends_on:
   - PLAN-006
@@ -34,3 +34,4 @@ T0069 實作 → T0072 BUG-019 tray 右鍵（D112）→ T0070 Windows smoke + NS
 ## 進度
 
 - 2026-10-15：建立 PLAN-007 + T0069–T0071。
+- 2026-10-15：T0069、T0072、T0070、T0071 完成，`v0.6.32` 發行（run `38729631935`，tag → `ef9da8e2`，Latest，無 Node 20 annotation）。待使用者實測 Token 戰情室、BUG-016/018/019。
