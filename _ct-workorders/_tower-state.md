@@ -1,14 +1,13 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 11:44 (UTC+8)
+> 最後更新：2026-10-15 11:46 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.26` 已發行（Publish run `38675818087` success，tag `v0.6.26` → `30904bd`）；NSIS installer、`.sig`、`latest.json`（version `0.6.26`，URL 指向 fork）與繁中發行重點說明已驗證。
 2. BUG-001 / BUG-002 / BUG-003 / BUG-004：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0033：全部 DONE。
-5. 專案基線工單尚未建立；待使用者確認是否需要。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -112,7 +111,7 @@
 | 工單 | T0033 |
 | BUG | BUG-004 |
 | PLAN | PLAN-003 |
-| 決策 | D060 |
+| 決策 | D061 |
 
 ---
 
@@ -120,7 +119,7 @@
 
 | Story | 工單 | 狀態 | 卡點 | 下一步 |
 |-------|------|------|------|--------|
-| Project baseline | - | 📋 TODO | 缺 `project-context.md` / `sprint-status.yaml` | 等使用者確認是否開基線工單 |
+| Project baseline | - | 🚫 DROPPED | 無 | D061 決定不建立 |
 | Windows version port | PLAN-001 | ✅ DONE | 無 | 可選 CI warning cleanup |
 | Windows porting research | T0001 | ✅ DONE | 歷史 `libclang` blocker 已由後續工單解除 | 無 |
 | Windows Rust build baseline | T0002 | ✅ DONE | 無 | 建議 T0003 |
@@ -204,11 +203,11 @@
 - D058：接受 T0033 DONE；`v0.6.26` 發行經塔台以 `gh -R gowerlin/openusage` 獨立複驗。教訓：本機 `gh` 預設 repo 為上游 `robinebers/openusage`，release 相關指令一律加 `-R gowerlin/openusage`（塔台先前誤把上游 `v0.6.25` notes 當成 fork 格式）。
 - D059：使用者安裝 `v0.6.26` 實測確認 single-instance 正常；BUG-004 CLOSED。
 - D060：執行 `*archive`（archive_days 預設 7）；T0001–T0031、BUG-001~003、PLAN-001~003 共 37 張 `git mv` 到 `_archive/`。進度快照中的歷史列視為紀錄而非活躍引用，不套用豁免；T0032/T0033/BUG-004 未滿 7 天保留熱區。
+- D061：不建立專案基線工單（`project-context.md` / `sprint-status.yaml`）。理由：`AGENTS.md` + `docs/` 已涵蓋專案 context；專案未採 BMad sprint/story 流程，塔台工單 + BUG/PLAN 追蹤足夠；AGENTS.md 要求不過度工程。重啟條件：Worker 反覆重新探索同一批專案背景時，再開小工單只產 `project-context.md`。
 
 ---
 
 ## ⏳ 待處理事項
-- 確認是否要建立專案基線工單。
 - BUG-001：CLOSED；使用者安裝測試確認 T0031 解決 native title bar / deactive 問題。
 - BUG-002：CLOSED；使用者安裝測試確認背景 shell 不再顯示終端視窗。
 - BUG-003：CLOSED；使用者安裝測試確認 System Tray icon 正確。
