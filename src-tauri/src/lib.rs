@@ -4,6 +4,8 @@ mod config;
 mod local_http_api;
 mod log_path;
 mod panel;
+#[cfg(any(windows, test))]
+mod panel_blur;
 mod panel_hit_test;
 mod panel_position;
 mod plugin_engine;
@@ -560,7 +562,7 @@ pub fn run() {
             panel_position::persist_panel_position_from_event(window, event);
             panel_hit_test::trace_window_event(window, event);
             #[cfg(windows)]
-            panel::hide_on_blur(window, event);
+            panel_blur::hide_on_blur(window, event);
         })
         .invoke_handler(tauri::generate_handler![
             init_panel,
