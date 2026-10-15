@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-004
 title: App allows multiple running instances
-status: FIXED
+status: CLOSED
 severity: Medium
 created_at: "2026-10-15T10:39:24+08:00"
-updated_at: "2026-10-15T10:56:35+08:00"
+updated_at: "2026-10-15T11:41:34+08:00"
 related_workorder: T0032
 affects_files:
   - src-tauri/Cargo.toml
@@ -31,12 +31,12 @@ depends_on: []
 - [x] 已在執行時再次啟動，不會出現第二個 process / 第二個 tray icon。（T0032 Windows smoke）
 - [x] 第二次啟動會讓既有面板顯示並取得焦點。（T0032 Windows smoke：前景視窗 pid = 既有 pid）
 - [x] Updater relaunch、autostart 開機啟動不受影響。（T0032 原始碼路徑分析，未實機）
-- [ ] 使用者安裝新版後實測確認。
+- [x] 使用者安裝新版後實測確認。（`v0.6.26`）
 
 ## 回報區
 
 ### 修復狀態
-FIXED（source / tests / package / Windows smoke）；等待 `v0.6.26` 發行後使用者安裝實測再 CLOSED。
+CLOSED（2026-10-15T11:41:34+08:00）：使用者安裝 `v0.6.26` 實測通過。
 
 ### 修復紀錄
 - T0032 commit `2717631`：`tauri-plugin-single-instance ~2.4.5`（避免連帶升級 tauri 2.12），builder 第一個註冊，callback 經 `run_on_main_thread` 呼叫既有 `panel::show_panel`。
