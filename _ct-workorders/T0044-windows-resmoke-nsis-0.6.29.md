@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0044
 title: Windows re-smoke + NSIS for 0.6.29 after T0042/T0043
-status: IN_PROGRESS
+status: DONE
 priority: High
 type: verification
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T13:18:05+08:00"
-updated_at: "2026-10-15T14:28:20+08:00"
+updated_at: "2026-10-15T14:50:59+08:00"
 started_at: "2026-10-15T14:28:20+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T14:50:59+08:00"
+commit: 73337e38
 agent: default
 intervention_type: fire-and-forget
 depends_on:
