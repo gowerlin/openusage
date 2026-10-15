@@ -9,7 +9,7 @@ type: release
 bug_id: null
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:22:35+08:00"
+updated_at: "2026-10-15T16:08:42+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -51,7 +51,7 @@ PLAN-005 最後一步。流程同 T0041，但本單需要 bump 版號。
 4. Commit `chore: bump version to 0.6.30`（版本檔 + 本工單）。
 5. `git push origin main`；`git tag -a v0.6.30 -m v0.6.30 <bump commit>`；`git push origin v0.6.30`。
 6. 追蹤 `gh run watch -R gowerlin/openusage <id>`；驗證 release（`-R gowerlin/openusage`）：非 draft / 非 pre、3 assets、`latest.json` 0.6.30 指向 fork、Latest = v0.6.30、fork tag 只多 v0.6.30。
-7. 發行重點說明（繁中，格式同 v0.6.29）：本版重點 = v0.6.29 已知問題修正（BUG-013 面板失焦收起更穩、BUG-014 詳細頁數值完整顯示、BUG-015 面板不超出工作區 / 位置記憶不被改寫）。`gh release edit v0.6.30 -R gowerlin/openusage --notes-file`，並以 GitHub API 確認 body。
+7. 發行重點說明（繁中，格式同 v0.6.29）：本版重點 = v0.6.29 已知問題修正（BUG-013 面板失焦收起更穩、BUG-014 詳細頁數值完整顯示、BUG-015 面板不超出工作區 / 位置記憶不被改寫）。`gh release edit v0.6.30 -R gowerlin/openusage --notes-file`，並以 GitHub API 確認 body。已知問題段可列 BUG-016（拖曳到偏下後面板暫時超出螢幕，下次顯示會修正）。
 
 ## 驗證 Gate
 
