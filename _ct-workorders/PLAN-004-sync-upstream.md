@@ -3,12 +3,12 @@ schema_version: 1
 schema_kind: plan
 id: PLAN-004
 title: Sync upstream changes into fork
-status: IN_PROGRESS
+status: DONE
 priority: High
 plan_type: maintenance
 created_at: "2026-10-15T12:10:18+08:00"
-updated_at: "2026-10-15T12:39:32+08:00"
-completed_at: null
+updated_at: "2026-10-15T15:13:34+08:00"
+completed_at: "2026-10-15T15:13:34+08:00"
 affects_files: []
 depends_on: []
 ---
@@ -46,3 +46,4 @@ depends_on: []
 - 使用者核准方案 A（D071）：T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`；v0.7.x 移植延後。
 - Tag 防護：`remote.upstream.tagOpt --no-tags`；本機上游專屬 tag 已刪（63 個）。
 - 註：上方預查衝突清單漏列 `src/lib/settings.test.ts`，以報告 §2 為準。
+- 2026-10-15：T0038–T0049 完成，`v0.6.29` 發行（Publish run `38695730149`，tag → `5a93b5a1`）。PLAN-004 核心目標（同步 tauri-legacy）完成 → DONE。v0.7.x 移植候選（T0037 報告 §7）待使用者逐項開新單（新 PLAN）。BUG-006–012 FIXED 待使用者安裝實測；BUG-013–015 排 v0.6.30。
