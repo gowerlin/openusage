@@ -12,7 +12,7 @@
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
 7. PLAN-006 DONE（v0.6.31）。待使用者安裝實測 BUG-016 / BUG-018。
 8. PLAN-007 DONE（v0.6.32），使用者實測通過；BUG-016/018/019 CLOSED。**本 session 收工（D116）**。
-9. 下次開工待辦：BUG-017（Copilot Windows gh token，需先研究 Credential Manager host API）；`ubuntu-latest` 10/19 遷移 Ubuntu 26（觀察）；`*archive`（T0032 起完成滿 7 天後，約 2026-10-22）；本機 main 領先 origin 的塔台紀錄 commit 尚未 push。
+9. 下次開工待辦：BUG-017（Copilot Windows gh token，需先研究 Credential Manager host API）；`ubuntu-latest` 10/19 遷移 Ubuntu 26（觀察）；`*archive`（T0032 起完成滿 7 天後，約 2026-10-22）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
