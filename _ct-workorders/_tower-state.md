@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 19:14 (UTC+8)
+> 最後更新：2026-10-15 19:23 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.31` 已發行（Publish run `38722259099` success，tag `v0.6.31` → `4937e11c`，Latest，無 Node 20 annotation）；installer / `.sig` / `latest.json`（0.6.31，指向 fork）由塔台獨立複驗；fork tag 新增 `v0.6.31-pre.1`（T0064）、`v0.6.31`。
@@ -11,7 +11,7 @@
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
 7. PLAN-006 DONE（v0.6.31）。待使用者安裝實測 BUG-016 / BUG-018。
-8. PLAN-007（v0.6.32）：Token 戰情室按鈕 T0069 → T0070 smoke → T0071 發行（D109）；T0069 DONE（`2de48d7b`）；插入 T0072 BUG-019（D112），已 YOLO 派發。
+8. PLAN-007（v0.6.32）：Token 戰情室按鈕 T0069 → T0070 smoke → T0071 發行（D109）；T0069 DONE（`2de48d7b`）；T0072 DONE（`dcf6585f`，D113 收斂）；T0070 已 YOLO 派發。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -115,7 +115,7 @@
 | 工單 | T0072 |
 | BUG | BUG-019 |
 | PLAN | PLAN-007 |
-| 決策 | D112 |
+| 決策 | D113 |
 
 ---
 
@@ -177,8 +177,8 @@
 | Release v0.6.31 | PLAN-006 / T0063 | ✅ DONE | 無 | run `38722259099`；Latest |
 | Copilot Windows gh token | BUG-017 | 📋 OPEN | 無 | v0.6.31 後開單 |
 | Token 戰情室按鈕 | PLAN-007 / T0069 | ✅ DONE | 無 | `@latest` 已套用 |
-| Tray left-click only | BUG-019 / T0072 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Windows smoke 0.6.32 | PLAN-007 / T0070 | 📋 PENDING | depends_on T0069、T0072 | 自動串接 |
+| Tray left-click only | BUG-019 / T0072 | ✅ DONE | 無 | BUG-019 FIXED |
+| Windows smoke 0.6.32 | PLAN-007 / T0070 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Release v0.6.32 | PLAN-007 / T0071 | 📋 PENDING | depends_on T0070 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
@@ -299,6 +299,7 @@
 - D110：接受 T0063 DONE；塔台獨立複驗 `v0.6.31`（非 draft / 非 pre、3 assets、`latest.json` 0.6.31 指向 fork、Latest、run success @ `4937e11c`、fork tag 只多 v0.6.31；Publish 無 Node 20 annotation）。PLAN-006 → DONE；PLAN-007 → IN_PROGRESS，派發 T0069。
 - D111：使用者同意 npx 改用 `token-usage-insights@latest`（避免 npx 快取舊版）；已安裝版保留內建自動更新（不加 `--no-auto-update`），並驗證自我更新重啟後仍在 Job Object 內。T0069 執行中 → 以「塔台補充」追加；T0070 smoke 檢查 `@latest`，未套用即 FAIL。
 - D112：接受 T0069 DONE（`2de48d7b`）：Token 戰情室按鈕（`token_dashboard.rs`，`@latest`，CREATE_NO_WINDOW + Job Object，3003 已在跑不納管，Exit / ExitRequested 清理），實機 A–E 全 PASS；已安裝版自我更新經上游原始碼分析仍在 Job 內（未實機），並修正「外層 cmd 結束誤判看板結束」。接受偏差：無 toast 函式庫改用面板內 destructive Alert、spawn 固定 `PORT=3003` / `HOST=127.0.0.1` / cwd=home（repo 內 npx EOVERRIDE）、stdio 丟棄、`host_api.rs` 只改可見性。Worker 發現 tray 右鍵也 toggle 面板 → 使用者決定併進 v0.6.32：登記 BUG-019、建立 T0072（T0070 前），T0070 加 BUG-019 與「tray 選單 Quit 清理」實機驗證。
+- D113：T0072 回 PARTIAL——修正成功（關著時右鍵只出選單 3/3、Copy Log Path / Quit 可用、BUG-008 連點 PASS、cargo 168），但塔台驗收條件「開著時右鍵面板不變」與 BUG-008/013 失焦收起設計衝突（塔台用詞錯誤）。使用者確認接受 → T0072 收斂 DONE、BUG-019 FIXED；T0070 對應條件已更正。派發 T0070。
 
 ---
 

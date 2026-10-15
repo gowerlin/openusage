@@ -27,7 +27,7 @@ affects_files: []
 
 1. 打 NSIS（版號仍 0.6.31 屬預期），7-Zip 解出測試（不執行 installer）。
 2. Token 戰情室按鈕（確認 npx 命令為 `token-usage-insights@latest`，D111；若 T0069 未套用則回報 FAIL）：T0069 實機項目全部重跑（啟動 / 已執行 / Quit 清理 / 強制結束清理 / 外部已開不關 / 無 npx 提示 / 無 console / 無工作列按鈕）。
-3. BUG-019：tray 右鍵只出選單、面板不 toggle（開 / 關兩種起始狀態）；選單項目可用；**改用 tray 右鍵選單 Quit 實機驗證 Token 戰情室程序全部結束**（T0069 曾需使用者手動）。
+3. BUG-019：tray 右鍵只出選單、面板不被 toggle（關著起始保持關；開著起始依 BUG-008 失焦收起屬預期，D113）；選單項目可用；**改用 tray 右鍵選單 Quit 實機驗證 Token 戰情室程序全部結束**（T0069 曾需使用者手動）。
 4. 回歸精簡（各 1 次）：BUG-001 trace、BUG-002、BUG-004、BUG-007、BUG-008/013 點外收起、BUG-012 `mock` 404、BUG-016 拖低停頓 500ms 放開、側邊欄 ❓ / 設定仍正常、i18n。
 5. 截圖存 `_ct-workorders/assets/T0070/`。FAIL 不修，回報 PARTIAL / FAILED。
 

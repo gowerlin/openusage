@@ -3,13 +3,13 @@ schema_version: 1
 schema_kind: workorder
 id: T0072
 title: Toggle panel only on tray left-click
-status: PARTIAL
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-019
 plan_id: PLAN-007
 created_at: "2026-10-15T19:14:33+08:00"
-updated_at: "2026-10-15T19:22:04+08:00"
+updated_at: "2026-10-15T19:23:22+08:00"
 started_at: "2026-10-15T19:16:10+08:00"
 completed_at: "2026-10-15T19:22:04+08:00"
 commit: dcf6585f
@@ -36,7 +36,7 @@ BUG-019：`tray.rs:213` `TrayIconEvent::Click { button_state, rect, .. }` 只判
 ## 驗證 Gate
 
 - PASS：`cargo fmt --check`、`cargo test --locked`、`bun run build`
-- PASS：實機（release exe + `resources/`，cwd `%TEMP%`；控滑鼠前先問）：tray 右鍵 → 只出選單、面板不變（開著 / 關著兩種起始狀態各 3 次）；選單「Copy Log Path」「Quit」可點；左鍵連點開 / 關正常無閃爍（BUG-008）。
+- PASS：實機（release exe + `resources/`，cwd `%TEMP%`；控滑鼠前先問）：tray 右鍵 → 只出選單、面板不被 toggle（關著起始：面板保持關；開著起始：面板依 BUG-008 blur-hide 收起屬預期——塔台更正，D113）；選單「Copy Log Path」「Quit」可點；左鍵連點開 / 關正常無閃爍（BUG-008）。
 
 ## 環境與限制
 
@@ -108,3 +108,7 @@ macOS：左鍵 Up 仍 toggle、`show_menu_on_left_click(false)` 讓右鍵出選�
 1. Copy Log Path 本質會寫剪貼簿：測前備份剪貼簿文字，測後 `Set-Clipboard` 還原（工單「不覆蓋剪貼簿」）。
 2. 開著起始狀態用「flyout 內左鍵開面板」建立（第二次啟動會搶前景、關掉 flyout）。
 3. 未截圖（gate 未要求）。
+
+### 塔台收斂（2026-10-15T19:23:22+08:00，D113）
+
+Worker 回報 PARTIAL 係因塔台驗收條件「面板開著時右鍵 → 面板不變」與 BUG-008/013 失焦收起設計衝突（塔台用詞錯誤）。實際 BUG-019 症狀（關著時右鍵彈出面板蓋住選單）已修好 3/3。使用者確認接受 → 收斂為 DONE，原 PARTIAL 證據保留於上方。

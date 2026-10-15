@@ -3,7 +3,7 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T19:14:33+08:00"
+generated_at: "2026-10-15T19:23:22+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
@@ -11,9 +11,9 @@ exclude_globs:
   - _ct-workorders/_archive/**
 total: 16
 breakdown:
-  OPEN: 2
+  OPEN: 1
   FIXING: 0
-  FIXED: 2
+  FIXED: 3
   VERIFY: 0
   CLOSED: 12
   WONTFIX: 0
@@ -25,13 +25,12 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 2 | Fixing: 0 | Fixed: 2 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 16**
+- Open: 1 | Fixing: 0 | Fixed: 3 | Verify: 0 | Closed: 12 | Won't Fix: 0 | **Total: 16**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
-| BUG-019 | Tray right-click also toggles the panel and can hide the context menu | 🟢 Low | 2026-10-15T19:14:33+08:00 | [BUG-019-tray-right-click-toggles-panel.md](BUG-019-tray-right-click-toggles-panel.md) |
 | BUG-017 | Copilot cannot read the gh token on Windows | 🟡 Medium | 2026-10-15T17:20:06+08:00 | [BUG-017-copilot-windows-gh-token.md](BUG-017-copilot-windows-gh-token.md) |
 
 ## Fixing
@@ -43,6 +42,7 @@ breakdown:
 
 | ID | 標題 | 嚴重度 | 修復時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-019 | Tray right-click also toggles the panel and can hide the context menu | 🟢 Low | 2026-10-15T19:23:22+08:00 | [BUG-019-tray-right-click-toggles-panel.md](BUG-019-tray-right-click-toggles-panel.md) |
 | BUG-016 | Panel can extend below the screen right after dragging low | 🟢 Low | 2026-10-15T18:15:37+08:00 | [BUG-016-panel-overflows-screen-after-drag.md](BUG-016-panel-overflows-screen-after-drag.md) |
 | BUG-018 | panel-window-trace.log startup line contains the Windows user name | 🟢 Low | 2026-10-15T18:15:37+08:00 | [BUG-018-trace-log-user-path.md](BUG-018-trace-log-user-path.md) |
 
