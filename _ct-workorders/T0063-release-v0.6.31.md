@@ -38,7 +38,7 @@ PLAN-006 最後一步。流程同 T0054。
 
 ## 前置條件（不符即 BLOCKED）
 
-- T0055–T0061、T0065 `DONE`；T0062 `DONE`（smoke 全 PASS）；**T0064 `DONE`（pre-release CI 驗證通過）**。`git status` 乾淨；main 只 ahead；`v0.6.31` tag 不存在。
+- T0055–T0061、T0065、T0066 `DONE`；T0062 `DONE`（smoke 全 PASS）；**T0064 `DONE`（pre-release CI 驗證通過）**。`git status` 乾淨；main 只 ahead；`v0.6.31` tag 不存在。
 
 ## 任務指令
 

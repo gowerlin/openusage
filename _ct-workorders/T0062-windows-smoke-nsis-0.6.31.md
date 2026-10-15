@@ -9,7 +9,7 @@ type: verification
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:52:40+08:00"
+updated_at: "2026-10-15T17:01:31+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -24,6 +24,7 @@ depends_on:
   - T0060
   - T0061
   - T0065
+  - T0066
 affects_files: []
 ---
 
