@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0041
 title: Publish GitHub release v0.6.29 (upstream sync)
-status: PENDING
+status: IN_PROGRESS
 priority: High
 type: release
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:39:32+08:00"
-updated_at: "2026-10-15T14:53:32+08:00"
-started_at: null
+updated_at: "2026-10-15T14:54:09+08:00"
+started_at: "2026-10-15T14:54:09+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -82,4 +82,48 @@ PLAN-004 最後一步。版號 `0.6.29` 已由 T0038 在 merge commit 寫入四�
 
 ## 回報區
 
-（Worker 填寫：狀態、commit、tag、run ID、release URL、assets、push 前後 tag 清單比對、發行說明全文、阻塞）
+### 狀態
+
+進行中 — push 前狀態（本段寫於 push 前，2026-10-15T14:58:19+08:00）。
+
+### Landing check
+
+- 結果：WARN（只有 C-0）。
+- C-0：frontmatter 沒有 `repo` 欄位（absent）→ WARN「repo identity unavailable」；`basename(REPO_ROOT)` = `openusage`。
+- C-1：PASS（`D:/ForgejoGit/@GitHub_Clone/openusage/_ct-workorders/T0041-release-v0.6.29.md`）。
+- C-3：`affects_files` 是空的 → not applicable。C-2：無 `branch` 欄位（HEAD = `main`）。
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`；`CT_MODE=yolo`。
+
+### 前置條件
+
+| 項目 | 結果 |
+|---|---|
+| T0038 / T0039 / T0042 / T0043 / T0044 / T0045 / T0046 / T0047 / T0048 / T0049 | 全部 `status: DONE`；T0040 `PARTIAL`（D074） |
+| 四個版本檔 | `package.json`、`src-tauri/Cargo.toml`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.lock`（`openusage`）= `0.6.29` |
+| `git status` | 乾淨 |
+| `git fetch origin` 後 | `origin/main...HEAD` = `0 133`（只 ahead） |
+| `git ls-remote --tags origin v0.6.29` | 空 |
+| push URL | `https://github.com/gowerlin/openusage.git` |
+
+### 步驟 1：README plugin 清單
+
+PASS（附觀察）。README 有 Amp、Antigravity、Claude、Codex、Copilot、Cursor、Factory、Gemini、Grok、JetBrains AI Assistant、Kiro、Kimi、MiniMax、OpenCode Go、Devin（含 Windows 說明）、Z.ai；Windsurf 已移除。
+- 觀察（不擋）：`plugins/perplexity`、`plugins/synthetic` 有打包進 `bundled_plugins`，但 README 沒列。上游 `tauri-legacy` README 一樣沒列、`origin/main`（v0.6.27）也沒列 → 既有缺口，不是本次合併造成。本單只 commit 工單，沒改 README；建議塔台另開小單補兩行。
+
+### 步驟 2：Push 前隱私掃描（D081）
+
+PASS（附觀察）。範圍：`git diff origin/main..HEAD`（54 個新增檔、全部新增行，排除 `*.png` / lock 檔）+ `_ct-workorders/assets/**` 21 張截圖。
+- Token（`sk-`、`ghp_`、`gho_`、`github_pat_`、JWT `eyJ…`、`devin-session-token$`、`xox?-`、`AKIA`、private key）：只命中 placeholder / 測試假值（`devin-session-token$...`、`$cli`、`$app`、`$abcdef…123456` 等）與本工單文字。無真實 token。
+- Email：`user@example.com`、`team@example.com`、`rob@sunstory.com`、`rob@....com`。後兩個在 `src-tauri/src/plugin_engine/host_api.rs` 的 redaction 測試資料，**上游 `upstream/tauri-legacy` 原本就有**（上游作者本人、已公開）。無使用者 email（`gower.tw` 0 筆）。
+- 帳號 ID：`org-6b6e9de248db472bb25b296599ea3dc0` 同上，上游 redaction 測試資料；其餘為假值（`org-abcdef1234567890`、`other-account`）。
+- 觀察（不擋）：`T0040`、`T0042`、`T0049` 工單文字有本機 Windows 使用者路徑 `C:\Users\Gower\…`。`origin/main` 已有 22 處同樣路徑（先例），不是 token / 帳號 ID。
+- 截圖逐張目視（T0035 ×4、T0040 ×5、T0042 ×1、T0044 ×8、T0047 ×2、T0048 ×1）：只有 app UI 與用量數字 / 金額（允許公開）。背景觀察（不擋）：`T0040/about-dialog.png`、`T0040/overview-zh-TW.png`、`T0040/settings-metric-zh-TW.png` 背後是半透明的終端機工作文字（Devin / Windows 說明片段，與一串被切掉的數字）；`T0047/claude-detail-no-runner-hint.png` 背後有 scratchpad 路徑片段（`-afd6-a4b03db0527a\scratchpad`、`uia-norunner.txt`，session 目錄名）。都不是 token / email / 帳號 ID，也沒有其他私人視窗內容。
+
+### 步驟 3：驗證
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| `cargo fmt --check` | PASS | exit 0 |
+| `bun run test --run` | PASS | 69 files / 1199 tests passed |
+| `bun run build` | PASS | exit 0（只有 chunk > 500 kB 既有警告） |
+| `cargo test --locked` | PASS | 第一次在 Git Bash 直接跑 exit 101：`Unable to find libclang`（本機環境，`rquickjs-sys`）。改在 VS18 `VsDevCmd` x64 + `LIBCLANG_PATH` + `CI=false` 重跑：`151 passed; 0 failed` |
