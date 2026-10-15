@@ -3,6 +3,7 @@ import { makeCtx } from "../test-helpers.js"
 
 const AUTH_PATH = "~/.grok/auth.json"
 const BILLING_URL = "https://cli-chat-proxy.grok.com/v1/billing"
+const CREDITS_URL = "https://cli-chat-proxy.grok.com/v1/billing?format=credits"
 const SETTINGS_URL = "https://cli-chat-proxy.grok.com/v1/settings"
 const REFRESH_URL = "https://auth.x.ai/oauth2/token"
 
@@ -420,5 +421,139 @@ describe("grok plugin", () => {
 
     const plugin = await loadPlugin()
     expect(() => plugin.probe(ctx)).toThrow("Grok billing response changed.")
+  })
+
+  describe("weekly shared pool", () => {
+    // Captured live by upstream (robinebers/openusage GrokCreditsConfigFixtures.swift, 2026-07-06).
+    const CAPTURED_CREDITS = {
+      config: {
+        creditUsagePercent: 99.0,
+        currentPeriod: {
+          type: "USAGE_PERIOD_TYPE_WEEKLY",
+          start: "2026-06-30T21:36:52.140114+00:00",
+          end: "2026-07-07T21:36:52.140114+00:00",
+        },
+        onDemandCap: { val: 0 },
+        onDemandUsed: { val: 0 },
+        isUnifiedBillingUser: true,
+        prepaidBalance: { val: 0 },
+        topUpMethod: "TOP_UP_METHOD_SAVED_PAYMENT_METHOD",
+        billingPeriodStart: "2026-06-30T21:36:52.140114+00:00",
+        billingPeriodEnd: "2026-07-07T21:36:52.140114+00:00",
+      },
+    }
+
+    function creditsData(overrides) {
+      const config = Object.assign({}, CAPTURED_CREDITS.config, overrides || {})
+      return { config }
+    }
+
+    function mockWithCredits(ctx, credits) {
+      ctx.host.http.request.mockImplementation((req) => {
+        if (req.url === BILLING_URL) return { status: 200, bodyText: JSON.stringify(billingData()) }
+        if (req.url === CREDITS_URL) {
+          if (credits instanceof Error) throw credits
+          return credits && credits.status
+            ? credits
+            : { status: 200, bodyText: JSON.stringify(credits || CAPTURED_CREDITS) }
+        }
+        if (req.url === SETTINGS_URL) {
+          return { status: 200, bodyText: JSON.stringify({ subscription_tier_display: "SuperGrok" }) }
+        }
+        return { status: 404, bodyText: "" }
+      })
+    }
+
+    async function probeWith(credits) {
+      const ctx = makeCtx()
+      writeAuth(ctx)
+      mockWithCredits(ctx, credits)
+      const plugin = await loadPlugin()
+      return { ctx, result: plugin.probe(ctx) }
+    }
+
+    it("renders Weekly first with reset countdown from the captured payload", async () => {
+      const { result } = await probeWith()
+      const line = result.lines[0]
+
+      expect(line.label).toBe("Weekly")
+      expect(line.type).toBe("progress")
+      expect(line.used).toBe(99)
+      expect(line.limit).toBe(100)
+      expect(line.format).toEqual({ kind: "percent" })
+      expect(line.resetsAt).toBe("2026-07-07T21:36:52.140Z")
+      expect(line.periodDurationMs).toBe(7 * 24 * 60 * 60 * 1000)
+      expect(result.lines.find((l) => l.label === "Credits used")).toBeDefined()
+      expect(result.lines.find((l) => l.label === "Pay as you go")).toBeDefined()
+    })
+
+    it("requests the credits endpoint with Grok CLI headers", async () => {
+      const { ctx } = await probeWith()
+      const call = ctx.host.http.request.mock.calls.find((c) => c[0].url === CREDITS_URL)[0]
+
+      expect(call.method).toBe("GET")
+      expect(call.headers.Authorization).toBe("Bearer test-token")
+      expect(call.headers["X-XAI-Token-Auth"]).toBe("xai-grok-cli")
+      expect(call.headers.Accept).toBe("application/json")
+    })
+
+    it("treats a missing creditUsagePercent as 0 (proto-JSON drops zeros)", async () => {
+      const credits = creditsData()
+      delete credits.config.creditUsagePercent
+      const { result } = await probeWith(credits)
+
+      expect(result.lines.find((l) => l.label === "Weekly").used).toBe(0)
+    })
+
+    it("clamps Weekly percent to 0..100", async () => {
+      const { result } = await probeWith(creditsData({ creditUsagePercent: 140 }))
+
+      expect(result.lines.find((l) => l.label === "Weekly").used).toBe(100)
+    })
+
+    it("omits Weekly when the account period is not weekly", async () => {
+      const { result } = await probeWith(creditsData({
+        currentPeriod: {
+          type: "USAGE_PERIOD_TYPE_MONTHLY",
+          start: "2026-06-01T00:00:00+00:00",
+          end: "2026-07-01T00:00:00+00:00",
+        },
+      }))
+
+      expect(result.lines.find((l) => l.label === "Weekly")).toBeUndefined()
+      expect(result.lines.find((l) => l.label === "Credits used")).toBeDefined()
+    })
+
+    it("omits Weekly but keeps monthly lines when credits returns HTTP 412", async () => {
+      const { ctx, result } = await probeWith({
+        status: 412,
+        bodyText: JSON.stringify({ error: "No personal team" }),
+      })
+
+      expect(result.lines.find((l) => l.label === "Weekly")).toBeUndefined()
+      expect(result.lines.find((l) => l.label === "Credits used")).toBeDefined()
+      expect(ctx.host.log.warn).toHaveBeenCalled()
+    })
+
+    it("omits Weekly when the credits request throws", async () => {
+      const { result } = await probeWith(new Error("offline"))
+
+      expect(result.lines.find((l) => l.label === "Weekly")).toBeUndefined()
+      expect(result.lines.find((l) => l.label === "Credits used")).toBeDefined()
+    })
+
+    it("omits Weekly on a non-numeric percent or a period that does not move forward", async () => {
+      const bad = await probeWith(creditsData({ creditUsagePercent: "lots" }))
+      expect(bad.result.lines.find((l) => l.label === "Weekly")).toBeUndefined()
+
+      const backwards = await probeWith(creditsData({
+        currentPeriod: {
+          type: "USAGE_PERIOD_TYPE_WEEKLY",
+          start: "2026-07-07T00:00:00+00:00",
+          end: "2026-07-01T00:00:00+00:00",
+        },
+      }))
+      expect(backwards.result.lines.find((l) => l.label === "Weekly")).toBeUndefined()
+    })
   })
 })

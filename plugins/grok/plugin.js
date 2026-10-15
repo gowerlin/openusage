@@ -1,6 +1,8 @@
 (function () {
   const AUTH_PATH = "~/.grok/auth.json"
   const BILLING_URL = "https://cli-chat-proxy.grok.com/v1/billing"
+  const CREDITS_URL = BILLING_URL + "?format=credits"
+  const WEEKLY_PERIOD_TYPE = "USAGE_PERIOD_TYPE_WEEKLY"
   const SETTINGS_URL = "https://cli-chat-proxy.grok.com/v1/settings"
   const REFRESH_URL = "https://auth.x.ai/oauth2/token"
   const DEFAULT_CLIENT_ID = "b1a00492-073a-47ea-816f-4c329264a828"
@@ -224,6 +226,63 @@
     return data
   }
 
+  // Weekly shared pool (unified billing). Same call the Grok CLI makes. proto-JSON drops
+  // zero values, so a missing creditUsagePercent means 0. Accounts not on a weekly period
+  // have no pool -> no line. Failures only drop this line; the monthly meter still renders.
+  function fetchWeeklyLine(ctx, token) {
+    let resp
+    try {
+      resp = ctx.util.request({
+        method: "GET",
+        url: CREDITS_URL,
+        headers: {
+          Authorization: "Bearer " + token,
+          "X-XAI-Token-Auth": TOKEN_AUTH_HEADER,
+          Accept: "application/json",
+          "User-Agent": "OpenUsage",
+        },
+        timeoutMs: 10000,
+      })
+    } catch (e) {
+      ctx.host.log.warn("Grok credits request failed: " + String(e))
+      return null
+    }
+    if (resp.status < 200 || resp.status >= 300) {
+      ctx.host.log.warn("Grok credits request returned status: " + resp.status)
+      return null
+    }
+
+    const data = ctx.util.tryParseJson(resp.bodyText)
+    const config = data && data.config
+    const period = config && config.currentPeriod
+    if (!period || typeof period !== "object") {
+      ctx.host.log.warn("Grok credits response changed: missing currentPeriod")
+      return null
+    }
+    if (period.type !== WEEKLY_PERIOD_TYPE) {
+      ctx.host.log.info("Grok credits period is not weekly: " + String(period.type))
+      return null
+    }
+
+    // toIso trims microsecond timestamps (".238389+00:00") so Date.parse accepts them.
+    const startMs = ctx.util.parseDateMs(ctx.util.toIso(period.start))
+    const endMs = ctx.util.parseDateMs(ctx.util.toIso(period.end))
+    const percent = config.creditUsagePercent === undefined ? 0 : Number(config.creditUsagePercent)
+    if (startMs === null || endMs === null || endMs <= startMs || !Number.isFinite(percent)) {
+      ctx.host.log.warn("Grok credits response changed: invalid weekly period or percent")
+      return null
+    }
+
+    return ctx.line.progress({
+      label: "Weekly",
+      used: clampPercent(percent),
+      limit: 100,
+      format: { kind: "percent" },
+      resetsAt: new Date(endMs).toISOString(),
+      periodDurationMs: endMs - startMs,
+    })
+  }
+
   function fetchPlanName(ctx, token) {
     try {
       const resp = ctx.util.request({
@@ -275,7 +334,10 @@
     }
 
     const usedPercent = clampPercent((usedUnits / limitUnits) * 100)
-    const lines = [
+    const lines = []
+    const weeklyLine = fetchWeeklyLine(ctx, auth.token)
+    if (weeklyLine) lines.push(weeklyLine)
+    lines.push(
       ctx.line.progress({
         label: "Credits used",
         used: usedPercent,
@@ -288,7 +350,7 @@
         text: onDemandCapUnits > 0 ? String(onDemandCapUnits) + " cap" : "Disabled",
         color: onDemandCapUnits > 0 ? "#22c55e" : "#a3a3a3",
       }),
-    ]
+    )
 
     return { plan: fetchPlanName(ctx, auth.token), lines }
   }
