@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0054
 title: Bump version and publish GitHub release v0.6.30
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: release
 bug_id: null
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T16:09:06+08:00"
+updated_at: "2026-10-15T16:23:03+08:00"
 started_at: "2026-10-15T16:09:06+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T16:23:03+08:00"
+commit: 49754c2f4c598ace9cd9be900722d1cb09d1abae
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -73,7 +73,14 @@ PLAN-005 最後一步。流程同 T0041，但本單需要 bump 版號。
 
 ### 狀態
 
-（push 前段落寫於 2026-10-15T16:10:09+08:00，含在 bump commit 內；最終狀態見下方收尾段。）
+DONE — v0.6.30 已發行，驗證 Gate 全 PASS。「Landing check」到「步驟 3」寫於 push 前（2026-10-15T16:10:09+08:00），含在 bump commit 內；「步驟 4」之後寫於 2026-10-15T16:22:39+08:00。
+
+| 項目 | 值 |
+|---|---|
+| bump commit | `49754c2f4c598ace9cd9be900722d1cb09d1abae`（`chore: bump version to 0.6.30`，版本四檔 + 本工單） |
+| tag | `v0.6.30`（annotated，tag object `17daa4a05daae834068de26604688ac5e2146191` → `49754c2f`） |
+| Publish run | `38703798990` success（job `116318093480`，08:10:36Z–08:22:00Z） |
+| Release | https://github.com/gowerlin/openusage/releases/tag/v0.6.30 |
 
 ### Landing check
 
@@ -115,3 +122,63 @@ PASS。範圍：`git diff origin/main..HEAD` 新增行（排除 `*.png` / lock�
 | `bun run test --run` | PASS | 70 files / 1204 tests passed |
 | `bun run build` | PASS | exit 0（只有 chunk > 500 kB 既有警告） |
 | `cargo test --locked` | PASS | VsDevCmd x64 + `LIBCLANG_PATH` + `CI=false`：`153 passed; 0 failed` |
+
+### 步驟 4–5：commit / push / tag
+
+- `git add` 版本四檔 + 本工單 → `git commit` `49754c2f`（工作區無其他改動）。
+- `git push origin main`：`e9ad43c4..49754c2f  main -> main`（fast-forward）。
+- `git tag -a v0.6.30 -m v0.6.30 49754c2f`；`git push origin v0.6.30`：`* [new tag] v0.6.30 -> v0.6.30`。**沒有**用 `--tags` / `--follow-tags` / `--mirror`、沒有 force-push、沒有動既有 tag / release。
+
+### 步驟 6：Publish workflow 與 release 驗證
+
+- `gh run list -R gowerlin/openusage --workflow publish.yml` → run `38703798990`（`v0.6.30`，push）。
+- `gh run watch -R gowerlin/openusage 38703798990 --exit-status` → exit 0；`Validate release tag`、`Validate app version matches tag`、`tauri-action`、`Verify updater assets uploaded` 全 ✓。
+- Annotation（只是警告，同 v0.6.29）：Node.js 20 deprecated（`actions/checkout@v4`、`ilammy/msvc-dev-cmd@v1`）。
+
+| 項目 | 結果 |
+|---|---|
+| draft / prerelease | `false` / `false`；publishedAt `2026-10-15T08:20:58Z` |
+| assets（3） | `OpenUsage_0.6.30_x64-setup.exe`（5436829 bytes）、`.sig`（420）、`latest.json`（1276） |
+| `latest.json` | `"version": "0.6.30"`；`windows-x86_64` 與 `windows-x86_64-nsis` 的 `url` = `https://github.com/gowerlin/openusage/releases/download/v0.6.30/OpenUsage_0.6.30_x64-setup.exe`，都有 signature |
+| updater endpoint | `releases/latest/download/latest.json` → `"version": "0.6.30"` |
+| Latest | `gh release list -R gowerlin/openusage`：`v0.6.30 Latest`；其餘 `v0.6.29`、`v0.6.27`、`v0.6.26`、`v0.6.25`、`v0.6.25-pre.1`、`v0.6.24` 不變 |
+| fork tag 比對 | `git ls-remote --tags origin` push 前後 `diff`：只多 `refs/tags/v0.6.30`、`refs/tags/v0.6.30^{}` |
+
+### 步驟 7：發行說明
+
+- `gh release edit v0.6.30 -R gowerlin/openusage --notes-file <scratchpad>/release-notes-v0.6.30.md`。
+- `gh release view --json body` == 檔案（`true`）；`https://api.github.com/repos/gowerlin/openusage/releases/tags/v0.6.30` body == 檔案（`true`，753 字元，正規化 CRLF），`draft=false`、`prerelease=false`。
+
+發行說明全文：
+
+```markdown
+本版重點：修正 v0.6.29 的已知問題 —— Windows 面板失焦收起更穩、詳細頁數值完整顯示、面板不再超出工作區（PLAN-005）。
+
+### Windows 修正
+- 面板失焦後偶爾沒有收起：只收到 `WM_NCACTIVATE` 的失焦也會收起（BUG-013 / T0052，[585a34d](https://github.com/gowerlin/openusage/commit/585a34d1348848d50f36336f5149fe0a723f9dfe)）
+- 面板高度限制在 Windows 工作區內（內容可捲動），不再被工作列遮住；進設定頁後不會改寫記住的面板位置（BUG-015 / T0051，[6b1ed40](https://github.com/gowerlin/openusage/commit/6b1ed40b8927f1a6a5ce13c276ca7094a8f1ce28)）
+
+### 修正
+- 詳細頁較長的文字數值（例如「$213.36 · 597M tokens」）完整顯示，不再被截斷（BUG-014 / T0050，[439a9d8](https://github.com/gowerlin/openusage/commit/439a9d8195a124d722a03407e44778fba8a231a6)）
+
+### 已知問題
+- 把面板拖到螢幕偏下的位置後，面板下緣可能暫時超出螢幕；下次顯示面板時會自動修正（BUG-016）
+
+**Full Changelog**: [v0.6.29...v0.6.30](https://github.com/gowerlin/openusage/compare/v0.6.29...v0.6.30)
+```
+
+### 驗證 Gate
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| Publish run 成功 | PASS | run `38703798990` success |
+| release / assets / `latest.json` / Latest | PASS | 非 draft / 非 pre；3 assets；version `0.6.30`、URL 指向 fork；`v0.6.30 Latest` |
+| fork 無非預期 tag | PASS | tag diff 只多 `v0.6.30` |
+| release body = API body | PASS | gh 與 API body 都等於發行說明檔 |
+
+### 偏離 / 阻塞 / 後續
+
+- 阻塞：無。偏離：無。
+- 沒有停使用者的 OpenUsage、沒有執行 installer、沒有改 registry、沒有碰剪貼簿、沒有新截圖。
+- 收尾 commit（本段 + metadata）只在本機，**沒有 push**（塔台處理）。
+- 後續建議（沿用 T0041，未處理）：README 補 `Perplexity`、`Synthetic`；`publish.yml` Node.js 20 deprecation 警告。
