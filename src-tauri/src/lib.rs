@@ -559,6 +559,8 @@ pub fn run() {
         .on_window_event(|window, event| {
             panel_position::persist_panel_position_from_event(window, event);
             panel_hit_test::trace_window_event(window, event);
+            #[cfg(windows)]
+            panel::hide_on_blur(window, event);
         })
         .invoke_handler(tauri::generate_handler![
             init_panel,
