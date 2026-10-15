@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 17:21 (UTC+8)
+> 最後更新：2026-10-15 17:26 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
@@ -10,7 +10,7 @@
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
-7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 DONE（`1f2a2812`）；T0066 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
+7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 DONE（`1f2a2812`）；T0066 DONE（`d50245c3`）；T0062 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -114,7 +114,7 @@
 | 工單 | T0066 |
 | BUG | BUG-017 |
 | PLAN | PLAN-006 |
-| 決策 | D103 |
+| 決策 | D104 |
 
 ---
 
@@ -168,8 +168,8 @@
 | Port: OpenCode Go API | T0060 | ✅ DONE | 未實機（無憑證） | 上游 `064819bf` |
 | Port: Copilot AI Credits | T0061 | ✅ DONE | 無 | Windows token → BUG-017 |
 | Grok credits single path | T0065 | ✅ DONE | 未實機（無憑證） | 上游 `5fcb4312`/`37f9a219` |
-| i18n + docs（Claude/Copilot/Grok/README） | T0066 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Windows smoke 0.6.31 | PLAN-006 / T0062 | 📋 PENDING | depends_on T0055–T0061、T0065、T0066 | 自動串接 |
+| i18n + docs（Claude/Copilot/Grok/README） | T0066 | ✅ DONE | 無 | 實機「可用 1 次」 |
+| Windows smoke 0.6.31 | PLAN-006 / T0062 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | CI 驗證 pre-release | PLAN-006 / T0064 | 📋 PENDING | depends_on T0062 | 自動串接 |
 | Release v0.6.31 | PLAN-006 / T0063 | 📋 PENDING | depends_on T0064 | 自動串接 |
 | Copilot Windows gh token | BUG-017 | 📋 OPEN | 無 | v0.6.31 後開單 |
@@ -283,6 +283,7 @@
 - D101：接受 T0061 DONE（`fcf07389`）：Copilot AI Credits / Extra Usage / Chat·Completions（`quota_snapshots`）/ org-managed seat 個人 credits + Org Credits/Spend（上游 `c6e4cb95`、`8b567aee` 等）；redaction 補 GitHub org slug（`redact_github_org_paths`、`organization` key），cargo 155。真實 API harness：舊版 free 帳號誤判 Premium 100%，新版正確。Runtime PARTIAL：Windows `keychain` host API macOS-only，gh token 在 Credential Manager → plugin 讀不到（既有限制）。Copilot docs 併入 T0066；Windows token 來源需新增 host API 讀 Credential Manager → 詢問使用者。派發 T0065。
 - D102：使用者決定 Copilot Windows gh token（Credential Manager）於 v0.6.31 發行後另開單 → 登記 BUG-017（Medium）；T0063 發行說明已知問題列 BUG-017。
 - D103：接受 T0065 DONE（`1f2a2812`）：Grok credits 為主、legacy billing 選用（缺 `monthlyLimit` 不 throw）、兩者皆失敗明確錯誤、team 412 訊息、overview Weekly line（primaryOrder 1）；新測試對舊碼 11 FAIL 證明抓到原 bug；未實機（無憑證）。Grok docs / README 併入 T0066。派發 T0066。
+- D104：接受 T0066 DONE（`d50245c3`）：`N available` → `可用 N 次`（Claude / Codex 實機）、Claude / Copilot（含 BUG-017 Windows 段）/ Grok docs、README 三列更新。不排單：`docs/local-http-api.md` 的 `rateLimitResets` key（fork 無對應表）。T0062 補 Claude Fable / resets、Grok、Copilot Windows 檢查項後派發。
 
 ---
 

@@ -9,7 +9,7 @@ type: verification
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T17:01:31+08:00"
+updated_at: "2026-10-15T17:26:40+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -40,6 +40,9 @@ PLAN-006 發行前驗證。方法沿用 T0053（7-Zip 解 installer 內容測、
 2. 新增項目：
    - BUG-016：真實拖曳到偏下 → 放開後面板下緣 ≤ 工作區底。
    - 移植項：Codex 連結 URL；Grok / Claude（Rate Limit Resets、Fable）/ OpenCode Go / Copilot 詳細頁——有憑證者實機截圖，無憑證者確認 plugin 載入且錯誤提示合理（不崩潰、不空白）。
+   - Claude 詳細頁：Fable 在 Weekly 下、速率限制重置顯示「可用 N 次」（zh-TW）；Codex 速率限制重置同樣翻譯；Claude / Codex 總覽卡片 Fable 顯示（D104）。
+   - Grok：無憑證時錯誤提示合理（不崩潰）；總覽 manifest Weekly line 存在。
+   - Copilot（Windows）：顯示 `Not logged in` 類明確提示（BUG-017 已知，非 FAIL）。
    - README 渲染（GitHub 預覽或本機 markdown）含 Perplexity / Synthetic。
 3. 回歸（精簡，各 1 次）：BUG-001 trace、BUG-002、BUG-004、BUG-005、BUG-006、BUG-007、BUG-008/013 點外收起、BUG-009、BUG-010、BUG-012、BUG-014、BUG-015、i18n / 主題。
 4. 截圖存 `_ct-workorders/assets/T0062/`。FAIL 不修，回報 PARTIAL / FAILED。
