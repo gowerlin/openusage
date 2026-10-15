@@ -55,11 +55,11 @@ describe("i18n", () => {
 
   it("translates the usage history runner hint and preserves other values", () => {
     expect(translateDisplayLabel("zh-TW", "Usage history")).toBe("用量歷史")
-    expect(translateDisplayValue("en", "Install Node.js (npx) or Bun to enable")).toBe(
-      "Install Node.js (npx) or Bun to enable"
+    expect(translateDisplayValue("en", "Needs Node.js or Bun")).toBe(
+      "Needs Node.js or Bun"
     )
-    expect(translateDisplayValue("zh-TW", "Install Node.js (npx) or Bun to enable")).toBe(
-      "安裝 Node.js（npx）或 Bun 以啟用"
+    expect(translateDisplayValue("zh-TW", "Needs Node.js or Bun")).toBe(
+      "需要 Node.js 或 Bun"
     )
     expect(translateDisplayValue("zh-TW", "Free")).toBe("Free")
   })

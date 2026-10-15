@@ -1526,7 +1526,7 @@ describe("claude plugin", () => {
       expect(result.lines.find((l) => l.label === "Usage history")).toEqual({
         type: "text",
         label: "Usage history",
-        value: "Install Node.js (npx) or Bun to enable",
+        value: "Needs Node.js or Bun",
       })
     })
 

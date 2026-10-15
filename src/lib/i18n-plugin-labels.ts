@@ -33,7 +33,7 @@ export const pluginLabelEn = {
   "pluginLabel.geminiFlash": "Gemini Flash",
   "pluginLabel.geminiPro": "Gemini Pro",
   "pluginLabel.hugeNumbers": "Huge numbers",
-  "pluginLabel.installRunnerHint": "Install Node.js (npx) or Bun to enable",
+  "pluginLabel.installRunnerHint": "Needs Node.js or Bun",
   "pluginLabel.labs": "Labs",
   "pluginLabel.last30Days": "Last 30 Days",
   "pluginLabel.manaBar": "Mana Bar",
@@ -115,7 +115,7 @@ export const pluginLabelZhTW: Record<PluginLabelKey, string> = {
   "pluginLabel.geminiFlash": "Gemini Flash",
   "pluginLabel.geminiPro": "Gemini Pro",
   "pluginLabel.hugeNumbers": "巨大數字",
-  "pluginLabel.installRunnerHint": "安裝 Node.js（npx）或 Bun 以啟用",
+  "pluginLabel.installRunnerHint": "需要 Node.js 或 Bun",
   "pluginLabel.labs": "Labs",
   "pluginLabel.last30Days": "過去 30 天",
   "pluginLabel.manaBar": "Mana Bar",
@@ -240,5 +240,5 @@ export const DISPLAY_LABEL_KEYS = {
 } as const satisfies Record<string, PluginLabelKey>
 
 export const DISPLAY_VALUE_KEYS = {
-  "Install Node.js (npx) or Bun to enable": "pluginLabel.installRunnerHint",
+  "Needs Node.js or Bun": "pluginLabel.installRunnerHint",
 } as const satisfies Record<string, PluginLabelKey>
