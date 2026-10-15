@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { makeCtx } from "../test-helpers.js"
 
 const CREDENTIALS_PATH = "~/.local/share/devin/credentials.toml"
+const WINDOWS_CREDENTIALS_PATH = "~/AppData/Roaming/devin/credentials.toml"
 const STATE_DB = "~/Library/Application Support/Devin/User/globalStorage/state.vscdb"
 const NEXT_STATE_DB = "~/Library/Application Support/Devin - Next/User/globalStorage/state.vscdb"
 const DEFAULT_API_SERVER_URL = "https://server.codeium.com"
@@ -447,5 +448,60 @@ describe("devin plugin", () => {
     const urls = ctx.host.http.request.mock.calls.map((call) => String(call[0].url))
     expect(urls.every((url) => url.includes("exa.seat_management_pb.SeatManagementService"))).toBe(true)
     expect(urls.some((url) => url.includes("127.0.0.1"))).toBe(false)
+  })
+
+  it("reads CLI credentials from %APPDATA% on windows without touching sqlite", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+    ctx.host.fs.writeText(WINDOWS_CREDENTIALS_PATH, makeCredentialsToml({ apiKey: "devin-session-token$win" }))
+    ctx.host.http.request.mockReturnValue({
+      status: 200,
+      bodyText: JSON.stringify(makeQuotaResponse()),
+    })
+
+    const plugin = await loadPlugin()
+    const result = plugin.probe(ctx)
+
+    expect(result.plan).toBe("Max")
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled()
+    const sentBody = JSON.parse(String(ctx.host.http.request.mock.calls[0][0].bodyText))
+    expect(sentBody.metadata.apiKey).toBe("devin-session-token$win")
+  })
+
+  it("ignores the macOS credentials path on windows", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+    ctx.host.fs.writeText(CREDENTIALS_PATH, makeCredentialsToml())
+
+    const plugin = await loadPlugin()
+
+    expect(() => plugin.probe(ctx)).toThrow("Run devin auth login and try again.")
+    expect(ctx.host.http.request).not.toHaveBeenCalled()
+  })
+
+  it("fails with a clear windows login hint without touching sqlite", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+
+    const plugin = await loadPlugin()
+
+    expect(() => plugin.probe(ctx)).toThrow(
+      "Run devin auth login and try again. On Windows only Devin CLI credentials are supported."
+    )
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled()
+    expect(ctx.host.http.request).not.toHaveBeenCalled()
+    expect(ctx.host.log.warn).not.toHaveBeenCalled()
+  })
+
+  it("shows the windows login hint when windows CLI credentials are rejected", async () => {
+    const ctx = makeCtx()
+    ctx.app.platform = "windows"
+    ctx.host.fs.writeText(WINDOWS_CREDENTIALS_PATH, makeCredentialsToml())
+    ctx.host.http.request.mockReturnValue({ status: 401, bodyText: "" })
+
+    const plugin = await loadPlugin()
+
+    expect(() => plugin.probe(ctx)).toThrow("Run devin auth login and try again.")
+    expect(ctx.host.sqlite.query).not.toHaveBeenCalled()
   })
 })

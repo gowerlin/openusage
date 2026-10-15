@@ -3701,6 +3701,23 @@ mod tests {
     }
 
     #[test]
+    fn redact_body_redacts_devin_request_metadata_api_key() {
+        // Devin GetUserStatus body; legacy keys may lack the devin-session-token$ prefix.
+        let body = r#"{"metadata":{"apiKey":"0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0","ideName":"devin"}}"#;
+        let redacted = redact_body(body);
+        assert!(
+            !redacted.contains("0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0"),
+            "Devin metadata apiKey should be redacted, got: {}",
+            redacted
+        );
+        assert!(
+            redacted.contains("0f1e...e1f0"),
+            "Devin metadata apiKey should use first4...last4 redaction, got: {}",
+            redacted
+        );
+    }
+
+    #[test]
     fn redact_body_redacts_json_password_field() {
         let body = r#"{"password": "supersecretpassword123"}"#;
         let redacted = redact_body(body);

@@ -3,6 +3,8 @@
   var DEFAULT_API_SERVER_URL = "https://server.codeium.com"
   var CLOUD_COMPAT_VERSION = "1.108.2"
   var CREDENTIALS_PATH = "~/.local/share/devin/credentials.toml"
+  // Devin CLI docs: Windows stores credentials in %APPDATA%\devin\credentials.toml.
+  var WINDOWS_CREDENTIALS_PATH = "~/AppData/Roaming/devin/credentials.toml"
   var APP_AUTH_SOURCES = [
     {
       source: "Devin app",
@@ -14,6 +16,8 @@
     },
   ]
   var LOGIN_HINT = "Run devin auth login or sign in to Devin and try again."
+  // Windows has no host sqlite, so only the Devin CLI credentials file works there.
+  var WINDOWS_LOGIN_HINT = "Run devin auth login and try again. On Windows only Devin CLI credentials are supported."
   var QUOTA_HINT = "Devin quota data unavailable. Try again later."
   var DAY_MS = 24 * 60 * 60 * 1000
   var WEEK_MS = 7 * DAY_MS
@@ -117,10 +121,15 @@
     )
   }
 
+  function isWindows(ctx) {
+    return Boolean(ctx.app && ctx.app.platform === "windows")
+  }
+
   function loadCredentialsFile(ctx) {
-    if (!ctx.host.fs.exists(CREDENTIALS_PATH)) return null
+    var path = isWindows(ctx) ? WINDOWS_CREDENTIALS_PATH : CREDENTIALS_PATH
+    if (!ctx.host.fs.exists(path)) return null
     try {
-      var text = ctx.host.fs.readText(CREDENTIALS_PATH)
+      var text = ctx.host.fs.readText(path)
       var apiKey = readTomlString(text, "windsurf_api_key")
       if (!apiKey) {
         ctx.host.log.warn("Devin credentials missing windsurf_api_key")
@@ -296,6 +305,12 @@
       var credentialsAttempt = tryAuth(ctx, credentials)
       if (credentialsAttempt.output) return credentialsAttempt.output
       if (credentialsAttempt.authFailure) sawAuthFailure = true
+    }
+
+    if (isWindows(ctx)) {
+      if (sawAuthFailure) throw WINDOWS_LOGIN_HINT
+      if (sawApiKey) throw QUOTA_HINT
+      throw WINDOWS_LOGIN_HINT
     }
 
     // Walk every app install (stable, then "- Next") and try each token the cloud
