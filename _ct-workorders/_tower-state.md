@@ -1,13 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 11:46 (UTC+8)
+> 最後更新：2026-10-15 11:48 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.26` 已發行（Publish run `38675818087` success，tag `v0.6.26` → `30904bd`）；NSIS installer、`.sig`、`latest.json`（version `0.6.26`，URL 指向 fork）與繁中發行重點說明已驗證。
 2. BUG-001 / BUG-002 / BUG-003 / BUG-004：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0033：全部 DONE。
+5. BUG-005 / T0034：App changelog 改讀 fork releases，已 YOLO 派發，等待 Worker 回報；完成後不發版（使用者決定）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -108,10 +109,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0033 |
-| BUG | BUG-004 |
+| 工單 | T0034 |
+| BUG | BUG-005 |
 | PLAN | PLAN-003 |
-| 決策 | D061 |
+| 決策 | D062 |
 
 ---
 
@@ -137,6 +138,7 @@
 | Macaron theme presets | PLAN-003 / T0020 / T0021 | ✅ DONE | 無 | visual smoke + runtime persistence + user install test verified |
 | Background shell window visibility | BUG-002 / T0013 | ✅ CLOSED | 無 | 使用者安裝測試確認背景 shell 不再顯示終端視窗 |
 | Single app instance | BUG-004 / T0032 | ✅ CLOSED | 無 | 使用者安裝 `v0.6.26` 實測通過 |
+| In-app changelog source | BUG-005 / T0034 | 🔄 DISPATCHED | 無 | 等 Worker 回報；下次發行後使用者實測 |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
 ---
@@ -204,6 +206,7 @@
 - D059：使用者安裝 `v0.6.26` 實測確認 single-instance 正常；BUG-004 CLOSED。
 - D060：執行 `*archive`（archive_days 預設 7）；T0001–T0031、BUG-001~003、PLAN-001~003 共 37 張 `git mv` 到 `_archive/`。進度快照中的歷史列視為紀錄而非活躍引用，不套用豁免；T0032/T0033/BUG-004 未滿 7 天保留熱區。
 - D061：不建立專案基線工單（`project-context.md` / `sprint-status.yaml`）。理由：`AGENTS.md` + `docs/` 已涵蓋專案 context；專案未採 BMad sprint/story 流程，塔台工單 + BUG/PLAN 追蹤足夠；AGENTS.md 要求不過度工程。重啟條件：Worker 反覆重新探索同一批專案背景時，再開小工單只產 `project-context.md`。
+- D062：使用者要求補 `latest.json` 更新說明；塔台查證 App updater 不顯示 `notes`，App changelog 實際讀上游 `robinebers/openusage` releases（上游有同名 tag，顯示錯誤內容）。使用者選擇改 changelog 來源指向 fork、不補 `latest.json`、完成後先不發版；建立 BUG-005 / T0034。塔台更正先前「notes 空導致 App 看不到說明」的錯誤判斷。
 
 ---
 
@@ -214,6 +217,7 @@
 - PLAN-003：DONE；T0021 Tauri runtime macaron theme persistence 已通過；T0020 使用者安裝測試已驗收。
 - PLAN-002：DONE；T0017 Tauri runtime language persistence 已通過；T0016 使用者安裝測試已驗收。
 - BUG-004：CLOSED；使用者安裝 `v0.6.26` 實測通過。
+- BUG-005：OPEN；T0034 已派發。about-dialog repo 連結、side-nav issues 連結仍指向上游（範圍外，待決策）。
 - 無 Windows release 阻塞待辦。
 - PLAN / BUG 追蹤已啟用；EXP 追蹤尚未啟用。
 

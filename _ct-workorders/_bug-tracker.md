@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T11:44:34+08:00"
+generated_at: "2026-10-15T11:48:01+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 1
+total: 2
 breakdown:
-  OPEN: 0
+  OPEN: 1
   FIXING: 0
   FIXED: 0
   VERIFY: 0
@@ -25,12 +25,13 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 0 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 1 | Won't Fix: 0 | **Total: 1**
+- Open: 1 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 1 | Won't Fix: 0 | **Total: 2**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-005 | In-app changelog reads upstream releases instead of fork | 🟡 Medium | 2026-10-15T11:48:01+08:00 | [BUG-005-changelog-reads-upstream-releases.md](BUG-005-changelog-reads-upstream-releases.md) |
 
 ## Fixing
 
