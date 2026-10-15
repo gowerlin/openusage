@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 14:22 (UTC+8)
+> 最後更新：2026-10-15 14:26 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
@@ -112,7 +112,7 @@
 | 工單 | T0049 |
 | BUG | BUG-012 |
 | PLAN | PLAN-004 |
-| 決策 | D080 |
+| 決策 | D081 |
 
 ---
 
@@ -240,6 +240,7 @@
 - D078：接受 T0046 DONE（`61698e68`）；BUG-010 FIXED、BUG-009 剩餘完成。方案 Job Object（引 Microsoft 文件）。接受偏差：程式無 availability cache → 改重用 `--version` 輸出；`config.rs:53` 一併改。Worker 觀察：正式版從含 `plugins/` 的 cwd 啟動會載入該目錄 plugin，塔台查證 `find_dev_plugins_dir()` 未限 debug build → 開 BUG-012（Medium，安全）/ T0049 插在 T0048 後；T0044 補 BUG-010/012 檢查與「安裝版以安裝目錄為 cwd 重啟」規則。
 - D079：接受 T0047 DONE（`96fc3ad8`）；BUG-011 FIXED。接受偏差：改 `provider-card-metric-line.tsx` 讓 text value 可翻譯（獨立 `DISPLAY_VALUE_KEYS`，不誤翻 plan 名）、新增 `use-tray-icon.test.ts`。Worker 觀察提示被截斷 → 塔台定案短文案 `Needs Node.js or Bun` / `需要 Node.js 或 Bun`，以獨立 commit 併入 T0048。tray tooltip 語言更新僅單元測試（Windows 本就不更新 tooltip）。
 - D080：接受 T0048 DONE；純搬移（119+/118-），`panel_hit_test.rs` 未動，cargo test 149 不減；文案改短後 browser dev 量測不截斷（en 餘裕約 3px，T0044 實機 WebView2 再確認）。依 D076 派發 T0049。
+- D081：使用者決定截圖含用量金額可公開，只要無 API token / 個資。塔台逐張檢視未推送截圖（T0040 ×5、T0042、T0047 ×2、T0048）：無 token、email、帳號 ID、完整使用者路徑；工單文字掃描無 token / email。Windows 使用者名稱 `Gower` 出現在 9 個工單路徑中（其中 7 個 5 月起已公開，且與 git author 名稱相同），不視為新增外洩。T0041 加入 push 前隱私掃描步驟。
 
 ---
 

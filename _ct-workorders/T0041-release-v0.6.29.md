@@ -9,7 +9,7 @@ type: release
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:39:32+08:00"
-updated_at: "2026-10-15T14:07:49+08:00"
+updated_at: "2026-10-15T14:26:25+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -54,13 +54,14 @@ PLAN-004 最後一步。版號 `0.6.29` 已由 T0038 在 merge commit 寫入四�
 ## 任務指令
 
 1. README 支援 plugin 清單已由 T0038/T0039 更新 → 確認（AGENTS.md push 前要求）。
-2. 驗證：`cargo fmt --check`、`cargo test --locked`、`bun run test --run`、`bun run build` PASS。
-3. 回報區先寫入 push 前狀態 commit：`chore: prepare release v0.6.29 (T0041)`（只含本工單）。
-4. `git push origin main`。
-5. `git tag -a v0.6.29 -m v0.6.29 <HEAD>`；`git push origin v0.6.29`（**只推這一個**）。
-6. 追蹤 `gh run list -R gowerlin/openusage --workflow publish.yml` → `gh run watch -R gowerlin/openusage <id>`。
-7. 驗證（全部加 `-R gowerlin/openusage`）：非 draft / 非 prerelease；assets 含 NSIS setup、`.sig`、`latest.json`；`latest.json` `version` = `0.6.29`、URL 指向 fork；`gh release list -R gowerlin/openusage` 確認 Latest = `v0.6.29`，且**沒有**任何非預期的新 release / tag 出現在 fork（`git ls-remote --tags origin` 比對 push 前清單）。
-8. **發行重點說明**（繁中，格式同 `v0.6.27`）：`gh release edit v0.6.29 -R gowerlin/openusage --notes-file <檔>`。
+2. **Push 前隱私掃描（D081）**：對 `git diff origin/main..HEAD` 新增的檔案與 `_ct-workorders/assets/**` 檢查：無 API token / session token（`sk-`、`ghp_`、`github_pat_`、JWT `eyJ...`、`devin-session-token$...` 等）、無 email、無帳號 ID；截圖逐張目視確認無上述內容與背景視窗的私人內容。用量金額允許公開（使用者決定）。發現問題 → BLOCKED 回報，不自行改寫歷史。
+3. 驗證：`cargo fmt --check`、`cargo test --locked`、`bun run test --run`、`bun run build` PASS。
+4. 回報區先寫入 push 前狀態 commit：`chore: prepare release v0.6.29 (T0041)`（只含本工單）。
+5. `git push origin main`。
+6. `git tag -a v0.6.29 -m v0.6.29 <HEAD>`；`git push origin v0.6.29`（**只推這一個**）。
+7. 追蹤 `gh run list -R gowerlin/openusage --workflow publish.yml` → `gh run watch -R gowerlin/openusage <id>`。
+8. 驗證（全部加 `-R gowerlin/openusage`）：非 draft / 非 prerelease；assets 含 NSIS setup、`.sig`、`latest.json`；`latest.json` `version` = `0.6.29`、URL 指向 fork；`gh release list -R gowerlin/openusage` 確認 Latest = `v0.6.29`，且**沒有**任何非預期的新 release / tag 出現在 fork（`git ls-remote --tags origin` 比對 push 前清單）。
+9. **發行重點說明**（繁中，格式同 `v0.6.27`）：`gh release edit v0.6.29 -R gowerlin/openusage --notes-file <檔>`。
    - 本版重點：**同步上游 OpenUsage Tauri 版（tauri-legacy v0.6.25–v0.6.28）的改進**，並保留本 fork 的 Windows 支援、繁中與主題。
    - 依使用者可感知分類列出：新功能（Usage Trend 圖、Codex rate-limit resets、menubar weekly metric、Copy Log Path、Devin 取代 Windsurf、Antigravity/agy…）、修正（Codex token refresh、Cursor、安全性依賴更新…）、fork 調整（保留 Gemini、不含退休通知、Devin Windows 行為、補繁中翻譯）；Windows 修正（Usage Trend / ccusage 在 Windows 可用 BUG-006、面板不佔工作列 BUG-007、面板失焦自動收起 BUG-008、log 遮蔽 Windows 使用者路徑 BUG-009、ccusage 逾時清理 BUG-010、缺少 Node.js / Bun 時顯示提示 BUG-011、正式版不再從工作目錄載入 plugin BUG-012）。
    - 上游項目可附上游 PR 連結（`robinebers/openusage/pull/N`）並註明「來自上游」；fork commit 用 fork 連結。
