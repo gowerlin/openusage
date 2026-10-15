@@ -41,7 +41,38 @@ vi.mock("@tauri-apps/api/window", () => ({
   },
 }))
 
-import { usePanel } from "@/hooks/app/use-panel"
+import { computeMaxPanelHeightPhysical, usePanel } from "@/hooks/app/use-panel"
+
+describe("computeMaxPanelHeightPhysical", () => {
+  // 1920x1440 monitor, 72px taskbar at the bottom -> work area bottom 1368.
+  const monitor = {
+    size: { height: 1440 },
+    workArea: { position: { y: 0 }, size: { height: 1368 } },
+  }
+
+  it("keeps a low panel above the taskbar", () => {
+    // 1368 - 600 - 8
+    expect(computeMaxPanelHeightPhysical(monitor, 600, 1)).toBe(760)
+  })
+
+  it("uses the monitor fraction cap when there is more room", () => {
+    // min(1440 * 0.8, 1368 - 0 - 8)
+    expect(computeMaxPanelHeightPhysical(monitor, 0, 1)).toBe(1152)
+  })
+
+  it("scales the margin and respects work area offset", () => {
+    const offset = {
+      size: { height: 2160 },
+      workArea: { position: { y: 100 }, size: { height: 2000 } },
+    }
+    // 2100 - 1000 - 8 * 1.5
+    expect(computeMaxPanelHeightPhysical(offset, 1000, 1.5)).toBe(1088)
+  })
+
+  it("never returns less than 1px", () => {
+    expect(computeMaxPanelHeightPhysical(monitor, 1400, 1)).toBe(1)
+  })
+})
 
 describe("usePanel", () => {
   beforeEach(() => {

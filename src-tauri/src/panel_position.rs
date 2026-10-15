@@ -1,9 +1,14 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 use tauri::{Manager, PhysicalPosition, Position};
 use tauri_plugin_store::StoreExt;
 
 const MAIN_WINDOW_LABEL: &str = "main";
 const PANEL_POSITION_STORE_KEY: &str = "panelPosition";
+
+// Position set by `apply_stored_position`; its `Moved` event must not overwrite
+// the user's dragged position with a clamped one.
+static PROGRAMMATIC_MOVE: Mutex<Option<StoredPanelPosition>> = Mutex::new(None);
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -58,13 +63,26 @@ pub fn persist_panel_position_from_event(window: &tauri::Window, event: &tauri::
         return;
     };
 
-    save_stored_position(
-        window.app_handle(),
-        StoredPanelPosition {
-            x: position.x,
-            y: position.y,
-        },
-    );
+    let position = StoredPanelPosition {
+        x: position.x,
+        y: position.y,
+    };
+    if take_programmatic_move(position) {
+        return;
+    }
+
+    save_stored_position(window.app_handle(), position);
+}
+
+fn take_programmatic_move(position: StoredPanelPosition) -> bool {
+    let mut pending = PROGRAMMATIC_MOVE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if *pending == Some(position) {
+        *pending = None;
+        return true;
+    }
+    false
 }
 
 pub fn apply_stored_position(app_handle: &tauri::AppHandle) -> bool {
@@ -88,16 +106,25 @@ pub fn apply_stored_position(app_handle: &tauri::AppHandle) -> bool {
         }
     };
 
+    // Clamped target is applied but never saved: the stored value stays the
+    // position the user dragged to.
     let target = clamp_position_for_window(&window, position, window_size);
+    let current = window
+        .outer_position()
+        .ok()
+        .map(|p| StoredPanelPosition { x: p.x, y: p.y });
+    if current == Some(target) {
+        return true;
+    }
+
+    *PROGRAMMATIC_MOVE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(target);
     if let Err(error) = window.set_position(Position::Physical(PhysicalPosition::new(
         target.x, target.y,
     ))) {
         log::warn!("failed to restore panel position: {}", error);
         return false;
-    }
-
-    if target != position {
-        save_stored_position(app_handle, target);
     }
 
     true
@@ -221,6 +248,19 @@ mod tests {
         );
 
         assert_eq!(result, StoredPanelPosition { x: 1520, y: 580 });
+    }
+
+    #[test]
+    fn programmatic_move_is_skipped_once() {
+        let target = StoredPanelPosition { x: 10, y: 216 };
+        *PROGRAMMATIC_MOVE.lock().unwrap() = Some(target);
+
+        assert!(!take_programmatic_move(StoredPanelPosition {
+            x: 10,
+            y: 500
+        }));
+        assert!(take_programmatic_move(target));
+        assert!(!take_programmatic_move(target));
     }
 
     #[test]

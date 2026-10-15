@@ -8,6 +8,25 @@ import type { DisplayPluginState } from "@/hooks/app/use-app-plugin-views"
 const PANEL_WIDTH = 400
 const MAX_HEIGHT_FALLBACK_PX = 600
 const MAX_HEIGHT_FRACTION_OF_MONITOR = 0.8
+const WORK_AREA_MARGIN_PX = 8
+
+type MonitorArea = {
+  size: { height: number }
+  workArea: { position: { y: number }; size: { height: number } }
+}
+
+// Physical px. Keeps the window bottom above the taskbar/dock: limited by the
+// work area below the window's current top, and by a fraction of the monitor.
+export function computeMaxPanelHeightPhysical(
+  monitor: MonitorArea,
+  windowTop: number,
+  factor: number
+): number {
+  const fractionCap = Math.floor(monitor.size.height * MAX_HEIGHT_FRACTION_OF_MONITOR)
+  const workAreaBottom = monitor.workArea.position.y + monitor.workArea.size.height
+  const roomCap = Math.floor(workAreaBottom - windowTop - WORK_AREA_MARGIN_PX * factor)
+  return Math.max(1, Math.min(fractionCap, roomCap))
+}
 
 type UsePanelArgs = {
   activeView: ActiveView
@@ -225,11 +244,12 @@ export function usePanel({
       try {
         const monitor = await currentMonitor()
         if (monitor) {
-          maxHeightPhysical = Math.floor(monitor.size.height * MAX_HEIGHT_FRACTION_OF_MONITOR)
+          const windowTop = (await getCurrentWindow().outerPosition()).y
+          maxHeightPhysical = computeMaxPanelHeightPhysical(monitor, windowTop, factor)
           maxHeightLogical = Math.floor(maxHeightPhysical / factor)
         }
-      } catch {
-        // fall through to fallback
+      } catch (e) {
+        console.error("Failed to read panel work area:", e)
       }
 
       if (maxHeightLogical === null) {
