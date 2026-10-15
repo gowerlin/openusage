@@ -44,10 +44,22 @@ Returns rate limit windows and optional extra credits.
     "utilization": 0,
     "resets_at": "2026-02-01T00:00:00Z"
   },
+  "seven_day_sonnet": {             // separate weekly Sonnet limit (optional, plan-dependent)
+    "utilization": 0,
+    "resets_at": "2026-02-01T00:00:00Z"
+  },
   "seven_day_omelette": {           // separate weekly Claude Design limit (optional, plan-dependent)
     "utilization": 0,
     "resets_at": "2026-02-01T00:00:00Z"
   },
+  "limits": [                       // model-scoped windows (optional)
+    {
+      "kind": "weekly_scoped",
+      "scope": { "model": { "display_name": "Fable" } },
+      "percent": 12,                // % used, 0-100
+      "resets_at": "2026-02-01T00:00:00Z"
+    }
+  ],
   "extra_usage": {                  // on-demand overage credits (optional)
     "is_enabled": true,
     "used_credits": 500,            // cents spent
@@ -58,6 +70,56 @@ Returns rate limit windows and optional extra credits.
 ```
 
 All windows are enforced simultaneously — hitting any limit throttles the user.
+
+### GET /api/oauth/usage?cedar_ember=1&skip_spend=1
+
+Same endpoint and headers; asks for one-off usage-limit reset grants (`cedar_ember` is Anthropic's
+internal name). Upstream `00189454`.
+
+- **User-Agent:** `claude-cli/2.1.294 (external, cli)` on all usage requests — Anthropic gates reset grants by client surface.
+- **Rate:** at most once per hour. A failed check (non-2xx, bad JSON, error) keeps the last answer and still counts as that hour's check.
+
+#### Response
+
+```jsonc
+{
+  "cedar_ember": {                  // absent = program not reported for this plan
+    "eligible": true,
+    "grants": [
+      {
+        "resets_left": 1,           // resets still usable in this grant
+        "ends_at": "2026-02-10T00:00:00Z"  // deadline (optional)
+      }
+    ]
+  }
+}
+```
+
+Count = sum of `resets_left` (floored, `< 1` skipped) over grants not yet past `ends_at`.
+`eligible !== true` or no grants → `0 available`.
+
+## Displayed Lines
+
+| Line | Source | Notes |
+|---|---|---|
+| Session | `five_hour` | |
+| Weekly | `seven_day` | |
+| Fable | `limits[]` entry with `kind: "weekly_scoped"`, `scope.model.display_name: "Fable"` | Overview, below Weekly. Uses `percent`, 7-day period. Upstream `4b068d52`. |
+| Sonnet | `seven_day_sonnet` | Detail |
+| Claude Design | `seven_day_omelette` | Detail |
+| Extra usage spent | `extra_usage` | |
+| Rate Limit Resets | `cedar_ember` | Detail. Value `N available` (zh-TW `可用 N 次`). Hidden until the first successful grants check. |
+
+Rate Limit Resets color (soonest deadline, only when count > 0 and a deadline exists):
+
+| Time left | Color |
+|---|---|
+| ≤ 48 hours | red `#ef4444` |
+| ≤ 7 days | yellow `#f59e0b` |
+| > 7 days | blue `#3b82f6` |
+
+Subtitle shows the soonest deadline date. Resets whose deadline passes between hourly checks are
+dropped from the count locally. To use a reset, run `/rate-limit-options` in Claude Code.
 
 ## Authentication
 

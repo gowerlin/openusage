@@ -1,6 +1,6 @@
 # Grok
 
-Tracks Grok Build credit usage from the local Grok CLI login.
+Tracks Grok Build weekly credit pool and pay-as-you-go cap from the local Grok CLI login.
 
 > Reverse-engineered, undocumented API. May change without notice.
 
@@ -10,9 +10,9 @@ Tracks Grok Build credit usage from the local Grok CLI login.
 - **Base URL:** `https://cli-chat-proxy.grok.com/v1`
 - **Auth:** cached Grok CLI token from `~/.grok/auth.json`
 - **Refresh:** Grok CLI refresh token from the same file
-- **Usage unit:** raw billing units from Grok
+- **Usage unit:** percent (credits), raw billing units (legacy)
 - **Plan source:** `GET /settings` (`subscription_tier_display`)
-- **Reset period:** billing period from the CLI billing response
+- **Reset period:** `currentPeriod` from the credits response (weekly for unified billing)
 
 ## Setup
 
@@ -26,13 +26,9 @@ grok login
 
 OpenUsage reads the same local auth file that the Grok CLI uses. Access tokens are refreshed automatically before expiry when a `refresh_token` is present. If refresh fails, run `grok login` again.
 
-## Endpoint
+## Endpoints
 
-### GET /billing
-
-Returns the current Grok Build billing period, credit usage, and pay-as-you-go cap.
-
-#### Headers
+Both billing calls use the same headers:
 
 | Header | Required | Value |
 |--------|----------|-------|
@@ -40,7 +36,37 @@ Returns the current Grok Build billing period, credit usage, and pay-as-you-go c
 | X-XAI-Token-Auth | yes | `xai-grok-cli` |
 | Accept | yes | `application/json` |
 
+### GET /billing?format=credits (primary)
+
+Same call the Grok CLI makes. Returns the unified-billing credit pool. A 401/403 triggers one
+token refresh and retry. Upstream `5fcb4312`.
+
 #### Response
+
+```jsonc
+{
+  "config": {
+    "currentPeriod": {
+      "type": "USAGE_PERIOD_TYPE_WEEKLY",   // non-weekly = account not migrated -> no Weekly line
+      "start": "2026-10-13T00:00:00.238389+00:00",
+      "end": "2026-10-20T00:00:00.238389+00:00"
+    },
+    "creditUsagePercent": 37.5,             // proto-JSON: missing = 0
+    "onDemandCap": { "val": 2500 }          // pay-as-you-go cap; missing = 0 (disabled)
+  }
+}
+```
+
+#### Team accounts
+
+Team / business principals get `HTTP 412` with `{"error":"No personal team"}`: no personal quota on
+this surface. Upstream `37f9a219`. OpenUsage falls back to the legacy call; if that has no
+`monthlyLimit` either, the card shows "Grok team accounts have no personal quota."
+
+### GET /billing (legacy, optional)
+
+Older monthly credit budget. Shown only when the response has a usable `monthlyLimit`
+(unified-billing accounts may no longer return one).
 
 ```json
 {
@@ -49,42 +75,35 @@ Returns the current Grok Build billing period, credit usage, and pay-as-you-go c
     "used": { "val": 4277 },
     "onDemandCap": { "val": 0 },
     "billingPeriodStart": "2026-05-01T00:00:00+00:00",
-    "billingPeriodEnd": "2026-06-01T00:00:00+00:00",
-    "history": [
-      {
-        "billingCycle": { "year": 2026, "month": 4 },
-        "includedUsed": { "val": 0 },
-        "onDemandUsed": { "val": 0 },
-        "totalUsed": { "val": 0 }
-      }
-    ]
+    "billingPeriodEnd": "2026-06-01T00:00:00+00:00"
   }
 }
 ```
+
+Used fields: `used.val`, `monthlyLimit.val` (> 0), `billingPeriodEnd` (reset), `onDemandCap.val`
+(Pay as you go only when the credits call failed).
 
 ### GET /settings
 
 Returns remote CLI settings. OpenUsage reads `subscription_tier_display` from this response and shows it as the provider plan label, for example `SuperGrok Heavy`.
 
-Used fields:
-
-- `used.val` — current billing period usage
-- `monthlyLimit.val` — included credit limit
-- `onDemandCap.val` — pay-as-you-go cap; `0` means disabled
-- `billingPeriodEnd` — current billing period reset time
-
 ## Displayed Lines
 
-| Line | Description |
-|------|-------------|
-| Credits used | Percent of included monthly credits used |
-| Pay as you go | Disabled, or the configured pay-as-you-go cap |
+| Line | Source | Description |
+|------|--------|-------------|
+| Weekly | credits | Percent of the shared weekly pool used, resets at `currentPeriod.end` |
+| Credits used | legacy | Percent of `monthlyLimit` used (only when `monthlyLimit` is present) |
+| Pay as you go | credits (legacy if credits failed) | `{onDemandCap} cap`, or `Disabled` when 0 |
+
+Credits call failed but legacy works → legacy lines only. Both failed → error from the credits call.
 
 ## Errors
 
 | Condition | Message |
 |-----------|---------|
 | Missing auth file | "Grok not logged in. Run `grok login`." |
+| No usable token in auth file | "Grok auth invalid. Run `grok login` again." |
+| Team account, no legacy meter | "Grok team accounts have no personal quota." |
 | Expired token with no refresh token | "Grok auth expired. Run `grok login` again." |
 | Refresh token rejected | "Grok auth expired. Run `grok login` again." |
 | 401/403 after retry | "Grok auth expired. Run `grok login` again." |

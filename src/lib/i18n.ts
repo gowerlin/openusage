@@ -316,7 +316,13 @@ export function translateDisplayLabel(locale: Locale, label: string): string {
   return key ? t(locale, key) : label
 }
 
+// Claude / Codex "Rate Limit Resets" value, e.g. "2 available".
+const RESETS_AVAILABLE_PATTERN = /^(\d+) available$/
+
 export function translateDisplayValue(locale: Locale, value: string): string {
   const key = DISPLAY_VALUE_KEYS[value as keyof typeof DISPLAY_VALUE_KEYS]
-  return key ? t(locale, key) : value
+  if (key) return t(locale, key)
+  const resets = RESETS_AVAILABLE_PATTERN.exec(value)
+  if (resets) return t(locale, "pluginLabel.resetsAvailable").replace("{count}", resets[1])
+  return value
 }

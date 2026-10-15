@@ -64,6 +64,17 @@ describe("i18n", () => {
     expect(translateDisplayValue("zh-TW", "Free")).toBe("Free")
   })
 
+  it("translates rate limit reset grants values", () => {
+    expect(translateDisplayValue("en", "1 available")).toBe("1 available")
+    expect(translateDisplayValue("zh-TW", "1 available")).toBe("可用 1 次")
+    expect(translateDisplayValue("zh-TW", "0 available")).toBe("可用 0 次")
+    expect(translateDisplayValue("zh-TW", "12 available")).toBe("可用 12 次")
+    expect(translateDisplayValue("zh-TW", "1.5 available")).toBe("1.5 available")
+    expect(translateDisplayValue("zh-TW", "Not available")).toBe("Not available")
+    expect(translateDisplayValue("zh-TW", "Pro")).toBe("Pro")
+    expect(translateDisplayValue("zh-TW", "Free")).toBe("Free")
+  })
+
   it("fails loud for unsupported locales or missing keys", () => {
     expect(() => t("fr" as Locale, "settings.language.title")).toThrow(
       "Unsupported locale: fr"
