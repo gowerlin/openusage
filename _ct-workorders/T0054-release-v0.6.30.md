@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0054
 title: Bump version and publish GitHub release v0.6.30
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: release
 bug_id: null
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T16:08:42+08:00"
-started_at: null
+updated_at: "2026-10-15T16:09:06+08:00"
+started_at: "2026-10-15T16:09:06+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -71,4 +71,47 @@ PLAN-005 最後一步。流程同 T0041，但本單需要 bump 版號。
 
 ## 回報區
 
-（Worker 填寫：狀態、commit、改動、驗證證據、偏差）
+### 狀態
+
+（push 前段落寫於 2026-10-15T16:10:09+08:00，含在 bump commit 內；最終狀態見下方收尾段。）
+
+### Landing check
+
+- 結果：WARN（只有 C-0）。
+- C-0：frontmatter `repo` = absent → WARN「repo identity unavailable」；`basename(REPO_ROOT)` = `openusage`。
+- C-1：PASS（`D:/ForgejoGit/@GitHub_Clone/openusage/_ct-workorders/T0054-release-v0.6.30.md`）。
+- C-3：PASS（4 個 `affects_files` 皆存在）。C-2：無 `branch` 欄位（HEAD = `main`）。
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅紀錄）；`CT_MODE=yolo`，`CT_INTERACTIVE` 未設。
+
+### 前置條件
+
+| 項目 | 結果 |
+|---|---|
+| T0050 / T0051 / T0052 / T0053 | 全部 `status: DONE` |
+| `git status` | 開工時乾淨 |
+| `git fetch origin` 後 | `origin/main...HEAD` = `0 14`（只 ahead） |
+| `git ls-remote --tags origin v0.6.30` | 空 |
+| push URL | `https://github.com/gowerlin/openusage.git` |
+
+### 步驟 1：版號 + README
+
+- `package.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml` → `0.6.30`；`cargo update -p openusage --offline` → `Cargo.lock` `openusage v0.6.29 -> v0.6.30`（只動這一行）。
+- README plugin 清單：`origin/main..HEAD` 沒有改 `plugins/` 或 `README.md` → 與 v0.6.29 相同，PASS。既有缺口（`perplexity`、`synthetic` 未列）同 T0041 觀察，本單不改。
+
+### 步驟 2：Push 前隱私掃描（D081）
+
+PASS。範圍：`git diff origin/main..HEAD` 新增行（排除 `*.png` / lock）+ 本次新增 7 張截圖。
+- Token（`sk-`、`ghp_`、`gho_`、`github_pat_`、JWT `eyJ…`、`devin-session-token$`、`xox?-`、`AKIA`、private key）：0 筆。
+- Email：0 筆。帳號 ID（`org-…`）：0 筆。
+- UUID 命中只有 `BAT_WORKSPACE_ID`（本機終端工作區 ID，非帳號）；`origin/main` 已有 10 個工單含同值（先例）。
+- 路徑：只有已遮蔽的 `C:\Users\<user>\…`。`gower` 命中只有 repo 名 `gowerlin`（公開）。
+- 截圖逐張目視（`T0050/metric-text-278px.png`、`T0053/about.png`、`claude-detail-en.png`、`claude-detail-zh-TW.png`、`claude-detail-no-runner-en.png`、`claude-detail-no-runner-zh-TW.png`、`settings-low-lang.png`）：只有 app UI、模型名與用量數字 / 金額（允許公開）；T0053 截圖背景已塗棋盤格，沒有背景視窗內容。
+
+### 步驟 3：驗證
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| `cargo fmt --check` | PASS | exit 0 |
+| `bun run test --run` | PASS | 70 files / 1204 tests passed |
+| `bun run build` | PASS | exit 0（只有 chunk > 500 kB 既有警告） |
+| `cargo test --locked` | PASS | VsDevCmd x64 + `LIBCLANG_PATH` + `CI=false`：`153 passed; 0 failed` |
