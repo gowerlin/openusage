@@ -3,12 +3,12 @@ schema_version: 1
 schema_kind: plan
 id: PLAN-006
 title: v0.6.31 - BUG-016, v0.7.x provider ports, docs and CI
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 plan_type: feature
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:47:34+08:00"
-completed_at: null
+updated_at: "2026-10-15T18:48:58+08:00"
+completed_at: "2026-10-15T18:48:58+08:00"
 affects_files: []
 depends_on:
   - PLAN-005
@@ -30,3 +30,4 @@ T0055 BUG-016 → T0056 README + CI → T0057 Codex 連結 → T0058 Grok weekly
 ## 進度
 
 - 2026-10-15：建立 T0055–T0063，派發 T0055。
+- 2026-10-15：`v0.6.31` 發行（run `38722259099`，tag → `4937e11c`，Latest，無 Node 20 annotation）。BUG-016 / BUG-018 FIXED 待使用者實測；BUG-017 留後續。
