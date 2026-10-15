@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-013
 title: Panel occasionally stays open when blur arrives only as WM_NCACTIVATE
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T14:53:32+08:00"
-updated_at: "2026-10-15T15:56:44+08:00"
+updated_at: "2026-10-15T16:28:34+08:00"
 related_workorder: T0052
 target_version: "0.6.30"
 affects_files:
@@ -29,4 +29,5 @@ depends_on: []
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T16:28:34+08:00）：使用者安裝 `v0.6.30` 實測通過（D092）。
 FIXED：T0052 `585a34d1`。subclass 遇 `WM_NCACTIVATE(0)` 額外排程 `panel_blur::schedule_blur_check`（return 1 不變）；實機 61 次 NCACTIVATE(0) 皆排程、其中 23 次無 `Focused(false)` 仍收起；BUG-001 `has_chrome_bits=true` 0 次。待 T0053 與使用者實測。

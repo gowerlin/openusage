@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-012
 title: Release build loads plugins from the working directory
-status: FIXED
+status: CLOSED
 severity: Medium
 created_at: "2026-10-15T14:07:49+08:00"
-updated_at: "2026-10-15T14:27:43+08:00"
+updated_at: "2026-10-15T16:28:34+08:00"
 related_workorder: T0049
 affects_files:
   - src-tauri/src/plugin_engine/mod.rs
@@ -27,9 +27,10 @@ T0046 Worker 觀察、塔台查證：`src-tauri/src/plugin_engine/mod.rs:14` 呼
 - [x] Release build 永不從 cwd 載入 plugins；只用 bundled / AppData plugins。
 - [x] Dev（`bun tauri dev` / debug build）行為不變。
 - [x] 補測試。
-- [ ] 使用者安裝新版後實測。
+- [x] 使用者安裝新版後實測。（`v0.6.30`）
 
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T16:28:34+08:00）：使用者安裝 `v0.6.30` 實測通過（D092）。
 FIXED：T0049 `1f9dd835`。`dev_plugins_dir(cfg!(debug_assertions), &cwd)`，release 一律 None；實機 cwd=repo 根 `/v1/usage/mock` 404、bundled plugins 200/204。待 T0044 re-smoke 與使用者安裝實測。

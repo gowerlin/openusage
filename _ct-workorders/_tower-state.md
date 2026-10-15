@@ -1,15 +1,15 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 16:23 (UTC+8)
+> 最後更新：2026-10-15 16:28 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
-2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
+2. BUG-001 ~ BUG-015：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
-6. PLAN-005 DONE（v0.6.30）。**等使用者安裝 `v0.6.30` 實測 BUG-006–015**（D086）後一併 CLOSED。BUG-016 為 v0.6.31 候選。
+6. PLAN-005 DONE（v0.6.30），使用者實測通過，BUG-006–015 CLOSED。剩餘：BUG-016（v0.6.31 候選）、v0.7.x 移植候選、README 補 Perplexity / Synthetic、publish.yml Node 20 警告。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -113,7 +113,7 @@
 | 工單 | T0054 |
 | BUG | BUG-016 |
 | PLAN | PLAN-005 |
-| 決策 | D091 |
+| 決策 | D092 |
 
 ---
 
@@ -258,6 +258,7 @@
 - D089：接受 T0052 DONE（`585a34d1`）；BUG-013 FIXED（實機 23 次「只有 NCACTIVATE(0)」皆收起；BUG-001 不退步）。Worker 回報「使用者已同意控制滑鼠」但回報區無互動紀錄 → 向使用者確認。Worker 暫時最小化使用者 BAT / Chrome（已還原）、測後輸入法變英文模式（未還原，告知使用者）。不排單：`panel lost focus` 升 info（建議項）、`panel_hit_test.rs` 903 行超過 400（BUG-001 高風險區，不在此時拆）。派發 T0053。
 - D090：接受 T0053 DONE（`c6642617`）：installer 內容 smoke，BUG-013/014/015 新增項與 11 項回歸全 PASS；BUG-015 以真實拖曳驗證；互動紀錄確認使用者同意控制滑鼠。觀察 1（拖到偏下後首頁暫時超出螢幕）非 FAIL → 登記 BUG-016（v0.6.31 候選），依串接規則派發 T0054。
 - D091：接受 T0054 DONE；塔台獨立複驗 `v0.6.30`（非 draft / 非 pre、3 assets、`latest.json` 0.6.30 指向 fork、Latest、run success @ `49754c2f`、fork tag 只多 v0.6.30）。PLAN-005 → DONE。下一步：使用者安裝實測 BUG-006–015。
+- D092：使用者回報「v0.6.30 通過」→ BUG-006 ~ BUG-015 全部 CLOSED。
 
 ---
 

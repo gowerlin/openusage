@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-010
 title: ccusage runner on Windows leaves child processes on timeout and tries yarn classic
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T13:41:38+08:00"
-updated_at: "2026-10-15T14:07:49+08:00"
+updated_at: "2026-10-15T16:28:34+08:00"
 related_workorder: T0046
 affects_files:
   - src-tauri/src/plugin_engine/host_api.rs
@@ -31,4 +31,5 @@ depends_on: []
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T16:28:34+08:00）：使用者安裝 `v0.6.30` 實測通過（D092）。
 FIXED：T0046 `61698e68`。Windows Job Object（KILL_ON_JOB_CLOSE + TerminateJobObject）；實機 1s timeout 後 cmd/node 樹清空、app 不卡；yarn 1.x 不再當 dlx runner；移除 `run_ccusage_with_runner`。另含 BUG-009 剩餘（config.rs 路徑、含空白使用者名稱）。

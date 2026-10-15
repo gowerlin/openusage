@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-015
 title: Settings panel taller than the Windows work area
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T14:53:32+08:00"
-updated_at: "2026-10-15T15:33:39+08:00"
+updated_at: "2026-10-15T16:28:34+08:00"
 related_workorder: T0051
 target_version: "0.6.30"
 affects_files:
@@ -31,4 +31,5 @@ Settings 頁面板 1152px 高，在 1368px 工作區內面板下移後底部被�
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T16:28:34+08:00）：使用者安裝 `v0.6.30` 實測通過（D092）。
 FIXED：T0051 `6b1ed40b`。高度上限 = min(螢幕×0.8, 工作區底 − 視窗 top − 8px)；根因寫入點 `panel_position.rs::apply_stored_position` 把夾過的位置存回，已改為不存，程式 `set_position` 造成的 `Moved` 略過一次。實機（預寫位置、UIA，無滑鼠）Settings 底部 1356 < 工作區 1368、stored 位置不變。待 T0053 真實拖曳驗證與使用者實測。

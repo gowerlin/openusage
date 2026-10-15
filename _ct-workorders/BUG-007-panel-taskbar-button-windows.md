@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-007
 title: Panel window shows a taskbar button on Windows
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T13:18:05+08:00"
-updated_at: "2026-10-15T13:41:38+08:00"
+updated_at: "2026-10-15T16:28:34+08:00"
 related_workorder: T0043
 affects_files:
   - src-tauri/tauri.conf.json
@@ -25,9 +25,10 @@ T0040 觀察：Windows 面板視窗 exstyle `0x00040010`（含 `WS_EX_APPWINDOW`
 
 - [ ] 面板顯示時工作列沒有 OpenUsage 按鈕。
 - [ ] 不規則遮罩、deactive 無 native title bar（BUG-001）、single-instance（BUG-004）不退步。
-- [ ] 使用者安裝新版後實測。
+- [x] 使用者安裝新版後實測。（`v0.6.30`）
 
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T16:28:34+08:00）：使用者安裝 `v0.6.30` 實測通過（D092）。
 FIXED：T0043 `05973976`。`tauri.conf.json` `skipTaskbar: true`（tao `ITaskbarList::DeleteTab`）；實機工作列無按鈕；`panel_hit_test.rs` 未動。待 T0044 re-smoke 與使用者安裝實測。
