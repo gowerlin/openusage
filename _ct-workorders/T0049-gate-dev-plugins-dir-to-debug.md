@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0049
 title: Only load cwd plugins in debug builds
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-012
 plan_id: PLAN-004
 created_at: "2026-10-15T14:07:49+08:00"
-updated_at: "2026-10-15T14:23:24+08:00"
+updated_at: "2026-10-15T14:27:17+08:00"
 started_at: "2026-10-15T14:23:24+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T14:27:17+08:00"
+commit: 1f9dd835
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -97,4 +97,4 @@ WARN。C-0：frontmatter 無 `repo`（absent），`basename(REPO_ROOT)` = `openu
 
 ### Commit
 
-`fix(security): only load cwd plugins in debug builds (T0049)`（hash 見 frontmatter `commit`）。未 push。
+`fix(security): only load cwd plugins in debug builds (T0049)`= `1f9dd835`。未 push。
