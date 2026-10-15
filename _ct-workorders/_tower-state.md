@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 13:48 (UTC+8)
+> 最後更新：2026-10-15 14:07 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0044 re-smoke → T0041 發行；T0045 DONE（`2f357ac0`）；T0046 已 YOLO 派發。前一張 DONE 才派下一張，非 DONE 停下問使用者。
+5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 DONE（`1a439dcc`）；T0043 DONE（`05973976`）；依 D076 再串 T0045 redaction → T0046 ccusage robustness → T0047 no_runner hint/tooltip/devin docs → T0048 panel_blur 拆檔 → T0049 cwd plugins 限 debug → T0044 re-smoke → T0041 發行；T0045 DONE（`2f357ac0`）；T0046 DONE（`61698e68`）；T0047 已 YOLO 派發；T0048 後插入 T0049（BUG-012）。前一張 DONE 才派下一張，非 DONE 停下問使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -109,10 +109,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0048 |
-| BUG | BUG-011 |
+| 工單 | T0049 |
+| BUG | BUG-012 |
 | PLAN | PLAN-004 |
-| 決策 | D077 |
+| 決策 | D078 |
 
 ---
 
@@ -147,10 +147,11 @@
 | ccusage runner Windows | BUG-006 / T0042 | ✅ DONE | 無 | BUG-006 FIXED |
 | Panel taskbar + blur hide | BUG-007/008 / T0043 | ✅ DONE | 無 | BUG-007/008 FIXED |
 | Windows path redaction | BUG-009 / T0045 | ✅ DONE | 無 | BUG-009 FIXED（剩餘併 T0046） |
-| ccusage Windows robustness | BUG-010 / T0046 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| no_runner hint + tooltip + devin docs | BUG-011 / T0047 | 📋 PENDING | depends_on T0046 | 自動串接 |
+| ccusage Windows robustness | BUG-010 / T0046 | ✅ DONE | 無 | BUG-010 FIXED；BUG-009 剩餘完成 |
+| no_runner hint + tooltip + devin docs | BUG-011 / T0047 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Split panel_blur.rs | T0048 | 📋 PENDING | depends_on T0047 | 自動串接 |
-| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 📋 PENDING | depends_on T0048 | 自動串接 |
+| cwd plugins debug-only | BUG-012 / T0049 | 📋 PENDING | depends_on T0048 | 自動串接 |
+| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 📋 PENDING | depends_on T0049 | 自動串接 |
 | Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0044 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
@@ -236,6 +237,7 @@
 - D075：接受 T0042 DONE（`1a439dcc`）；BUG-006 FIXED。Windows 實機 Usage Trend 顯示、bun.exe 與 .cmd 路徑皆無 console。接受偏差：同檔 1 行 rustfmt 漂移修正。後續候選：(1) Windows timeout 時只殺 `cmd.exe`，`.cmd` 底下 node 孫程序不會被殺（需 Job Object / `taskkill /T`）；(2) `no_runner` 時 plugin 靜默省略 token 行（違反 fail loud 精神，低）；(3) yarn classic `yarn.cmd` 被判可用但 dlx 必失敗（既有，低）。依 D074 派發 T0043。
 - D076：接受 T0043 DONE（`05973976`）；BUG-007/008 FIXED。接受偏差：Worker 暫時覆蓋已安裝 exe 測 tray（已還原，hash 一致），後續工單禁止。使用者要求「記下來的小問題也排單再出 0.6.29」：建立 BUG-009/T0045（Windows 路徑 redaction）、BUG-010/T0046（ccusage 孫程序 / yarn classic / dead code）、BUG-011/T0047（no_runner 提示 + tray tooltip 語言 + devin docs）、T0048（panel_blur.rs 拆檔）；T0044 / T0041 改 depends_on 這四張。不排單：前景鎖導致不自動收起（未重現，記為已知限制）、設定頁高度被工作列遮住（T0040 觀察，使用者未列入）。
 - D077：接受 T0045 DONE（`2f357ac0`）；BUG-009 FIXED（host_api 共用 `redact_paths()`，實機 host_api log 無使用者名稱）。Worker 發現剩餘外洩：`config.rs:62` 直接 log 路徑、含空白使用者名稱只遮一半 → 依使用者「小問題也排單再出版」原則併入 T0046（同為 Rust、範圍小），不另開單。
+- D078：接受 T0046 DONE（`61698e68`）；BUG-010 FIXED、BUG-009 剩餘完成。方案 Job Object（引 Microsoft 文件）。接受偏差：程式無 availability cache → 改重用 `--version` 輸出；`config.rs:53` 一併改。Worker 觀察：正式版從含 `plugins/` 的 cwd 啟動會載入該目錄 plugin，塔台查證 `find_dev_plugins_dir()` 未限 debug build → 開 BUG-012（Medium，安全）/ T0049 插在 T0048 後；T0044 補 BUG-010/012 檢查與「安裝版以安裝目錄為 cwd 重啟」規則。
 
 ---
 

@@ -28,4 +28,4 @@ T0039 稽核發現：`host_api.rs` 的路徑 redaction regex 只涵蓋 Unix 路�
 ## 回報區
 
 ### 修復狀態
-FIXED：T0045 `2f357ac0`。共用 `redact_paths()`，Windows 規則 `(?i)[A-Z]:(\\{1,2}|/)Users(\\{1,2}|/)...` → `[PATH]`；實機 debug log host_api 行使用者名稱 0 次。剩餘：`config.rs:62` 直接 log 路徑、含空白的使用者名稱只遮到空白前 → 併入 T0046（D077）。
+FIXED：T0045 `2f357ac0`。共用 `redact_paths()`，Windows 規則 `(?i)[A-Z]:(\\{1,2}|/)Users(\\{1,2}|/)...` → `[PATH]`；實機 debug log host_api 行使用者名稱 0 次。剩餘：`config.rs:62` 直接 log 路徑、含空白的使用者名稱只遮到空白前 → 併入 T0046（D077）→ 已由 T0046 `61698e68` 完成（config.rs 改 log `~/.openusage/config.json`；名稱段可含空白）。
