@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0069
 title: Side-nav button to launch the TokenUsageInsights dashboard in the background
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-007
 created_at: "2026-10-15T18:42:22+08:00"
-updated_at: "2026-10-15T18:54:14+08:00"
+updated_at: "2026-10-15T19:13:05+08:00"
 started_at: "2026-10-15T18:49:19+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T19:13:05+08:00"
+commit: 2de48d7b
 agent: default
 intervention_type: fire-and-forget
 depends_on:
