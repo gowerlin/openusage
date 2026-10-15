@@ -455,12 +455,25 @@ fn redact_body(body: &str) -> String {
         }
     }
 
+    result = redact_paths(&result);
+
+    result
+}
+
+/// Mask user/system paths. Windows first so `C:/Users/x` becomes `[PATH]`, not `C:[PATH]`.
+fn redact_paths(text: &str) -> String {
+    let mut result = text.to_string();
+    // C:\Users\x, C:/Users/x, JSON-escaped C:\\Users\\x; any drive letter, any case.
+    if let Ok(win_re) =
+        regex_lite::Regex::new(r#"(?i)[A-Z]:(?:\\{1,2}|/)Users(?:\\{1,2}|/)[^\s"')]+"#)
+    {
+        result = win_re.replace_all(&result, "[PATH]").to_string();
+    }
     if let Ok(path_re) =
         regex_lite::Regex::new(r#"(/(?:Users|home|opt|private|var|tmp|Applications)/[^\s"')]+)"#)
     {
         result = path_re.replace_all(&result, "[PATH]").to_string();
     }
-
     result
 }
 
@@ -496,11 +509,7 @@ pub(crate) fn redact_log_message(msg: &str) -> String {
             })
             .to_string();
     }
-    if let Ok(path_re) =
-        regex_lite::Regex::new(r#"(/(?:Users|home|opt|private|var|tmp|Applications)/[^\s"')]+)"#)
-    {
-        result = path_re.replace_all(&result, "[PATH]").to_string();
-    }
+    result = redact_paths(&result);
     result
 }
 
@@ -3965,6 +3974,52 @@ mod tests {
             "expected redacted path, got: {}",
             redacted
         );
+    }
+
+    #[test]
+    fn redact_paths_masks_windows_user_paths() {
+        let cases = [
+            r"home=C:\Users\winuser\.claude\x.json",
+            r"home=C:/Users/winuser/.claude",
+            r"home=d:\users\winuser\AppData",
+            r"home=E:\USERS\winuser",
+            r#"{"homePath":"C:\\Users\\winuser\\.claude"}"#,
+        ];
+        for input in cases {
+            let body = redact_body(input);
+            let log = redact_log_message(input);
+            for redacted in [&body, &log] {
+                assert!(
+                    !redacted.to_lowercase().contains("winuser"),
+                    "user name should be redacted, input: {}, got: {}",
+                    input,
+                    redacted
+                );
+                assert!(
+                    redacted.contains("[PATH]"),
+                    "expected [PATH], got: {}",
+                    redacted
+                );
+                assert!(
+                    !redacted.contains(":[PATH]"),
+                    "drive letter should be part of masked path, got: {}",
+                    redacted
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn redact_paths_keeps_unix_rule_and_plain_text() {
+        assert_eq!(
+            redact_log_message("home=/Users/rebers/.claude next=/home/rebers/x"),
+            "home=[PATH] next=[PATH]"
+        );
+        assert_eq!(
+            redact_log_message(r#"{"p":"/opt/homebrew/bin/bunx"}"#),
+            r#"{"p":"[PATH]"}"#
+        );
+        assert_eq!(redact_log_message("Users: 3 at 10:30"), "Users: 3 at 10:30");
     }
 
     #[test]
