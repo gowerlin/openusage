@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0060
 title: Port v0.7.x: OpenCode Go official usage API
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T17:01:49+08:00"
+updated_at: "2026-10-15T17:05:44+08:00"
 started_at: "2026-10-15T17:01:49+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T17:05:44+08:00"
+commit: da2e4a10
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -98,7 +98,7 @@ T0037 §7：上游 v0.7.9 OpenCode Go 改用官方 usage API（provider 正確�
 - 本機 `~/.local/share/opencode/` 不存在（無憑證）。
 
 ### 改動
-- `plugins/opencode-go/plugin.js`：改用官方 usage API；移除 sqlite 估算（287 → 約 150 LOC）。
+- `plugins/opencode-go/plugin.js`：改用官方 usage API；移除 sqlite 估算（287 → 144 LOC）。
 - `plugins/opencode-go/plugin.test.js`：重寫 16 測試（上游 sampleBody fixture、request 形狀、clamp、placeholder drop、sub-1% 保留 reset、Date header 優先、401 / 403 Entitlement / 其他 403 / 連線失敗 / 格式錯誤 / auth.json 無 key / 非 JSON、不再呼叫 sqlite）。
 - `docs/providers/opencode-go.md`：改寫為官方 API 版本（舊文件描述 sqlite 估算，已失真）。
 - `README.md`：OpenCode Go 列 `5h, weekly, monthly spend limits` → `session, weekly, monthly usage`。
