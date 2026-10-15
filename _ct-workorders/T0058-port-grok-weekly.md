@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0058
 title: Port v0.7.x: Grok weekly shared quota meter
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:29:08+08:00"
-updated_at: "2026-10-15T16:48:24+08:00"
+updated_at: "2026-10-15T16:51:43+08:00"
 started_at: "2026-10-15T16:48:24+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T16:51:43+08:00"
+commit: 81c37218
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -68,7 +68,7 @@ T0037 §7：上游 v0.7.3 新增 Grok 每週共用額度 meter；Tauri grok plug
 ### 狀態：DONE
 
 - 執行：2026-10-15T16:48:24+08:00 起；Worker（Claude Code，CT_MODE=yolo）
-- Commit：見 frontmatter `commit`（`feat(grok): weekly shared quota meter from upstream v0.7.x (T0058)`），未 push / tag / 發行
+- Commit：`81c37218`（`feat(grok): weekly shared quota meter from upstream v0.7.x (T0058)`），未 push / tag / 發行
 
 ### Landing Zone
 
@@ -109,7 +109,7 @@ T0037 §7：上游 v0.7.3 新增 Grok 每週共用額度 meter；Tauri grok plug
 | build | `bun run bundle:plugins` | PASS | Bundled 18 plugins（含 grok） |
 | build | `bun run build` | PASS | `✓ built in 830ms`（既有 chunk > 500 kB 警告） |
 | build | `cargo test --locked` | N/A | 未動 `host_api.rs` |
-| runtime | release exe 實機 | 未實機（無憑證） | `%USERPROFILE%\.grokuth.json` 不存在 |
+| runtime | release exe 實機 | 未實機（無憑證） | `%USERPROFILE%\.grok\auth.json` 不存在 |
 
 ### 偏差 / 風險 / Follow-up
 
