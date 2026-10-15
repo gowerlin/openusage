@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 12:53 (UTC+8)
+> 最後更新：2026-10-15 13:18 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 已 YOLO 派發到 BAT terminal `b149b8596980935407945089579f0972`；前一張 DONE 才派下一張，非 DONE 停下問使用者。
+5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 PARTIAL（Usage Trend Windows FAIL，既有問題）→ 依 D074 插入 T0042 ccusage runner → T0043 taskbar+blur → T0044 re-smoke，再 T0041 發行；T0042 已 YOLO 派發。前一張 DONE 才派下一張，非 DONE 停下問使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -109,10 +109,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0041 |
-| BUG | BUG-005 |
+| 工單 | T0044 |
+| BUG | BUG-008 |
 | PLAN | PLAN-004 |
-| 決策 | D073 |
+| 決策 | D074 |
 
 ---
 
@@ -143,8 +143,11 @@
 | Upstream sync research | PLAN-004 / T0037 | ✅ DONE | 無 | 方案 A 已核准 |
 | Merge tauri-legacy + i18n | PLAN-004 / T0038 | ✅ DONE | 無 | 本機 main，未 push |
 | Devin Windows behavior | PLAN-004 / T0039 | ✅ DONE | 無 | 本機 main，未 push |
-| Windows smoke + NSIS 0.6.29 | PLAN-004 / T0040 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0038–T0040 | 自動串接 |
+| Windows smoke + NSIS 0.6.29 | PLAN-004 / T0040 | ⚠️ PARTIAL | Usage Trend FAIL（BUG-006） | 由 T0042–T0044 解決 |
+| ccusage runner Windows | BUG-006 / T0042 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| Panel taskbar + blur hide | BUG-007/008 / T0043 | 📋 PENDING | depends_on T0042 | 自動串接 |
+| Windows re-smoke 0.6.29 | PLAN-004 / T0044 | 📋 PENDING | depends_on T0042/T0043 | 自動串接 |
+| Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0044 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
@@ -225,6 +228,7 @@
 - D071：使用者同意方案 A、全程串接到發行、v0.7.x 移植延到 v0.6.29 發行後逐項開單。塔台已設 `remote.upstream.tagOpt --no-tags`，並經使用者同意刪除本機 63 個上游專屬 tag（`v0.6.28` + 62 個 `v0.7.*`；未動遠端）。另有 36 個舊上游 tag（`v0.0.1`–`v0.6.23` 等，多在共用歷史）未在授權範圍，保留；T0041 明令禁止 `git push --tags`。建立 T0038–T0041，直接在本機 `main` 操作，T0041 才 push。
 - D072：接受 T0038 DONE；塔台抽查版號 0.6.29、merge 第二 parent `0a08306d`、AGENTS/CLAUDE 無 diff、Gemini 保留、Windsurf 移除、無 retirement 殘留、無 release-tauri、updater/changelog 指向 fork。接受偏差：`settings.test.ts` 改逐 hunk 解（保留上游非衝突測試）、`cargo fmt` 套到 4 個上游未格式化檔、`use-tray-icon.ts` 傳 language。遺留：語言切換後 tray tooltip 需等下次更新才換語言（低）。依 D071 派發 T0039。
 - D073：接受 T0039 DONE（`21899655`）。方案 A：依官方 Devin docs，Windows 讀 `%APPDATA%/devin/credentials.toml`、跳過 sqlite，無憑證時顯示明確提示；redaction 稽核補 1 測試。未 runtime 驗證（本機無 Devin 憑證）。後續候選（不阻塞 PLAN-004）：`host_api.rs` 路徑 redaction 只遮 Unix `/Users/...`，Windows `C:/Users/...` 形式未遮（隱私，建議 v0.6.29 後開 BUG）；`docs/providers/devin.md` 補 Windows 路徑。依 D071 派發 T0040。
+- D074：T0040 PARTIAL：NSIS PASS、smoke 16/17 PASS；Usage Trend 在 Windows 不渲染（`ccusage_runner_candidates` 只列 Unix 名稱，v0.6.27 起既有）。依串接規則停下詢問；使用者決定先修再發，並一併修 T0040 觀察到的面板工作列按鈕與失焦不收起。建立 BUG-006/T0042、BUG-007+008/T0043、T0044 re-smoke，T0041 改 depends_on T0044。T0040 Worker 曾暫改 HKCU WebView2 policy 並停止 / 重啟使用者 0.6.27（皆已還原，遺留空的 `HKCU:/Software/Policies/Microsoft/Edge` key）；後續工單明令禁止改 registry。
 
 ---
 

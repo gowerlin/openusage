@@ -3,15 +3,15 @@ schema_version: 1
 schema_kind: index
 id: _bug-tracker
 index_kind: bugs
-generated_at: "2026-10-15T12:24:49+08:00"
+generated_at: "2026-10-15T13:18:05+08:00"
 generator: control-tower-sync
 source_globs:
   - _ct-workorders/BUG-*.md
 exclude_globs:
   - _ct-workorders/_archive/**
-total: 2
+total: 5
 breakdown:
-  OPEN: 0
+  OPEN: 3
   FIXING: 0
   FIXED: 0
   VERIFY: 0
@@ -25,12 +25,15 @@ breakdown:
 > 已歸檔單據（BUG-001~003）見 `_archive/bugs/`；不計入本索引。
 
 ## 統計
-- Open: 0 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 2 | Won't Fix: 0 | **Total: 2**
+- Open: 3 | Fixing: 0 | Fixed: 0 | Verify: 0 | Closed: 2 | Won't Fix: 0 | **Total: 5**
 
 ## Open
 
 | ID | 標題 | 嚴重度 | 建立時間 | 連結 |
 |----|------|--------|---------|------|
+| BUG-006 | Usage Trend and ccusage history do not render on Windows | 🟡 Medium | 2026-10-15T13:18:05+08:00 | [BUG-006-usage-trend-ccusage-runner-windows.md](BUG-006-usage-trend-ccusage-runner-windows.md) |
+| BUG-007 | Panel window shows a taskbar button on Windows | 🟢 Low | 2026-10-15T13:18:05+08:00 | [BUG-007-panel-taskbar-button-windows.md](BUG-007-panel-taskbar-button-windows.md) |
+| BUG-008 | Panel does not auto-hide when it loses focus on Windows | 🟢 Low | 2026-10-15T13:18:05+08:00 | [BUG-008-panel-not-hidden-on-blur-windows.md](BUG-008-panel-not-hidden-on-blur-windows.md) |
 
 ## Fixing
 

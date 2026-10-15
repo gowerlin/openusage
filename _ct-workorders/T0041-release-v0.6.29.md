@@ -9,7 +9,7 @@ type: release
 plan_id: PLAN-004
 bug_id: null
 created_at: "2026-10-15T12:39:32+08:00"
-updated_at: "2026-10-15T12:39:32+08:00"
+updated_at: "2026-10-15T13:18:05+08:00"
 started_at: null
 completed_at: null
 commit: null
@@ -19,6 +19,9 @@ depends_on:
   - T0038
   - T0039
   - T0040
+  - T0042
+  - T0043
+  - T0044
 affects_files: []
 ---
 
@@ -37,7 +40,7 @@ PLAN-004 最後一步。版號 `0.6.29` 已由 T0038 在 merge commit 寫入四�
 
 ## 前置條件（不符即 BLOCKED）
 
-- T0038、T0039、T0040 frontmatter `status: DONE`（T0040 smoke 全 PASS）。
+- T0038、T0039、T0042、T0043 `status: DONE`；**T0044** `status: DONE`（re-smoke 全 PASS）。T0040 為 PARTIAL（已由 T0042–T0044 解決，D074）。
 - 四個版本檔皆為 `0.6.29`。
 - `git status` 除塔台私有檔外乾淨；`git fetch origin` 後 main 只 ahead。
 - `git ls-remote --tags origin v0.6.29` 為空。
@@ -54,7 +57,7 @@ PLAN-004 最後一步。版號 `0.6.29` 已由 T0038 在 merge commit 寫入四�
 7. 驗證（全部加 `-R gowerlin/openusage`）：非 draft / 非 prerelease；assets 含 NSIS setup、`.sig`、`latest.json`；`latest.json` `version` = `0.6.29`、URL 指向 fork；`gh release list -R gowerlin/openusage` 確認 Latest = `v0.6.29`，且**沒有**任何非預期的新 release / tag 出現在 fork（`git ls-remote --tags origin` 比對 push 前清單）。
 8. **發行重點說明**（繁中，格式同 `v0.6.27`）：`gh release edit v0.6.29 -R gowerlin/openusage --notes-file <檔>`。
    - 本版重點：**同步上游 OpenUsage Tauri 版（tauri-legacy v0.6.25–v0.6.28）的改進**，並保留本 fork 的 Windows 支援、繁中與主題。
-   - 依使用者可感知分類列出：新功能（Usage Trend 圖、Codex rate-limit resets、menubar weekly metric、Copy Log Path、Devin 取代 Windsurf、Antigravity/agy…）、修正（Codex token refresh、Cursor、安全性依賴更新…）、fork 調整（保留 Gemini、不含退休通知、Devin Windows 行為、補繁中翻譯）。
+   - 依使用者可感知分類列出：新功能（Usage Trend 圖、Codex rate-limit resets、menubar weekly metric、Copy Log Path、Devin 取代 Windsurf、Antigravity/agy…）、修正（Codex token refresh、Cursor、安全性依賴更新…）、fork 調整（保留 Gemini、不含退休通知、Devin Windows 行為、補繁中翻譯）；Windows 修正（Usage Trend / ccusage 在 Windows 可用 BUG-006、面板不佔工作列 BUG-007、面板失焦自動收起 BUG-008）。
    - 上游項目可附上游 PR 連結（`robinebers/openusage/pull/N`）並註明「來自上游」；fork commit 用 fork 連結。
    - 寫入後 `gh release view` 與 `curl https://api.github.com/repos/gowerlin/openusage/releases/tags/v0.6.29` 確認 body。
 
