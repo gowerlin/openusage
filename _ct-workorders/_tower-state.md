@@ -1,17 +1,18 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 19:51 (UTC+8)
+> 最後更新：2026-10-15 19:52 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.32` 已發行（Publish run `38729631935` success，tag `v0.6.32` → `ef9da8e2`，Latest，無 Node 20 annotation）；assets / `latest.json`（0.6.32，指向 fork）/ 繁中發行說明由塔台獨立複驗；fork tag 只多 `v0.6.32`。
-2. BUG-001 ~ BUG-015：使用者安裝測試皆驗收通過，全部 CLOSED。
+2. BUG-001 ~ BUG-016、BUG-018、BUG-019：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
 7. PLAN-006 DONE（v0.6.31）。待使用者安裝實測 BUG-016 / BUG-018。
-8. PLAN-007 DONE（v0.6.32）。**等使用者安裝 `v0.6.32` 實測**：Token 戰情室、BUG-016 / 018 / 019。BUG-017 待開單。
+8. PLAN-007 DONE（v0.6.32），使用者實測通過；BUG-016/018/019 CLOSED。**本 session 收工（D116）**。
+9. 下次開工待辦：BUG-017（Copilot Windows gh token，需先研究 Credential Manager host API）；`ubuntu-latest` 10/19 遷移 Ubuntu 26（觀察）；`*archive`（T0032 起完成滿 7 天後，約 2026-10-22）；本機 main 領先 origin 的塔台紀錄 commit 尚未 push。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -115,7 +116,7 @@
 | 工單 | T0072 |
 | BUG | BUG-019 |
 | PLAN | PLAN-007 |
-| 決策 | D115 |
+| 決策 | D116 |
 
 ---
 
@@ -302,6 +303,7 @@
 - D113：T0072 回 PARTIAL——修正成功（關著時右鍵只出選單 3/3、Copy Log Path / Quit 可用、BUG-008 連點 PASS、cargo 168），但塔台驗收條件「開著時右鍵面板不變」與 BUG-008/013 失焦收起設計衝突（塔台用詞錯誤）。使用者確認接受 → T0072 收斂 DONE、BUG-019 FIXED；T0070 對應條件已更正。派發 T0070。
 - D114：接受 T0070 DONE（`43bcd216`）：NSIS 內容 smoke；Token 戰情室 8 項（`@latest`、tray 選單 Quit 自動清理、強殺 Job 保底、外部已開不關、無 npx 提示、無 console / 工作列）、BUG-019、9 項回歸全 PASS。已安裝版 TokenUsageInsights 路徑仍未實機（無安裝腳本版）。自動化技巧（tray 選單用 `MN_GETHMENU` + 鍵盤、7-Zip 解 installer 等）存入專案記憶。派發 T0071。
 - D115：接受 T0071 DONE；塔台獨立複驗 `v0.6.32`（非 draft / 非 pre、3 assets、`latest.json` 0.6.32 指向 fork、Latest、fork tag 只多 v0.6.32、發行說明繁中含 Token 戰情室 / BUG-019 / 已知 BUG-017）。PLAN-007 → DONE。
+- D116：使用者回報「v0.6.32 通過」→ BUG-016、BUG-018、BUG-019 CLOSED；使用者宣布收工。剩餘：BUG-017（OPEN）。
 
 ---
 

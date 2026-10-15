@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-019
 title: Tray right-click also toggles the panel and can hide the context menu
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T19:14:33+08:00"
-updated_at: "2026-10-15T19:23:22+08:00"
+updated_at: "2026-10-15T19:52:46+08:00"
 related_workorder: T0072
 affects_files:
   - src-tauri/src/tray.rs
@@ -27,4 +27,5 @@ depends_on: []
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T19:52:46+08:00）：使用者安裝 `v0.6.32` 實測通過（D116）。
 FIXED：T0072 `dcf6585f`（`should_toggle_on_tray_click`，只有 Left+Up toggle）。面板開著時右鍵 → 選單搶前景 → 依 BUG-008 失焦收起，屬預期（D113）。待 T0070 與使用者實測。

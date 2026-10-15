@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-016
 title: Panel can extend below the screen right after dragging low
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T16:08:42+08:00"
-updated_at: "2026-10-15T18:15:37+08:00"
+updated_at: "2026-10-15T19:52:46+08:00"
 related_workorder: T0055, T0067
 target_version: "0.6.31"
 affects_files:
@@ -28,6 +28,7 @@ depends_on: []
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T19:52:46+08:00）：使用者安裝 `v0.6.32` 實測通過（D116）。
 FIXED（2026-10-15T18:15:37+08:00）：T0067 `4331f8de`——subclass 觀察 `WM_ENTERSIZEMOVE`/`WM_EXITSIZEMOVE` 發 `panel:drag-started`/`drag-ended`，拖曳中零 setSize、放開後 40ms refit。實機立即 / 停頓 150 / 500ms、拖回上方各 ≥3 次全 PASS（放開後約 60ms B=1356；拖回恢復同位置原高）。待 T0068 與使用者實測。
 
 前次：FIXING（2026-10-15T17:51:22+08:00，D105）：T0062 實機 FAIL——放開前停頓 ≥150ms 時，放開後 14ms 視窗被還原成拖曳前高度（外框 B=2053 > 1368）；先拖低再拖回上方停頓放開，rect 卡在 353 造成**可見面板截短**（T0055 引入的回歸）。推測：150ms debounce 在滑鼠按住時 setSize，Windows move loop 放開時套回拖曳開始尺寸，且放開不再觸發 refit。→ T0067 重做。

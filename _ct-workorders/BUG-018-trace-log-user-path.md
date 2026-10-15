@@ -3,10 +3,10 @@ schema_version: 1
 schema_kind: bug
 id: BUG-018
 title: panel-window-trace.log startup line contains the Windows user name
-status: FIXED
+status: CLOSED
 severity: Low
 created_at: "2026-10-15T17:51:22+08:00"
-updated_at: "2026-10-15T18:15:37+08:00"
+updated_at: "2026-10-15T19:52:46+08:00"
 related_workorder: T0067
 affects_files:
   - src-tauri/src/panel_hit_test.rs
@@ -27,4 +27,5 @@ depends_on: []
 ## 回報區
 
 ### 修復狀態
+CLOSED（2026-10-15T19:52:46+08:00）：使用者安裝 `v0.6.32` 實測通過（D116）。
 FIXED：T0067 `4331f8de`。`trace_ready` 經 `redact_log_message` → `path=[PATH]`；實機 trace 使用者名稱 0 次。
