@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { Loader2, ChevronRight, ExternalLink as ExternalLinkIcon } from "lucide-react"
-import { useChangelog } from "@/hooks/use-changelog"
+import { GITHUB_REPO, useChangelog } from "@/hooks/use-changelog"
 import { Button } from "@/components/ui/button"
 import { openUrl } from "@tauri-apps/plugin-opener"
 import { useI18n } from "@/hooks/use-i18n"
@@ -107,7 +107,7 @@ function SimpleMarkdown({ content }: { content: string }) {
         return (
           <button
             key={i}
-            onClick={() => openUrl(`https://github.com/robinebers/openusage/pull/${part.content.slice(1)}`).catch(console.error)}
+            onClick={() => openUrl(`https://github.com/${GITHUB_REPO}/pull/${part.content.slice(1)}`).catch(console.error)}
             className={linkClass}
           >
             {part.content}
@@ -129,7 +129,7 @@ function SimpleMarkdown({ content }: { content: string }) {
         return (
           <button
             key={i}
-            onClick={() => openUrl(`https://github.com/robinebers/openusage/commit/${part.content}`).catch(console.error)}
+            onClick={() => openUrl(`https://github.com/${GITHUB_REPO}/commit/${part.content}`).catch(console.error)}
             className={`${linkClass} font-mono`}
           >
             {part.content}
@@ -258,7 +258,7 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
                   <p className="text-[10px] text-muted-foreground text-center">
                     {t("changelog.olderPrefix")}{" "}
                     <button 
-                      onClick={() => openUrl("https://github.com/robinebers/openusage/releases").catch(console.error)}
+                      onClick={() => openUrl(`https://github.com/${GITHUB_REPO}/releases`).catch(console.error)}
                       className="text-[#58a6ff] hover:underline"
                     >
                       {t("changelog.fullChangelog")}
@@ -274,7 +274,7 @@ export function ChangelogDialog({ currentVersion, onBack, onClose }: ChangelogDi
               </span>
               <span className="text-xs mb-4">{t("changelog.localBuild")}</span>
               <button 
-                onClick={() => openUrl("https://github.com/robinebers/openusage/releases").catch(console.error)}
+                onClick={() => openUrl(`https://github.com/${GITHUB_REPO}/releases`).catch(console.error)}
                 className="text-xs text-[#58a6ff] hover:underline"
               >
                 {t("changelog.viewAllReleases")}

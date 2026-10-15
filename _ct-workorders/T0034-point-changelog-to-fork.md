@@ -3,14 +3,14 @@ schema_version: 1
 schema_kind: workorder
 id: T0034
 title: Point in-app changelog to fork releases
-status: PENDING
+status: IN_PROGRESS
 priority: Medium
 type: bugfix
 bug_id: BUG-005
 plan_id: null
 created_at: "2026-10-15T11:48:01+08:00"
-updated_at: "2026-10-15T11:48:01+08:00"
-started_at: null
+updated_at: "2026-10-15T11:48:51+08:00"
+started_at: "2026-10-15T11:48:51+08:00"
 completed_at: null
 commit: null
 agent: default
@@ -67,4 +67,41 @@ Final gate：下次發行後使用者 App 內實測（使用者決定本次不�
 
 ## 回報區
 
-（Worker 填寫：狀態、commit SHA、改動檔案、驗證證據、阻塞）
+### 結果：DONE
+
+- 開始：2026-10-15T11:48:51+08:00（Worker，`CT_MODE=yolo`）
+- Commit：見 frontmatter `commit`（message `fix: point in-app changelog to fork releases (T0034)`），未 push。
+
+### Landing check：WARN
+
+- C-0：`repo` 欄位 absent → WARN（repo identity unavailable）；`basename(REPO_ROOT)` = `openusage`
+- C-1：PASS（工單在 `D:/ForgejoGit/@GitHub_Clone/openusage` 下）
+- C-3：PASS（4 個 `affects_files` 皆存在）
+- C-2：無 `branch` 欄位；HEAD = `main`
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（僅記錄）
+
+### 改動
+
+- `src/hooks/use-changelog.ts`：新增 `export const GITHUB_REPO = "gowerlin/openusage"`；API URL 改用它。
+- `src/components/changelog-dialog.tsx`：import `GITHUB_REPO`；PR、commit、2 個 Releases 連結改用它。`@user` 連結未動。
+- `src/hooks/use-changelog.test.tsx`：API URL / `html_url` 斷言改 `gowerlin/openusage`（既有 `toHaveBeenCalledWith` 斷言即 regression test，不另加）。
+- `src/components/changelog-dialog.test.tsx`：URL 斷言改 `gowerlin/openusage`；`vi.mock("@/hooks/use-changelog")` 改用 `importOriginal` 保留真實 `GITHUB_REPO`，讓 PR / commit / Releases 斷言驗證的是實際常數。
+
+### 驗證
+
+| Gate | 結果 | 證據 |
+|---|---|---|
+| targeted tests | PASS | 2 files / 12 tests passed |
+| `bun run test --run` | PASS | 64 files / 1139 tests passed |
+| `bun run build` | PASS | exit 0；只有既有的 chunk > 500 kB 警告 |
+| `grep -rn "robinebers"` 兩檔 | PASS | 無結果（exit 1） |
+| `git diff --check` | PASS | 無 whitespace 警告（只有既有 LF→CRLF 提示） |
+| 步驟 4 fork notes 解析 | PASS（原始碼 + API 檢查） | `api.github.com/repos/gowerlin/openusage/releases/tags/v0.6.26` 有資料；body 的 SHA 都在 `[sha](https://github.com/gowerlin/openusage/commit/...)` 內，`SimpleMarkdown` 先比對 markdown link，所以直接開 notes 給的 fork URL；body 沒有 `#數字` / `@user` |
+| browser / dev 實測（可選） | 未跑 | 需 Tauri dev 環境；未執行 |
+| Final gate | 待驗 | 下次發版後使用者 App 內實測 |
+
+### 偏差 / 阻塞
+
+- 無阻塞。
+- 小偏差：dialog 測試的 module mock 改成 `importOriginal`（不改的話 mock 缺 `GITHUB_REPO`）。仍在 `affects_files` 範圍內。
+- 排除項（`about-dialog.tsx`、`side-nav.tsx`、`host_api.rs`）未動。
