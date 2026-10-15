@@ -1846,7 +1846,27 @@ fn ccusage_home_override<'a>(
     }
 }
 
+// Windows: npm/pnpm/yarn ship `.cmd` shims and `Command::new("npx")` only tries `npx.exe`.
+// Bare names are resolved via the enriched PATH (includes `~/.bun/bin`).
+fn ccusage_windows_runner_candidates(kind: CcusageRunnerKind) -> &'static [&'static str] {
+    match kind {
+        // `bun.exe` alone (e.g. choco) runs as `bun x`; see `ccusage_command_args`.
+        CcusageRunnerKind::Bunx => &["bunx.exe", "bun.exe"],
+        CcusageRunnerKind::PnpmDlx => &["pnpm.cmd", "pnpm.exe"],
+        CcusageRunnerKind::YarnDlx => &["yarn.cmd"],
+        CcusageRunnerKind::NpmExec => &["npm.cmd"],
+        CcusageRunnerKind::Npx => &["npx.cmd", "npx.exe"],
+    }
+}
+
 fn ccusage_runner_candidates(kind: CcusageRunnerKind) -> Vec<String> {
+    if cfg!(windows) {
+        return ccusage_windows_runner_candidates(kind)
+            .iter()
+            .map(|c| c.to_string())
+            .collect();
+    }
+
     let mut candidates: Vec<String> = Vec::new();
     match kind {
         CcusageRunnerKind::Bunx => {
@@ -2101,6 +2121,27 @@ fn ccusage_runner_args(
     args
 }
 
+fn ccusage_program_is_bun(program: &str) -> bool {
+    Path::new(program)
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .is_some_and(|stem| stem.eq_ignore_ascii_case("bun"))
+}
+
+fn ccusage_command_args(
+    kind: CcusageRunnerKind,
+    program: &str,
+    opts: &CcusageQueryOpts,
+    provider: CcusageProvider,
+    flavor: CcusageCommandFlavor,
+) -> Vec<String> {
+    let mut args = ccusage_runner_args(kind, opts, provider, flavor);
+    if kind == CcusageRunnerKind::Bunx && ccusage_program_is_bun(program) {
+        args.insert(0, "x".to_string());
+    }
+    args
+}
+
 fn extract_last_json_value(stdout: &str) -> Option<String> {
     let trimmed = stdout.trim();
     if trimmed.is_empty() {
@@ -2270,7 +2311,7 @@ fn run_ccusage_with_runner_timeout(
     flavor: CcusageCommandFlavor,
     timeout: std::time::Duration,
 ) -> CcusageRunnerResult {
-    let args = ccusage_runner_args(kind, opts, provider, flavor);
+    let args = ccusage_command_args(kind, program, opts, provider, flavor);
     let enriched_path = ccusage_enriched_path();
     let mut command = std::process::Command::new(program);
     configure_ccusage_command(&mut command, &args, enriched_path.as_deref());
@@ -3703,7 +3744,8 @@ mod tests {
     #[test]
     fn redact_body_redacts_devin_request_metadata_api_key() {
         // Devin GetUserStatus body; legacy keys may lack the devin-session-token$ prefix.
-        let body = r#"{"metadata":{"apiKey":"0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0","ideName":"devin"}}"#;
+        let body =
+            r#"{"metadata":{"apiKey":"0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0","ideName":"devin"}}"#;
         let redacted = redact_body(body);
         assert!(
             !redacted.contains("0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0"),
@@ -4563,6 +4605,91 @@ Saved lockfile
                 (CcusageRunnerKind::Npx, "npx".to_string()),
             ]
         );
+    }
+
+    #[test]
+    fn ccusage_windows_runner_candidates_use_shims() {
+        assert_eq!(
+            ccusage_windows_runner_candidates(CcusageRunnerKind::Bunx),
+            &["bunx.exe", "bun.exe"]
+        );
+        assert_eq!(
+            ccusage_windows_runner_candidates(CcusageRunnerKind::PnpmDlx),
+            &["pnpm.cmd", "pnpm.exe"]
+        );
+        assert_eq!(
+            ccusage_windows_runner_candidates(CcusageRunnerKind::YarnDlx),
+            &["yarn.cmd"]
+        );
+        assert_eq!(
+            ccusage_windows_runner_candidates(CcusageRunnerKind::NpmExec),
+            &["npm.cmd"]
+        );
+        assert_eq!(
+            ccusage_windows_runner_candidates(CcusageRunnerKind::Npx),
+            &["npx.cmd", "npx.exe"]
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn ccusage_runner_candidates_use_windows_shims_on_windows() {
+        assert_eq!(
+            ccusage_runner_candidates(CcusageRunnerKind::Npx),
+            vec!["npx.cmd".to_string(), "npx.exe".to_string()]
+        );
+        assert_eq!(
+            ccusage_runner_candidates(CcusageRunnerKind::Bunx),
+            vec!["bunx.exe".to_string(), "bun.exe".to_string()]
+        );
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn ccusage_runner_candidates_keep_unix_names_off_windows() {
+        let npx = ccusage_runner_candidates(CcusageRunnerKind::Npx);
+        assert_eq!(npx.last().map(String::as_str), Some("npx"));
+        assert!(!npx.iter().any(|c| c.ends_with(".cmd")));
+    }
+
+    #[test]
+    fn ccusage_command_args_use_bun_x_for_bun_binary() {
+        let opts = CcusageQueryOpts::default();
+        let base = ccusage_runner_args(
+            CcusageRunnerKind::Bunx,
+            &opts,
+            CcusageProvider::Claude,
+            CcusageCommandFlavor::Current,
+        );
+        for program in ["bun.exe", "bun", "/tools/Bun.EXE"] {
+            let args = ccusage_command_args(
+                CcusageRunnerKind::Bunx,
+                program,
+                &opts,
+                CcusageProvider::Claude,
+                CcusageCommandFlavor::Current,
+            );
+            assert_eq!(args[0], "x", "program {program}");
+            assert_eq!(&args[1..], base.as_slice());
+        }
+        for program in ["bunx.exe", "bunx", "/opt/homebrew/bin/bunx"] {
+            let args = ccusage_command_args(
+                CcusageRunnerKind::Bunx,
+                program,
+                &opts,
+                CcusageProvider::Claude,
+                CcusageCommandFlavor::Current,
+            );
+            assert_eq!(args, base, "program {program}");
+        }
+        let npx = ccusage_command_args(
+            CcusageRunnerKind::Npx,
+            "npx.cmd",
+            &opts,
+            CcusageProvider::Claude,
+            CcusageCommandFlavor::Current,
+        );
+        assert_eq!(npx[0], "--yes");
     }
 
     #[test]
