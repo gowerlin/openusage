@@ -84,14 +84,54 @@ PLAN-004。上游 `robinebers/openusage`（remote `upstream`）：
 
 ## 回報區
 
+### Landing Check
+- 結果：**WARN**（C-0）
+- C-0：frontmatter `repo` = absent；`basename(REPO_ROOT)` = `openusage` → WARN「repo identity unavailable」
+- C-1：PASS（工單位於 `D:/ForgejoGit/@GitHub_Clone/openusage/_ct-workorders/`）
+- C-3：不適用（`affects_files` 只有 `_ct-workorders/` 底下的項目）
+- C-2：工單沒有 `branch` 欄位；HEAD = `main`
+- `BAT_WORKSPACE_ID` = `7512690c-d1fd-4101-a2f5-f98f6f44e9c8`（只當作證據記錄）
+- 執行模式：`CT_MODE=yolo`、`CT_INTERACTIVE=1`
+
 ### 互動紀錄
+- 2026-10-15 Q1：上游刪了 Gemini plugin（改用 Antigravity/agy），fork 要怎麼處理？→ A：**保留 Gemini（fork 專屬）**
+- 2026-10-15 Q2：合併後的版號？→ A：**0.6.29**
 
 ### 調查結論
+完整報告：`_ct-workorders/_report-T0037-upstream-sync.md`（8 節）。
+- 重跑 `git merge-tree main upstream/tauri-legacy`：**17 個衝突**（PLAN-004 的清單漏列 `src/lib/settings.test.ts`），全部是小 hunk。
+- 依工單授權在 `%TEMP%\openusage-T0037` worktree 做了試合併 + 解衝突 + 移除退休橫幅 + 保留 Gemini：
+  - `cargo check --all-targets`：PASS
+  - `cargo test --locked`：PASS（137）
+  - `tsc --noEmit`：PASS
+  - `vitest run`：PASS（67 files / 1156 tests；Gemini 32/32）
+  - 試合併時另外修了 2 個非衝突問題：沒用到的 `UsageSparkline` import、antigravity 測試的舊訊息
+  - worktree 已移除，`research/T0037-upstream-sync` 已刪除，沒有 push
+- 主要發現：
+  1. 保留 Gemini 時，`plugins/gemini/plugin.json`、`plugins/gemini/icon.svg`、`docs/providers/gemini.md` 會被 merge **自動刪除且不會報衝突**，需要手動還原；README 的 Gemini 行也一樣。
+  2. `AGENTS.md` 自動合併會把 fork 的 agent 指示換成上游的 Swift rollout 和 hugeicons 規定，要取 `--ours`。
+  3. 新的 UI 字串（menubar Metric 設定、sparkline 輔助文字、`Usage Trend` / `Rate Limit Resets` label）需要補 i18n。
+  4. Devin（取代 Windsurf）在 Windows 不會 fail loud，憑證路徑也還沒驗證。
+  5. 上游的 `get_log_path` 修正連帶修掉 fork 在 Windows 回傳 macOS 路徑的潛在 bug。
+  6. 本機 clone 有上游的 `v0.6.28` / `v0.7.*` tag：如果執行 `git push --tags`，會把它們推到 fork，可能觸發 workflow 並污染 updater 的 Latest release。
+  7. 上游沒有改到 `.github/workflows/**`；fork 的 updater endpoint 合併後不變。
+- 退休橫幅：合併 commit 裡衝突取 fork 版，緊接一個獨立 commit 刪除 3 個新檔和 `settings.ts` 裡的 5 個符號（報告 §4）。
+- v0.7.x：列出 18 項；建議移植的是 provider 正確性修正（Copilot AI Credits、OpenCode Go API、Grok weekly、Claude reset grants / Fable weekly、Codex 連結），其餘暫不移植或不移植（報告 §7）。
 
 ### 建議方向
-- [ ] 方案 A：…
-- [ ] 方案 B：…
+- [x] 方案 A（推薦）：開 T-A merge 工單（版號 0.6.29，照報告 §2–§5 處理，用一般 merge commit），接著做 T-B i18n、T-C Devin Windows、T-D Windows smoke + NSIS、T-E 發行 v0.6.29（只推指定 tag）；v0.7.x 之後再逐項開小工單
+- [ ] 方案 B：只 cherry-pick 上游的 provider 修正和安全更新，不做 merge（不推薦：之後每次同步都要重做，而且 merge-base 不會往前移）
 - [ ] 繼續研究（Renew，新方向：...）
+
+### 驗證證據分道
+- source/docs：merge-tree 衝突清單、逐檔 diff 分析 — PASS
+- build/tests（只在暫存 worktree）：cargo check / cargo test --locked / tsc / vitest — PASS
+- runtime smoke / NSIS / CI / 發行：**未執行**（不在範圍內，交給 T-D / T-E）
+
+### 偏差與備註
+- 塔台說 17 個衝突，數字沒錯，但 PLAN-004 列出的清單只有 16 個，漏了 `src/lib/settings.test.ts`。
+- 研究期間塔台 commit 了 `8ccb0e5b` / `57241db8`（只有 `_ct-workorders/`）；已確認 `016db271..main` 之間沒有 product 檔變更，分析基準仍然有效。
+- 沒有改任何 product 檔。只 commit 報告檔和本工單。
 
 ### Renew 歷程
 無
