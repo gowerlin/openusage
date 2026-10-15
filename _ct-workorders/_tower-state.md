@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 17:06 (UTC+8)
+> 最後更新：2026-10-15 17:15 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.30` 已發行（Publish run `38703798990` success，tag `v0.6.30` → `49754c2f`，Latest）；installer / `.sig` / `latest.json`（0.6.30，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.30`。
@@ -10,7 +10,7 @@
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
 6. PLAN-005 DONE（v0.6.30），BUG-006–015 CLOSED。
-7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
+7. PLAN-006（v0.6.31）：T0055 BUG-016 → T0056 README+CI → T0057 Codex 連結 → T0058 Grok weekly → T0059 Claude resets+Fable → T0060 OpenCode Go API → T0061 Copilot AI Credits → T0065 Grok credits → T0066 Claude i18n+docs → T0062 smoke → T0064 pre-release CI 驗證 → T0063 發行（D093/D096）；T0055 DONE（`5ec8935b`）；T0056 DONE（`b3788b08`）；T0057 DONE（`dd69e501`）；T0058 DONE（`81c37218`）；T0059 DONE（`7da18a17`）；T0060 DONE（`da2e4a10`）；T0061 DONE（`fcf07389`）；T0065 已 YOLO 派發；T0061 後插入 T0065（Grok credits 單一路徑）。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -114,7 +114,7 @@
 | 工單 | T0066 |
 | BUG | BUG-016 |
 | PLAN | PLAN-006 |
-| 決策 | D100 |
+| 決策 | D101 |
 
 ---
 
@@ -166,8 +166,8 @@
 | Port: Grok weekly | T0058 | ✅ DONE | legacy billing 可能 throw | T0065 補完 |
 | Port: Claude resets + Fable | T0059 | ✅ DONE | 無 | 實機 Max 20x 驗證 |
 | Port: OpenCode Go API | T0060 | ✅ DONE | 未實機（無憑證） | 上游 `064819bf` |
-| Port: Copilot AI Credits | T0061 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Grok credits single path | T0065 | 📋 PENDING | depends_on T0061 | 自動串接 |
+| Port: Copilot AI Credits | T0061 | ✅ DONE | Windows 讀不到 gh token（既有） | 待使用者決策 |
+| Grok credits single path | T0065 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Claude resets i18n + docs | T0066 | 📋 PENDING | depends_on T0065 | 自動串接 |
 | Windows smoke 0.6.31 | PLAN-006 / T0062 | 📋 PENDING | depends_on T0055–T0061、T0065、T0066 | 自動串接 |
 | CI 驗證 pre-release | PLAN-006 / T0064 | 📋 PENDING | depends_on T0062 | 自動串接 |
@@ -279,6 +279,7 @@
 - D098：接受 T0058 DONE（`81c37218`）：Grok Weekly（上游 `d94b5fbb`/`5fcb4312`，credits endpoint），weekly 失敗只省略；未實機（無憑證）。Worker 指出 legacy `/v1/billing` 缺 `monthlyLimit` 時會 throw、Weekly 不在 overview → 塔台判定屬移植未完成，建立 T0065（credits 為主、billing 選用、overview line），排 T0061 後；T0062 depends_on 加 T0065。不排單：Grok local spend tiles、412 team header warning（上游有，未在 §7 移植清單）。派發 T0059。
 - D099：接受 T0059 DONE（`7da18a17`）：Claude Rate Limit Resets（上游 `00189454`/`60a379b9`，`cedar_ember`，每小時一次）+ Fable weekly（`4b068d52`/`1e753acd`）；實機 Max 20x：Fable 0%、Resets `1 available`。接受偏差：改 `plugin.json`（overview Fable / detail Resets line）、User-Agent 改 `claude-cli/2.1.294 (external, cli)`（同上游，實機 200）、grants 快取不分帳號（單一登入）。缺口：`N available` 未翻譯、`docs/providers/claude.md` 未更新 → 建立 T0066（T0065 後）。派發 T0060。
 - D100：接受 T0060 DONE（`da2e4a10`）：OpenCode Go 改官方 `GET opencode.ai/zen/go/v1/usage`（上游 `064819bf`/`062fb5ec`），移除 sqlite 估算 → Windows 可用；錯誤改 fail loud。未實機（無憑證），endpoint 401 形狀與上游一致。接受偏差：同步改 `docs/providers/opencode-go.md`、README。候選不排單：OpenCode 2 `credential` table 讀 key（需 Windows sqlite）、`OPENCODE_DATA_DIR`/`XDG_DATA_HOME`（需擴 host env）。派發 T0061。
+- D101：接受 T0061 DONE（`fcf07389`）：Copilot AI Credits / Extra Usage / Chat·Completions（`quota_snapshots`）/ org-managed seat 個人 credits + Org Credits/Spend（上游 `c6e4cb95`、`8b567aee` 等）；redaction 補 GitHub org slug（`redact_github_org_paths`、`organization` key），cargo 155。真實 API harness：舊版 free 帳號誤判 Premium 100%，新版正確。Runtime PARTIAL：Windows `keychain` host API macOS-only，gh token 在 Credential Manager → plugin 讀不到（既有限制）。Copilot docs 併入 T0066；Windows token 來源需新增 host API 讀 Credential Manager → 詢問使用者。派發 T0065。
 
 ---
 
