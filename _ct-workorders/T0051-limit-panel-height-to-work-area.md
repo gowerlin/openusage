@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0051
 title: Keep panel within the Windows work area
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-015
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:27:08+08:00"
+updated_at: "2026-10-15T15:33:07+08:00"
 started_at: "2026-10-15T15:27:08+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T15:33:07+08:00"
+commit: 6b1ed40b
 agent: default
 intervention_type: fire-and-forget
 depends_on:
