@@ -1,15 +1,15 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 12:05 (UTC+8)
+> 最後更新：2026-10-15 12:17 (UTC+8)
 
 ### 立即待辦
-1. Release：`v0.6.26` 已發行（Publish run `38675818087` success，tag `v0.6.26` → `30904bd`）；NSIS installer、`.sig`、`latest.json`（version `0.6.26`，URL 指向 fork）與繁中發行重點說明已驗證。
+1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 / BUG-002 / BUG-003 / BUG-004：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
-4. 工單 T0001-T0035：全部 DONE。
-5. BUG-005：FIXED（T0034 `a6c52aa` + T0035 `353c412`）；使用者決定先不發版，下次發行後 App 內實測再 CLOSED。
-6. T0036 release `v0.6.27`：YOLO 派發中（D066）。
+4. 工單 T0001-T0036：全部 DONE；T0037 研究中。
+5. BUG-005：FIXED；`v0.6.27` 已發行，等使用者 App 內實測（變更紀錄 / 關於 / ❓）後 CLOSED。
+6. PLAN-004 / T0037：上游同步研究（tauri-legacy merge 分析 + v0.7.x 移植候選），唯讀，已派發到 BAT terminal `646f8f0a89a5787942d4ac8fa5998191`（D067）；有衝突先提示使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -110,10 +110,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0036 |
+| 工單 | T0037 |
 | BUG | BUG-005 |
-| PLAN | PLAN-003 |
-| 決策 | D066 |
+| PLAN | PLAN-004 |
+| 決策 | D068 |
 
 ---
 
@@ -141,7 +141,8 @@
 | Single app instance | BUG-004 / T0032 | ✅ CLOSED | 無 | 使用者安裝 `v0.6.26` 實測通過 |
 | About / Help links to fork | BUG-005 / T0035 | ✅ DONE | 無 | 下次發行後使用者實測 |
 | In-app changelog source | BUG-005 / T0034 | ✅ DONE | 無 | 下次發行後使用者實測 |
-| Release v0.6.27 | T0036 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| Upstream sync research | PLAN-004 / T0037 | 🔄 DISPATCHED | 無 | 等研究報告 → 使用者確認衝突解法 |
+| Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
 ---
@@ -214,6 +215,8 @@
 - D064：接受 T0034 DONE（`a6c52aa`）；新增 `GITHUB_REPO` 常數、dialog 測試改 `importOriginal` 的偏差可接受；browser 實測未跑，留給發行後 final gate。BUG-005 轉 FIXING，依 D063 派發 T0035（可沿用 `GITHUB_REPO` 常數）。
 - D065：接受 T0035 DONE（`353c412`）；接受修改 `src/App.test.tsx` 2 行文案斷言的範圍外偏差（`about.builtBy` 文案變更直接導致）。塔台檢視 after-zh-TW 截圖符合 D063。BUG-005 FIXED，final gate 待下次發行。
 - D066：使用者授權推上 GitHub 並發行 `v0.6.27`；建立 T0036（同 T0033 流程，`gh` 一律 `-R gowerlin/openusage`，繁中發行重點說明，並驗證 GitHub API `releases/tags/v0.6.27` body = App changelog 來源）。發行後請使用者 App 內實測 BUG-005。
+- D067：使用者要求同步上游 `v0.7.14`。塔台預查：上游 `main`/`v0.7.x` 為 native Swift（macOS only）重寫、與 fork 無共同祖先，無法 merge；Tauri 凍結線 `tauri-legacy`（`v0.6.28`）merge-base `f415ddd`，試合併 17 衝突。使用者選「兩者都研究」、退休通知橫幅不帶進 fork。建立 PLAN-004 + 研究工單 T0037（唯讀：merge-tree / 暫時 worktree，不動主工作區），與 T0036 無 affects_files 重疊，並行派發。
+- D068：接受 T0036 DONE；`v0.6.27` 經塔台以 `-R gowerlin/openusage` 獨立複驗（release / assets / `latest.json` / Publish run / GitHub API body）。BUG-005 待使用者 App 內實測。
 
 ---
 
@@ -224,7 +227,7 @@
 - PLAN-003：DONE；T0021 Tauri runtime macaron theme persistence 已通過；T0020 使用者安裝測試已驗收。
 - PLAN-002：DONE；T0017 Tauri runtime language persistence 已通過；T0016 使用者安裝測試已驗收。
 - BUG-004：CLOSED；使用者安裝 `v0.6.26` 實測通過。
-- BUG-005：FIXED；待下次發行後 App 內實測。about-dialog / side-nav 由 T0035 處理。
+- BUG-005：FIXED；`v0.6.27` 已發行，待使用者 App 內實測。about-dialog / side-nav 由 T0035 處理。
 - 無 Windows release 阻塞待辦。
 - PLAN / BUG 追蹤已啟用；EXP 追蹤尚未啟用。
 
