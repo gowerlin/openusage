@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0035
 title: Point about dialog credits and help link to fork
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-005
 plan_id: null
 created_at: "2026-10-15T11:50:06+08:00"
-updated_at: "2026-10-15T11:51:17+08:00"
+updated_at: "2026-10-15T12:04:31+08:00"
 started_at: "2026-10-15T11:51:17+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T12:04:31+08:00"
+commit: 353c412
 agent: default
 intervention_type: fire-and-forget
 depends_on:
