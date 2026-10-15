@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0032
 title: Enforce single app instance
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-004
 plan_id: null
 created_at: "2026-10-15T10:39:24+08:00"
-updated_at: "2026-10-15T10:40:17+08:00"
+updated_at: "2026-10-15T10:56:15+08:00"
 started_at: "2026-10-15T10:40:17+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T10:56:15+08:00"
+commit: "2717631"
 agent: default
 intervention_type: fire-and-forget
 depends_on: []
@@ -126,7 +126,7 @@ Final gate：使用者安裝新版後實測確認（Tower 負責收斂 BUG-004�
 
 ### Commit
 
-- 見 frontmatter `commit`。未 push。
+- `2717631` fix: enforce single app instance (T0032)。未 push。
 
 ### 狀態
 
