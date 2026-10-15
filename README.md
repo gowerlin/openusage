@@ -23,6 +23,7 @@ OpenUsage lives in your menu bar and shows you how much of your AI coding subscr
 - **Plugin-based.** New providers get added without updating the whole app.
 - **[Local HTTP API](docs/local-http-api.md).** Other apps can read your usage data from `127.0.0.1:6736`.
 - **[Proxy support](docs/proxy.md).** Route provider HTTP requests through a SOCKS5 or HTTP proxy.
+- **Token Dashboard.** Side-nav button starts the [TokenUsageInsights](https://github.com/doggy8088/TokenUsageInsights) dashboard (MIT, by doggy8088) in the background and opens `http://localhost:3003`. Uses the installed `token-usage-insights` command, else `npx --yes token-usage-insights@latest` (Node.js 18.18+; the installed command keeps its own auto-update). OpenUsage stops it on quit if OpenUsage started it.
 
 ## Supported Providers
 

@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { openUrl } from "@tauri-apps/plugin-opener"
 import { invoke } from "@tauri-apps/api/core"
 
@@ -89,5 +89,79 @@ describe("SideNav", () => {
 
     expect(openUrl).toHaveBeenCalledWith("https://github.com/gowerlin/openusage/issues")
     expect(invoke).toHaveBeenCalledWith("hide_panel")
+  })
+  describe("Token dashboard", () => {
+    const mockInvoke = (launch: unknown, status = { running: false, managed: false }) => {
+      vi.mocked(invoke).mockImplementation(((cmd: string) => {
+        if (cmd === "launch_token_dashboard") return Promise.resolve(launch)
+        if (cmd === "token_dashboard_status") return Promise.resolve(status)
+        return Promise.resolve()
+      }) as typeof invoke)
+    }
+
+    afterEach(() => {
+      vi.mocked(invoke).mockReset()
+      vi.mocked(invoke).mockImplementation((() => Promise.resolve()) as unknown as typeof invoke)
+      vi.mocked(openUrl).mockClear()
+      vi.restoreAllMocks()
+    })
+
+    it("renders above Help and launches, then hides the panel", async () => {
+      mockInvoke({ kind: "started" })
+      render(<SideNav activeView="home" onViewChange={vi.fn()} plugins={[]} />)
+
+      const buttons = screen.getAllByRole("button")
+      const dashboard = screen.getByRole("button", { name: "Token Dashboard" })
+      expect(buttons.indexOf(dashboard)).toBe(buttons.indexOf(screen.getByRole("button", { name: "Help" })) - 1)
+
+      await userEvent.click(dashboard)
+
+      expect(invoke).toHaveBeenCalledWith("launch_token_dashboard")
+      await waitFor(() => expect(invoke).toHaveBeenCalledWith("hide_panel"))
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+    })
+
+    it("shows the running marker when the dashboard is running", async () => {
+      mockInvoke({ kind: "opened" }, { running: true, managed: false })
+      render(<SideNav activeView="home" onViewChange={vi.fn()} plugins={[]} />)
+
+      expect(await screen.findByTestId("token-dashboard-running")).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: "Token Dashboard" })).toHaveAttribute(
+        "title",
+        "Token Dashboard (running)"
+      )
+    })
+
+    it("shows a Node.js hint with install guide link when not installed", async () => {
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+      mockInvoke({ kind: "notInstalled", hint: "needs node" })
+      render(<SideNav activeView="home" onViewChange={vi.fn()} plugins={[]} />)
+
+      await userEvent.click(screen.getByRole("button", { name: "Token Dashboard" }))
+
+      const alert = await screen.findByRole("alert")
+      expect(alert).toHaveTextContent("Node.js 18.18+")
+      expect(consoleError).toHaveBeenCalled()
+      expect(invoke).not.toHaveBeenCalledWith("hide_panel")
+
+      await userEvent.click(screen.getByRole("button", { name: "Install guide" }))
+      expect(openUrl).toHaveBeenCalledWith("https://github.com/doggy8088/TokenUsageInsights#readme")
+
+      await userEvent.click(screen.getByRole("button", { name: "Dismiss" }))
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+    })
+
+    it("shows the failure reason when launch fails", async () => {
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+      mockInvoke({ kind: "failed", reason: "dashboard exited before it was ready (exit code 1)" })
+      render(<SideNav activeView="home" onViewChange={vi.fn()} plugins={[]} />)
+
+      await userEvent.click(screen.getByRole("button", { name: "Token Dashboard" }))
+
+      const alert = await screen.findByRole("alert")
+      expect(alert).toHaveTextContent("Token Dashboard failed to start: dashboard exited before it was ready (exit code 1)")
+      expect(screen.queryByRole("button", { name: "Install guide" })).not.toBeInTheDocument()
+      expect(consoleError).toHaveBeenCalled()
+    })
   })
 })

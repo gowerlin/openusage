@@ -1,5 +1,5 @@
-import { useCallback } from "react"
-import { CircleHelp, Settings } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { CircleHelp, LayoutDashboard, LoaderCircle, Settings } from "lucide-react"
 import { openUrl } from "@tauri-apps/plugin-opener"
 import { GITHUB_REPO } from "@/hooks/use-changelog"
 import { invoke } from "@tauri-apps/api/core"
@@ -28,6 +28,7 @@ function GaugeIcon({ className }: { className?: string }) {
   )
 }
 import { cn } from "@/lib/utils"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getRelativeLuminance } from "@/lib/color"
 import { useDarkMode } from "@/hooks/use-dark-mode"
 import { useI18n } from "@/hooks/use-i18n"
@@ -58,18 +59,22 @@ interface NavButtonProps {
   onContextMenu?: (e: React.MouseEvent) => void
   children: React.ReactNode
   "aria-label"?: string
+  title?: string
+  disabled?: boolean
 }
 
-function NavButton({ isActive, onClick, onContextMenu, children, "aria-label": ariaLabel }: NavButtonProps) {
+function NavButton({ isActive, onClick, onContextMenu, children, "aria-label": ariaLabel, title, disabled }: NavButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       onContextMenu={onContextMenu}
       aria-label={ariaLabel}
+      title={title}
+      disabled={disabled}
       className={cn(
         "relative flex items-center justify-center w-full p-2.5 transition-colors",
-        "hover:bg-accent",
+        "hover:bg-accent disabled:opacity-60",
         isActive
           ? "text-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-primary dark:before:bg-page-accent before:rounded-full"
           : "text-muted-foreground"
@@ -138,6 +143,109 @@ function SortableNavPlugin({ plugin, isActive, isDark, onClick, onContextMenu }:
         />
       </NavButton>
     </div>
+  )
+}
+
+const TOKEN_DASHBOARD_README_URL = "https://github.com/doggy8088/TokenUsageInsights#readme"
+
+type TokenDashboardLaunchResult =
+  | { kind: "opened" }
+  | { kind: "started" }
+  | { kind: "notInstalled"; hint: string }
+  | { kind: "failed"; reason: string }
+
+interface TokenDashboardStatus {
+  running: boolean
+  managed: boolean
+}
+
+function TokenDashboardButton() {
+  const { t } = useI18n()
+  const [launching, setLaunching] = useState(false)
+  const [running, setRunning] = useState(false)
+  const [error, setError] = useState<{ message: string; showInstallGuide: boolean } | null>(null)
+
+  const refreshStatus = useCallback(() => {
+    invoke<TokenDashboardStatus>("token_dashboard_status")
+      .then((status) => setRunning(Boolean(status?.running)))
+      .catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    refreshStatus()
+    window.addEventListener("focus", refreshStatus)
+    return () => window.removeEventListener("focus", refreshStatus)
+  }, [refreshStatus])
+
+  const handleClick = async () => {
+    setLaunching(true)
+    setError(null)
+    try {
+      const result = await invoke<TokenDashboardLaunchResult>("launch_token_dashboard")
+      if (result.kind === "opened" || result.kind === "started") {
+        setRunning(true)
+        invoke("hide_panel").catch(console.error)
+      } else if (result.kind === "notInstalled") {
+        console.error("Token dashboard not installed:", result.hint)
+        setError({ message: t("nav.tokenDashboard.notInstalled"), showInstallGuide: true })
+      } else {
+        console.error("Token dashboard failed:", result.reason)
+        setError({ message: `${t("nav.tokenDashboard.failed")} ${result.reason}`, showInstallGuide: false })
+      }
+    } catch (err) {
+      console.error("Token dashboard launch error:", err)
+      setError({ message: `${t("nav.tokenDashboard.failed")} ${String(err)}`, showInstallGuide: false })
+    } finally {
+      setLaunching(false)
+      refreshStatus()
+    }
+  }
+
+  const label = running ? t("nav.tokenDashboard.running") : t("nav.tokenDashboard")
+
+  return (
+    <>
+      <NavButton
+        isActive={false}
+        onClick={() => void handleClick()}
+        aria-label={t("nav.tokenDashboard")}
+        title={label}
+        disabled={launching}
+      >
+        {launching ? (
+          <LoaderCircle className="size-6 animate-spin" aria-hidden="true" />
+        ) : (
+          <LayoutDashboard className="size-6" aria-hidden="true" />
+        )}
+        {running && !launching && (
+          <span
+            data-testid="token-dashboard-running"
+            className="absolute top-1.5 right-2 size-2 rounded-full bg-primary dark:bg-page-accent"
+          />
+        )}
+      </NavButton>
+      {error && (
+        <Alert variant="destructive" className="absolute bottom-2 left-14 w-64 z-50 p-3 bg-background shadow-lg">
+          <AlertDescription className="text-xs">
+            <p>{error.message}</p>
+            <div className="mt-2 flex gap-3">
+              {error.showInstallGuide && (
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => openUrl(TOKEN_DASHBOARD_README_URL).catch(console.error)}
+                >
+                  {t("nav.tokenDashboard.installGuide")}
+                </button>
+              )}
+              <button type="button" className="underline" onClick={() => setError(null)}>
+                {t("nav.tokenDashboard.dismiss")}
+              </button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+    </>
   )
 }
 
@@ -218,7 +326,7 @@ export function SideNav({
   )
 
   return (
-    <nav className="flex flex-col w-12 border-r bg-muted/50 dark:bg-card py-3">
+    <nav className="relative flex flex-col w-12 border-r bg-muted/50 dark:bg-card py-3">
       {/* Home */}
       <NavButton
         isActive={activeView === "home"}
@@ -252,6 +360,9 @@ export function SideNav({
           </SortableContext>
         </DndContext>
       </div>
+
+      {/* Token dashboard (TokenUsageInsights) */}
+      <TokenDashboardButton />
 
       {/* Help */}
       <NavButton

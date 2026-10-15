@@ -137,7 +137,7 @@ fn hide_background_command_window(command: &mut std::process::Command) {
     }
 }
 
-fn background_command<S: AsRef<OsStr>>(program: S) -> std::process::Command {
+pub(crate) fn background_command<S: AsRef<OsStr>>(program: S) -> std::process::Command {
     let mut command = Command::new(program);
     hide_background_command_window(&mut command);
     command
@@ -1770,7 +1770,7 @@ impl Drop for CcusageQueryGuard {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-enum CcusageRunnerKind {
+pub(crate) enum CcusageRunnerKind {
     Bunx,
     PnpmDlx,
     YarnDlx,
@@ -2011,7 +2011,7 @@ fn ccusage_enriched_path_with(
     std::env::join_paths(entries).ok()
 }
 
-fn ccusage_enriched_path() -> Option<OsString> {
+pub(crate) fn ccusage_enriched_path() -> Option<OsString> {
     let home = dirs::home_dir();
     let existing_path = std::env::var_os("PATH");
     ccusage_enriched_path_with(home.as_deref(), existing_path.as_deref())
@@ -2084,7 +2084,7 @@ fn configure_ccusage_command(
     }
 }
 
-fn resolve_ccusage_runner_binary(kind: CcusageRunnerKind) -> Option<String> {
+pub(crate) fn resolve_ccusage_runner_binary(kind: CcusageRunnerKind) -> Option<String> {
     let path = ccusage_enriched_path();
     for candidate in ccusage_runner_candidates(kind) {
         if ccusage_runner_available(kind, &candidate, path.as_deref()) {
@@ -2261,7 +2261,7 @@ enum CcusageRunnerResult {
 }
 
 #[cfg(unix)]
-fn kill_ccusage_process_group(child_id: u32) -> std::io::Result<()> {
+pub(crate) fn kill_ccusage_process_group(child_id: u32) -> std::io::Result<()> {
     let pgid = i32::try_from(child_id)
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid child pid"))?;
     let rc = unsafe { libc::kill(-pgid, libc::SIGKILL) };
@@ -2280,11 +2280,11 @@ fn kill_ccusage_process_group(child_id: u32) -> std::io::Result<()> {
 /// (`npx.cmd` -> `cmd.exe` -> `node` -> ...); child processes join the job by default.
 /// Closing the last handle (drop) ends anything still in the job.
 #[cfg(windows)]
-struct CcusageJob(windows::Win32::Foundation::HANDLE);
+pub(crate) struct CcusageJob(windows::Win32::Foundation::HANDLE);
 
 #[cfg(windows)]
 impl CcusageJob {
-    fn assign(child: &std::process::Child) -> windows::core::Result<Self> {
+    pub(crate) fn assign(child: &std::process::Child) -> windows::core::Result<Self> {
         use std::os::windows::io::AsRawHandle;
         use windows::Win32::Foundation::HANDLE;
         use windows::Win32::System::JobObjects::{
@@ -2309,12 +2309,19 @@ impl CcusageJob {
         }
     }
 
-    fn terminate(&self) -> std::io::Result<()> {
+    pub(crate) fn terminate(&self) -> std::io::Result<()> {
         // SAFETY: handle stays valid until drop.
         unsafe { windows::Win32::System::JobObjects::TerminateJobObject(self.0, 1) }
             .map_err(std::io::Error::from)
     }
 }
+
+// SAFETY: a job handle is a kernel object handle, usable from any thread; we only
+// terminate/close it. Needed to keep the token dashboard job in Tauri app state.
+#[cfg(windows)]
+unsafe impl Send for CcusageJob {}
+#[cfg(windows)]
+unsafe impl Sync for CcusageJob {}
 
 #[cfg(windows)]
 impl Drop for CcusageJob {
@@ -2328,11 +2335,11 @@ impl Drop for CcusageJob {
 
 /// Unix kills the process group set in `configure_ccusage_command`; no job needed.
 #[cfg(not(windows))]
-struct CcusageJob;
+pub(crate) struct CcusageJob;
 
 #[cfg(not(windows))]
 impl CcusageJob {
-    fn assign(_child: &std::process::Child) -> std::io::Result<Self> {
+    pub(crate) fn assign(_child: &std::process::Child) -> std::io::Result<Self> {
         Ok(Self)
     }
 }

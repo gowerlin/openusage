@@ -9,6 +9,7 @@ mod panel_blur;
 mod panel_hit_test;
 mod panel_position;
 mod plugin_engine;
+mod token_dashboard;
 mod tray;
 #[cfg(target_os = "macos")]
 mod webkit_config;
@@ -556,6 +557,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_process::init())
+        .manage(token_dashboard::TokenDashboard::default())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .on_window_event(|window, event| {
@@ -572,7 +574,9 @@ pub fn run() {
             start_probe_batch,
             list_plugins,
             get_log_path,
-            update_global_shortcut
+            update_global_shortcut,
+            token_dashboard::launch_token_dashboard,
+            token_dashboard::token_dashboard_status
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -664,9 +668,10 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_, event| match event {
+        .run(|app_handle, event| match event {
             tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
                 local_http_api::flush_cache();
+                token_dashboard::shutdown(app_handle);
             }
             _ => {}
         });
