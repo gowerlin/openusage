@@ -1,14 +1,14 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 12:49 (UTC+8)
+> 最後更新：2026-10-15 12:53 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.27` 已發行（Publish run `38679801301` success，tag `v0.6.27` → `016db27`）；NSIS installer、`.sig`、`latest.json`（version `0.6.27`，URL 指向 fork）、繁中發行說明、GitHub API body 已驗證。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 已 YOLO 派發；前一張 DONE 才派下一張，非 DONE 停下問使用者。
+5. PLAN-004：串接 T0038 merge+i18n → T0039 Devin Windows → T0040 Windows smoke+NSIS → T0041 發行 `v0.6.29`（D071）。T0038 DONE（merge `996aff28` / 去橫幅 `ea22c261` / i18n `c4ea9006`）；T0039 DONE（`21899655`）；T0040 已 YOLO 派發到 BAT terminal `b149b8596980935407945089579f0972`；前一張 DONE 才派下一張，非 DONE 停下問使用者。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -112,7 +112,7 @@
 | 工單 | T0041 |
 | BUG | BUG-005 |
 | PLAN | PLAN-004 |
-| 決策 | D072 |
+| 決策 | D073 |
 
 ---
 
@@ -142,8 +142,8 @@
 | In-app changelog source | BUG-005 / T0034 | ✅ CLOSED | 無 | 使用者 `v0.6.27` 實測通過 |
 | Upstream sync research | PLAN-004 / T0037 | ✅ DONE | 無 | 方案 A 已核准 |
 | Merge tauri-legacy + i18n | PLAN-004 / T0038 | ✅ DONE | 無 | 本機 main，未 push |
-| Devin Windows behavior | PLAN-004 / T0039 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Windows smoke + NSIS 0.6.29 | PLAN-004 / T0040 | 📋 PENDING | depends_on T0038/T0039 | 自動串接 |
+| Devin Windows behavior | PLAN-004 / T0039 | ✅ DONE | 無 | 本機 main，未 push |
+| Windows smoke + NSIS 0.6.29 | PLAN-004 / T0040 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Release v0.6.29 | PLAN-004 / T0041 | 📋 PENDING | depends_on T0038–T0040 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
@@ -224,6 +224,7 @@
 - D070：接受 T0037 DONE（`ec2d6491`）。結論：`tauri-legacy` 可 merge，17 衝突皆小 hunk，暫存 worktree 試合併全綠（cargo test 137 / vitest 1156）。使用者於 T0037 互動決定保留 Gemini、版號 `0.6.29`。PLAN-004 預查清單漏列 `src/lib/settings.test.ts`（塔台疏漏，已由報告更正）。重要風險：保留 Gemini 需手動還原 3 個被靜默刪除的檔；`AGENTS.md`/`CLAUDE.md` 需 `--ours`；本機有上游 `v0.6.28`/`v0.7.*` tag，`git push --tags` 會外洩並可能污染 fork Latest release。
 - D071：使用者同意方案 A、全程串接到發行、v0.7.x 移植延到 v0.6.29 發行後逐項開單。塔台已設 `remote.upstream.tagOpt --no-tags`，並經使用者同意刪除本機 63 個上游專屬 tag（`v0.6.28` + 62 個 `v0.7.*`；未動遠端）。另有 36 個舊上游 tag（`v0.0.1`–`v0.6.23` 等，多在共用歷史）未在授權範圍，保留；T0041 明令禁止 `git push --tags`。建立 T0038–T0041，直接在本機 `main` 操作，T0041 才 push。
 - D072：接受 T0038 DONE；塔台抽查版號 0.6.29、merge 第二 parent `0a08306d`、AGENTS/CLAUDE 無 diff、Gemini 保留、Windsurf 移除、無 retirement 殘留、無 release-tauri、updater/changelog 指向 fork。接受偏差：`settings.test.ts` 改逐 hunk 解（保留上游非衝突測試）、`cargo fmt` 套到 4 個上游未格式化檔、`use-tray-icon.ts` 傳 language。遺留：語言切換後 tray tooltip 需等下次更新才換語言（低）。依 D071 派發 T0039。
+- D073：接受 T0039 DONE（`21899655`）。方案 A：依官方 Devin docs，Windows 讀 `%APPDATA%/devin/credentials.toml`、跳過 sqlite，無憑證時顯示明確提示；redaction 稽核補 1 測試。未 runtime 驗證（本機無 Devin 憑證）。後續候選（不阻塞 PLAN-004）：`host_api.rs` 路徑 redaction 只遮 Unix `/Users/...`，Windows `C:/Users/...` 形式未遮（隱私，建議 v0.6.29 後開 BUG）；`docs/providers/devin.md` 補 Windows 路徑。依 D071 派發 T0040。
 
 ---
 
@@ -236,6 +237,7 @@
 - BUG-004：CLOSED；使用者安裝 `v0.6.26` 實測通過。
 - BUG-005：CLOSED；使用者 `v0.6.27` 實測通過。about-dialog / side-nav 由 T0035 處理。
 - 無 Windows release 阻塞待辦。
+- 後續候選（D073）：host_api Windows 路徑 redaction 缺口（BUG 候選）；`docs/providers/devin.md` Windows 路徑；tray tooltip 語言切換延遲（D072，低）。
 - PLAN / BUG 追蹤已啟用；EXP 追蹤尚未啟用。
 
 ---
