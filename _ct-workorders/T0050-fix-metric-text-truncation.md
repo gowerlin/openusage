@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0050
 title: Show full text metric values in provider detail
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: bugfix
 bug_id: BUG-014
 plan_id: PLAN-005
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:24:04+08:00"
+updated_at: "2026-10-15T15:26:13+08:00"
 started_at: "2026-10-15T15:24:04+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T15:26:13+08:00"
+commit: 439a9d81
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -56,7 +56,7 @@ BUG-014：Claude 詳細頁「昨天 $213.36 · 597M toke…」被截斷。`provi
 
 ### 狀態
 
-DONE（2026-10-15T15:25:53+08:00）
+DONE（2026-10-15T15:26:13+08:00）
 
 ### 落點檢查
 
@@ -64,7 +64,7 @@ WARN — C-0：frontmatter `repo` = absent，`basename(REPO_ROOT)` = `openusage`
 
 ### Commit
 
-`fix(ui): show full text metric values (T0050)`（hash 見 frontmatter `commit`）。未 push / tag / 發行。
+`fix(ui): show full text metric values (T0050)``439a9d81`。未 push / tag / 發行。
 
 ### 改動
 
