@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0065
 title: Grok - follow upstream credits single path and show Weekly on overview
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: feature
 bug_id: null
 plan_id: PLAN-006
 created_at: "2026-10-15T16:52:40+08:00"
-updated_at: "2026-10-15T17:16:02+08:00"
+updated_at: "2026-10-15T17:20:45+08:00"
 started_at: "2026-10-15T17:16:02+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T17:20:45+08:00"
+commit: 1f2a2812
 agent: default
 intervention_type: fire-and-forget
 depends_on:
