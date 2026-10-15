@@ -3,16 +3,16 @@ schema_version: 1
 schema_kind: workorder
 id: T0036
 title: Bump version and publish GitHub release v0.6.27
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 type: release
 bug_id: BUG-005
 plan_id: null
 created_at: "2026-10-15T12:05:34+08:00"
-updated_at: "2026-10-15T12:06:23+08:00"
+updated_at: "2026-10-15T12:17:08+08:00"
 started_at: "2026-10-15T12:06:23+08:00"
-completed_at: null
-commit: null
+completed_at: "2026-10-15T12:17:08+08:00"
+commit: 016db27
 agent: default
 intervention_type: fire-and-forget
 depends_on:
@@ -113,3 +113,54 @@ affects_files:
 - `bun run test --run`：PASS — 64 files / 1139 tests passed
 - `bun run build`：PASS（僅 chunk size >500 kB 既有警告）
 
+### 結果摘要
+
+- 狀態：**DONE**
+- Bump commit：`016db27`（`016db2718cecabd4a8d50ecd28b6580b26113db0`）`chore: bump version to 0.6.27`
+- `git push origin main`：`c181e27..016db27`（含 T0034 / T0035 / 塔台 commit）
+- Tag：annotated `v0.6.27` → `016db27`，已 push（沿用 `v0.6.26` annotated 慣例）
+- Publish run：`38679801301` — **success**（`publish (windows-latest, ... nsis, x86_64-pc-windows-msvc): success`）
+- Release：https://github.com/gowerlin/openusage/releases/tag/v0.6.27 — `draft=false`、`prerelease=false`
+- Assets：`OpenUsage_0.6.27_x64-setup.exe`、`OpenUsage_0.6.27_x64-setup.exe.sig`、`latest.json`
+- `latest.json`：`version` = `0.6.27`；`windows-x86_64` / `windows-x86_64-nsis` URL = `https://github.com/gowerlin/openusage/releases/download/v0.6.27/OpenUsage_0.6.27_x64-setup.exe`
+- 發行說明：`gh release edit v0.6.27 -R gowerlin/openusage --notes-file ...` 寫入；`gh release view` body 與檔案比對一致 ✅
+- BUG-005 額外驗證：`curl -s https://api.github.com/repos/gowerlin/openusage/releases/tags/v0.6.27` 的 `body` 與寫入內容一致 ✅
+
+### 驗證 Gate
+
+| Gate | 結果 |
+|---|---|
+| 版本四檔一致 `0.6.27` | PASS |
+| fmt / cargo test / bun test / build | PASS |
+| Publish run 成功（`38679801301`） | PASS |
+| release assets + `latest.json` | PASS |
+| release body 已寫入，GitHub API body 一致 | PASS |
+
+### 發行說明全文
+
+```markdown
+本版重點：App 內「變更紀錄」改顯示本 fork 的發行說明；「關於」頁的 GitHub 連結、維護者與側邊欄說明（❓）改指向 gowerlin/openusage，並保留原作者 Robin Ebers 署名（BUG-005 / T0034 / T0035）。
+
+### Bug Fixes
+- App 內「變更紀錄」改讀取本 fork（gowerlin/openusage）的發行說明，PR / commit / Releases 連結也改指向 fork；先前因上游有同名 tag 而顯示上游內容（BUG-005 / T0034，[a6c52aa](https://github.com/gowerlin/openusage/commit/a6c52aa555bbf5e2e0badf26f388578271aab4e1)）
+- 「關於」頁的 GitHub 連結改指向 fork、維護者列為 gowerlin，並保留原作者 Robin Ebers 署名；側邊欄說明（❓）改開啟 fork 的 issues（BUG-005 / T0035，[353c412](https://github.com/gowerlin/openusage/commit/353c4125bcd170babd15003323686f81a6c7dd61)）
+
+### Chores
+- 版本號更新為 0.6.27（T0036，[016db27](https://github.com/gowerlin/openusage/commit/016db2718cecabd4a8d50ecd28b6580b26113db0)）
+
+**Full Changelog**: [v0.6.26...v0.6.27](https://github.com/gowerlin/openusage/compare/v0.6.26...v0.6.27)
+```
+
+### 變更檔案
+
+- `package.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock`、`src-tauri/tauri.conf.json`、本工單
+
+### 偏差 / 備註
+
+- `vswhere -latest` 未加 `-requires` 時選到 SSMS 22 路徑，`VsDevCmd.bat` 找不到；改用 `-requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64`（→ VS 18 Enterprise）後 `cargo test --lib` PASS。未改任何產品碼。
+- 工單收尾 metadata 另以本地 commit 記錄，**未 push**（授權範圍的 push 已於 bump 時完成；收尾 commit 留待下次一併推送）。
+- 無 force-push、無移動 / 刪除 tag 或 release。
+
+### 阻塞
+
+- 無
