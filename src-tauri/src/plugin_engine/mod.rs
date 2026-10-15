@@ -50,6 +50,14 @@ fn is_retired_bundled_plugin_id(id: &str) -> bool {
 
 fn find_dev_plugins_dir() -> Option<PathBuf> {
     let cwd = std::env::current_dir().ok()?;
+    dev_plugins_dir(cfg!(debug_assertions), &cwd)
+}
+
+/// cwd `plugins/` is a dev-only override; release builds must never load plugins from cwd.
+fn dev_plugins_dir(is_debug: bool, cwd: &Path) -> Option<PathBuf> {
+    if !is_debug {
+        return None;
+    }
     let direct = cwd.join("plugins");
     if direct.exists() {
         return Some(direct);
@@ -301,5 +309,33 @@ mod tests {
 
         assert!(mismatched_dir.exists());
         assert!(plugins.is_empty());
+    }
+
+    #[test]
+    fn dev_plugins_dir_ignores_cwd_plugins_in_release() {
+        let root = TempDir::new("dev-release");
+        let cwd = root.path().join("src-tauri");
+        write_plugin(&root.path().join("plugins"), "mock", "Mock");
+        write_plugin(&cwd.join("plugins"), "mock", "Mock");
+
+        assert_eq!(dev_plugins_dir(false, &cwd), None);
+        assert_eq!(dev_plugins_dir(false, root.path()), None);
+    }
+
+    #[test]
+    fn dev_plugins_dir_finds_cwd_or_parent_plugins_in_debug() {
+        let root = TempDir::new("dev-debug");
+        let cwd = root.path().join("src-tauri");
+        fs::create_dir_all(&cwd).expect("create cwd");
+        write_plugin(&root.path().join("plugins"), "mock", "Mock");
+
+        assert_eq!(
+            dev_plugins_dir(true, root.path()),
+            Some(root.path().join("plugins"))
+        );
+        assert_eq!(
+            dev_plugins_dir(true, &cwd),
+            Some(cwd.join("..").join("plugins"))
+        );
     }
 }
