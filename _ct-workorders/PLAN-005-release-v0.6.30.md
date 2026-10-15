@@ -3,12 +3,12 @@ schema_version: 1
 schema_kind: plan
 id: PLAN-005
 title: v0.6.30 Windows panel polish
-status: IN_PROGRESS
+status: DONE
 priority: Medium
 plan_type: maintenance
 created_at: "2026-10-15T15:22:35+08:00"
-updated_at: "2026-10-15T15:22:35+08:00"
-completed_at: null
+updated_at: "2026-10-15T16:23:35+08:00"
+completed_at: "2026-10-15T16:23:35+08:00"
 affects_files: []
 depends_on:
   - PLAN-004
@@ -31,3 +31,4 @@ depends_on:
 ## 進度
 
 - 2026-10-15：建立 T0050–T0054，派發 T0050。
+- 2026-10-15：T0050–T0054 完成，`v0.6.30` 發行（run `38703798990`，tag → `49754c2f`，Latest）。BUG-013/014/015 FIXED，待使用者與 BUG-006–012 一併安裝實測。BUG-016 留 v0.6.31 候選。
