@@ -6,8 +6,8 @@ title: Long text metric values are truncated in provider detail
 status: OPEN
 severity: Low
 created_at: "2026-10-15T14:53:32+08:00"
-updated_at: "2026-10-15T14:53:32+08:00"
-related_workorder: null
+updated_at: "2026-10-15T15:22:35+08:00"
+related_workorder: T0050
 target_version: "0.6.30"
 affects_files:
   - src/components/provider-card-metric-line.tsx

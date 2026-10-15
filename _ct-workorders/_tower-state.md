@@ -1,14 +1,15 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 15:13 (UTC+8)
+> 最後更新：2026-10-15 15:22 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.29` 已發行（Publish run `38695730149` success，tag `v0.6.29` → `5a93b5a1`，Latest）；installer / `.sig` / `latest.json`（0.6.29，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.29`。
 2. BUG-001 ~ BUG-005：使用者安裝測試皆驗收通過，全部 CLOSED。
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
-5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者安裝 `v0.6.29` 實測 BUG-006–012 後 CLOSED；BUG-013–015 排 v0.6.30；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
+5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者安裝 `v0.6.29` 實測 BUG-006–012 後 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
+6. PLAN-005（v0.6.30）：T0050 BUG-014 → T0051 BUG-015 → T0052 BUG-013 → T0053 smoke+NSIS → T0054 bump+發行（D085）；T0050 已 YOLO 派發。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -109,10 +110,10 @@
 
 | 類型 | 最大編號 |
 |------|---------|
-| 工單 | T0049 |
+| 工單 | T0054 |
 | BUG | BUG-015 |
-| PLAN | PLAN-004 |
-| 決策 | D084 |
+| PLAN | PLAN-005 |
+| 決策 | D085 |
 
 ---
 
@@ -153,7 +154,11 @@
 | cwd plugins debug-only | BUG-012 / T0049 | ✅ DONE | 無 | BUG-012 FIXED |
 | Windows re-smoke 0.6.29 | PLAN-004 / T0044 | ✅ DONE | 無 | 26 項 PASS |
 | Release v0.6.29 | PLAN-004 / T0041 | ✅ DONE | 無 | run `38695730149`；Latest |
-| v0.6.30 候選 | BUG-013/014/015 | 📋 OPEN | 無 | v0.6.29 發行後排單 |
+| Metric value truncation | BUG-014 / T0050 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
+| Panel within work area | BUG-015 / T0051 | 📋 PENDING | depends_on T0050 | 自動串接 |
+| Blur on WM_NCACTIVATE(0) | BUG-013 / T0052 | 📋 PENDING | depends_on T0051 | 自動串接 |
+| Windows smoke 0.6.30 | PLAN-005 / T0053 | 📋 PENDING | depends_on T0050–T0052 | 自動串接 |
+| Release v0.6.30 | PLAN-005 / T0054 | 📋 PENDING | depends_on T0053 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
 
@@ -245,6 +250,7 @@
 - D082：接受 T0049 DONE（`1f9dd835`）；BUG-012 FIXED。接受偏差：`settings.json` 被改寫是 0.6.29 windsurf 退役遷移（非 cwd），已還原 SHA 一致；`bun tauri dev` 只測試層覆蓋。BUG 全部非 Open（Fixed 7 / Closed 2）。依 D076 派發 T0044 re-smoke。
 - D083：接受 T0044 DONE（`73337e38`）：installer 內容（7-Zip 解出，未執行安裝避免寫 HKCU）smoke 26 項全 PASS。Worker 4 項觀察（blur 一次漏收不可重現、數值截斷、Settings 超出工作區、新 exe tray 在溢位區）皆非退步；使用者決定現在發 v0.6.29，①②③ 登記 BUG-013/014/015 排 v0.6.30，④ 為 Windows 行為不修。T0044 副作用：剪貼簿內容被 sentinel 覆蓋（不可還原）；使用者同意 Worker 控制滑鼠。派發 T0041。
 - D084：接受 T0041 DONE；塔台以 `-R gowerlin/openusage` 獨立複驗 release（非 draft / 非 pre、3 assets、`latest.json` 0.6.29 指向 fork、Latest = v0.6.29、run success @ `5a93b5a1`、fork tag 只多 v0.6.29，無上游 tag 外洩）。push 前隱私掃描 PASS（email / 帳號 ID 僅上游既有 redaction 測試資料）。PLAN-004 → DONE。後續：README 補 Perplexity / Synthetic（既有缺口）；publish.yml Node 20 deprecated 警告（actions/checkout@v4、ilammy/msvc-dev-cmd@v1）可擇期升級。
+- D085：使用者要求處理待辦 1（push）與 2（v0.6.30）。塔台已 push `5a93b5a1..e9ad43c4`（僅 `_ct-workorders/`，無 tag）。建立 PLAN-005 + T0050–T0054，串接到發行 v0.6.30（沿用使用者先前「修完 → 發行」模式；版號 0.6.30 依既有遞增）。BUG-015 塔台預查：`use-panel.ts:228` 高度上限用整個螢幕高度，未扣工作列與面板 top。T0052 涉及 BUG-001 subclass，不得改 `WM_NCACTIVATE` return 行為。
 
 ---
 
