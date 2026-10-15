@@ -1,7 +1,7 @@
 # 塔台狀態快照 _tower-state.md
 
 ## 🌅 起手式（Quick Recovery）
-> 最後更新：2026-10-15 15:33 (UTC+8)
+> 最後更新：2026-10-15 15:56 (UTC+8)
 
 ### 立即待辦
 1. Release：`v0.6.29` 已發行（Publish run `38695730149` success，tag `v0.6.29` → `5a93b5a1`，Latest）；installer / `.sig` / `latest.json`（0.6.29，指向 fork）/ 繁中發行說明已由塔台獨立複驗；fork tag 只多 `v0.6.29`。
@@ -9,7 +9,7 @@
 3. PLAN-001 / PLAN-002 / PLAN-003：全部 DONE；Windows release、i18n 繁中、macaron themes 都已完成驗收。
 4. 工單 T0001-T0037：全部 DONE。
 5. PLAN-004 DONE（同步上游 tauri-legacy + Windows 修正 BUG-006–012）。待辦：使用者決定 BUG-006–012 於 `v0.6.30` 發行後與 BUG-013–015 一併安裝實測再 CLOSED；BUG-013–015 由 PLAN-005 處理；v0.7.x 移植候選待使用者逐項開單；README 缺 Perplexity / Synthetic（既有，小單候選）。
-6. PLAN-005（v0.6.30）：T0050 BUG-014 → T0051 BUG-015 → T0052 BUG-013 → T0053 smoke+NSIS → T0054 bump+發行（D085）；T0050 DONE（`439a9d81`）；T0051 DONE（`6b1ed40b`）；T0052 已 YOLO 派發。
+6. PLAN-005（v0.6.30）：T0050 BUG-014 → T0051 BUG-015 → T0052 BUG-013 → T0053 smoke+NSIS → T0054 bump+發行（D085）；T0050 DONE（`439a9d81`）；T0051 DONE（`6b1ed40b`）；T0052 DONE（`585a34d1`）；T0053 已 YOLO 派發。
 
 ### 近期完成摘要
 - 2026-05-23：Control Tower v5.0.1 首次啟動，建立 `_ct-workorders/` 與本狀態快照。
@@ -113,7 +113,7 @@
 | 工單 | T0054 |
 | BUG | BUG-015 |
 | PLAN | PLAN-005 |
-| 決策 | D088 |
+| 決策 | D089 |
 
 ---
 
@@ -156,8 +156,8 @@
 | Release v0.6.29 | PLAN-004 / T0041 | ✅ DONE | 無 | run `38695730149`；Latest |
 | Metric value truncation | BUG-014 / T0050 | ✅ DONE | 無 | BUG-014 FIXED |
 | Panel within work area | BUG-015 / T0051 | ✅ DONE | 無 | BUG-015 FIXED |
-| Blur on WM_NCACTIVATE(0) | BUG-013 / T0052 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
-| Windows smoke 0.6.30 | PLAN-005 / T0053 | 📋 PENDING | depends_on T0050–T0052 | 自動串接 |
+| Blur on WM_NCACTIVATE(0) | BUG-013 / T0052 | ✅ DONE | 無 | BUG-013 FIXED |
+| Windows smoke 0.6.30 | PLAN-005 / T0053 | 🔄 DISPATCHED | 無 | 等 Worker 回報 |
 | Release v0.6.30 | PLAN-005 / T0054 | 📋 PENDING | depends_on T0053 | 自動串接 |
 | Release v0.6.27 | T0036 | ✅ DONE | 無 | run `38679801301`；release verified |
 | Release v0.6.26 | T0033 | ✅ DONE | 無 | run `38675818087`；release verified |
@@ -254,6 +254,7 @@
 - D086：使用者決定 BUG-006–012 的安裝實測延到 `v0.6.30` 發行後，與 BUG-013–015 一起確認。
 - D087：接受 T0050 DONE（`439a9d81`）；BUG-014 FIXED（只改 value 上限 45%→70%，label 原本即先讓位）。寬度以 browser dev 量測，實機留給 T0053。派發 T0051。
 - D088：接受 T0051 DONE（`6b1ed40b`）；BUG-015 FIXED。接受偏差：改 `affects_files` 外的 `panel_position.rs`（y=216 根因寫入點）；前端 workArea 上限 macOS 共用（僅壓到 Dock 時生效，同屬此 bug，macOS 未實測）；Tauri 無拖曳結束事件改為「非程式 Moved 都存」。T0051 以預寫位置代替拖曳 → T0053 補真實拖曳驗證。不排單：低位置切高頁面改「上移再長高」（建議項，使用者未要求）。派發 T0052。
+- D089：接受 T0052 DONE（`585a34d1`）；BUG-013 FIXED（實機 23 次「只有 NCACTIVATE(0)」皆收起；BUG-001 不退步）。Worker 回報「使用者已同意控制滑鼠」但回報區無互動紀錄 → 向使用者確認。Worker 暫時最小化使用者 BAT / Chrome（已還原）、測後輸入法變英文模式（未還原，告知使用者）。不排單：`panel lost focus` 升 info（建議項）、`panel_hit_test.rs` 903 行超過 400（BUG-001 高風險區，不在此時拆）。派發 T0053。
 
 ---
 
